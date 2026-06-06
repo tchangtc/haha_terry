@@ -13,15 +13,144 @@ If layer N brings context below threshold, skip layers N+1..4.
 from __future__ import annotations
 
 import hashlib
-import json
 from pathlib import Path
 from typing import Any
 
 from .text_utils import extract_text
 
+# ── tiktoken integration (optional) ─────────────────────────────
+
+try:
+    import tiktoken
+
+    _TIKTOKEN_AVAILABLE = True
+except ImportError:
+    _TIKTOKEN_AVAILABLE = False
+
+# Model name → tiktoken encoding name mapping
+_MODEL_ENCODING_MAP: dict[str, str] = {
+    # Anthropic Claude models
+    "claude-sonnet-4": "claude",
+    "claude-3-5-sonnet": "claude",
+    "claude-3-opus": "claude",
+    "claude-3-haiku": "claude",
+    "claude-3-sonnet": "claude",
+    # OpenAI models
+    "gpt-4o": "o200k_base",
+    "gpt-4-turbo": "cl100k_base",
+    "gpt-4": "cl100k_base",
+    "gpt-3.5-turbo": "cl100k_base",
+    # DeepSeek models (use cl100k_base approximation)
+    "deepseek-chat": "cl100k_base",
+    "deepseek-reasoner": "cl100k_base",
+    # Qwen models
+    "qwen-plus": "cl100k_base",
+    "qwen-max": "cl100k_base",
+    "qwen-turbo": "cl100k_base",
+    # Zhipu GLM models
+    "glm-4-flash": "cl100k_base",
+    "glm-4-plus": "cl100k_base",
+    "glm-4-long": "cl100k_base",
+    # Ollama local models
+    "llama3": "cl100k_base",
+    "mistral": "cl100k_base",
+    "codellama": "cl100k_base",
+}
+
+# Known model context windows (max tokens)
+_MODEL_CONTEXT_WINDOWS: dict[str, int] = {
+    "claude-sonnet-4-20250514": 200_000,
+    "claude-3-5-sonnet-20241022": 200_000,
+    "claude-3-opus-20240229": 200_000,
+    "claude-3-haiku-20240307": 200_000,
+    "gpt-4o": 128_000,
+    "gpt-4o-mini": 128_000,
+    "o1": 200_000,
+    "gpt-4-turbo-preview": 128_000,
+    "gpt-4": 8_192,
+    "gpt-3.5-turbo": 16_384,
+    "deepseek-chat": 64_000,
+    "deepseek-reasoner": 64_000,
+    "qwen-plus": 131_072,
+    "qwen-max": 32_768,
+    "qwen-turbo": 1_000_000,
+    "glm-4-flash": 128_000,
+    "glm-4-plus": 128_000,
+    "glm-4-long": 1_000_000,
+}
+
+_encoding_cache: dict[str, Any] = {}
+
+
+def _get_encoding(model: str) -> Any | None:
+    """Get tiktoken encoding for a model, with caching."""
+    if not _TIKTOKEN_AVAILABLE:
+        return None
+
+    # Try exact match first
+    if model in _encoding_cache:
+        return _encoding_cache[model]
+
+    # Try prefix match
+    encoding_name = None
+    for prefix, enc in sorted(_MODEL_ENCODING_MAP.items(), key=lambda x: -len(x[0])):
+        if model.lower().startswith(prefix) or prefix in model.lower():
+            encoding_name = enc
+            break
+
+    if encoding_name is None:
+        encoding_name = "cl100k_base"  # Default fallback
+
+    try:
+        enc = tiktoken.get_encoding(encoding_name)
+    except Exception:
+        enc = tiktoken.get_encoding("cl100k_base")
+
+    _encoding_cache[model] = enc
+    return enc
+
+
+def get_token_count(text: str, model: str = "claude-sonnet-4-20250514") -> int:
+    """Get precise token count for text using tiktoken.
+
+    Args:
+        text: Text to count tokens for
+        model: Model name for encoding selection
+
+    Returns:
+        Token count (falls back to chars//4 if tiktoken unavailable)
+    """
+    enc = _get_encoding(model)
+    if enc is not None:
+        try:
+            return len(enc.encode(text))
+        except Exception:
+            pass
+    return len(text) // 4
+
+
+def get_model_context_window(provider: str, model: str) -> int:
+    """Get the context window size for a model.
+
+    Args:
+        provider: Provider name
+        model: Model name
+
+    Returns:
+        Context window in tokens (default 200000 if unknown)
+    """
+    # Exact match
+    if model in _MODEL_CONTEXT_WINDOWS:
+        return _MODEL_CONTEXT_WINDOWS[model]
+    # Prefix match
+    for prefix, window in sorted(_MODEL_CONTEXT_WINDOWS.items(), key=lambda x: -len(x[0])):
+        if model.startswith(prefix) or prefix in model:
+            return window
+    return 200_000  # Conservative default
+
 
 class ContextCompactor:
-    """4-layer progressive context compaction."""
+    """4-layer progressive context compaction with precise token counting."""
 
     def __init__(
         self,
@@ -29,10 +158,12 @@ class ContextCompactor:
         compression_threshold: float = 0.75,
         keep_recent: int = 10,
         budget_dir: Path | None = None,
+        model: str = "claude-sonnet-4-20250514",
     ):
         self.max_tokens = max_tokens
         self.compression_threshold = compression_threshold
         self.keep_recent = keep_recent
+        self.model = model
         self.budget_dir = budget_dir or Path.home() / ".terry" / "budget"
         self.budget_dir.mkdir(parents=True, exist_ok=True)
 
@@ -45,8 +176,40 @@ class ContextCompactor:
     # ── token estimation ──────────────────────────────────────────
 
     def estimate_tokens(self, messages: list[dict[str, Any]]) -> int:
-        """Rough token count: 1 token ≈ 4 characters."""
+        """Precise token count using tiktoken, with char-based fallback.
+
+        Uses the model's appropriate encoding for accurate counting.
+        Falls back to 1 token ≈ 4 characters if tiktoken is unavailable.
+        """
         total_chars = sum(len(str(msg.get("content", ""))) for msg in messages)
+
+        # Try tiktoken for a sample to estimate ratio, or count precisely
+        if _TIKTOKEN_AVAILABLE:
+            try:
+                # Sample-based estimation for performance on large message sets
+                sample_size = min(5, len(messages))
+                if sample_size > 0 and len(messages) > 10:
+                    sample_chars = sum(
+                        len(str(messages[i].get("content", "")))
+                        for i in range(sample_size)
+                    )
+                    sample_text = "\n".join(
+                        str(messages[i].get("content", ""))
+                        for i in range(sample_size)
+                    )
+                    sample_tokens = get_token_count(sample_text, self.model)
+                    ratio = sample_tokens / max(sample_chars, 1)
+                    return int(total_chars * ratio)
+                else:
+                    # For small message sets, count precisely
+                    full_text = "\n".join(
+                        str(msg.get("content", "")) for msg in messages
+                    )
+                    return get_token_count(full_text, self.model)
+            except Exception:
+                pass
+
+        # Fallback: 1 token ≈ 4 characters
         return total_chars // 4
 
     def needs_compaction(self, messages: list[dict[str, Any]]) -> bool:

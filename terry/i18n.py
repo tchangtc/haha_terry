@@ -9,7 +9,6 @@
 import json
 import os
 from pathlib import Path
-from typing import Dict, Optional
 
 
 class I18n:
@@ -18,7 +17,7 @@ class I18n:
     SUPPORTED_LANGUAGES = ['en', 'zh']
     DEFAULT_LANGUAGE = 'en'
 
-    def __init__(self, language: Optional[str] = None):
+    def __init__(self, language: str | None = None):
         """
         初始化国际化管理器
 
@@ -29,7 +28,7 @@ class I18n:
         if self.language not in self.SUPPORTED_LANGUAGES:
             self.language = self.DEFAULT_LANGUAGE
 
-        self._translations: Dict[str, Dict] = {}
+        self._translations: dict[str, dict] = {}
         self._load_translations()
 
     def _load_translations(self):
@@ -39,7 +38,7 @@ class I18n:
         for lang in self.SUPPORTED_LANGUAGES:
             lang_file = locale_dir / f'{lang}.json'
             if lang_file.exists():
-                with open(lang_file, 'r', encoding='utf-8') as f:
+                with open(lang_file, encoding='utf-8') as f:
                     self._translations[lang] = json.load(f)
 
     def t(self, key: str, **kwargs) -> str:
@@ -114,7 +113,7 @@ class I18n:
 
 
 # 全局 i18n 实例
-_i18n_instance: Optional[I18n] = None
+_i18n_instance: I18n | None = None
 
 
 def get_i18n() -> I18n:

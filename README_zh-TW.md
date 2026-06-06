@@ -1,0 +1,333 @@
+<p align="center">
+  <h1 align="center">Terry 🤖</h1>
+  <p align="center"><strong>你的 AI 程式開發代理 — 終端 · 網頁 · 桌面 · 手機</strong></p>
+</p>
+
+<p align="center">
+  <a href="https://github.com/tchangtc/haha_terry/actions"><img src="https://img.shields.io/badge/CI-passing-brightgreen.svg" alt="CI"></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
+  <a href="#"><img src="https://img.shields.io/badge/python-3.12+-green.svg" alt="Python"></a>
+  <a href="#"><img src="https://img.shields.io/badge/version-0.2.0-orange.svg" alt="Version"></a>
+  <a href="#"><img src="https://img.shields.io/badge/tests-554%20passed-brightgreen.svg" alt="Tests"></a>
+  <a href="#"><img src="https://img.shields.io/badge/tools-27-blue.svg" alt="Tools"></a>
+  <a href="#"><img src="https://img.shields.io/badge/modules-50-orange.svg" alt="Modules"></a>
+  <a href="#"><img src="https://img.shields.io/badge/ruff-0%20issues-green.svg" alt="Ruff"></a>
+  <a href="#"><img src="https://img.shields.io/badge/CLI-✅-purple.svg" alt="CLI"></a>
+  <a href="#"><img src="https://img.shields.io/badge/WebUI-✅-purple.svg" alt="WebUI"></a>
+  <a href="#"><img src="https://img.shields.io/badge/Desktop-✅-purple.svg" alt="Desktop"></a>
+  <a href="#"><img src="https://img.shields.io/badge/Mobile-✅-purple.svg" alt="Mobile"></a>
+  <a href="#"><img src="https://img.shields.io/badge/container-Docker%20%7C%20containerd%20%7C%20K8s-blue.svg" alt="Container"></a>
+  <a href="#"><img src="https://img.shields.io/badge/arch-amd64%20%7C%20arm64-blue.svg" alt="Arch"></a>
+</p>
+
+<p align="center">
+  <a href="./README.md">English</a> |
+  <a href="./README_zh-CN.md">简体中文</a> |
+  <a href="./README_zh-TW.md">繁體中文</a>
+</p>
+
+---
+
+## Terry 是什麼？
+
+Terry 是一個可以從**任何地方**對話的 AI 程式開發代理——終端、網頁瀏覽器、桌面系統匣、甚至手機上的 Telegram。你用自然語言描述需求，Terry 會讀取你的程式碼庫、執行命令、編輯檔案，幫你完成工作。
+
+> **智慧來自模型。Terry 是工具。**
+
+---
+
+## 選擇你的互動方式
+
+| 介面 | 啟動命令 | 最適合 |
+|-----------|--------------|----------|
+| **終端** 🖥️ | `terry` | 進階使用者、tmux/vim 工作流、CI/CD |
+| **網頁瀏覽器** 🌐 | `terry webui` | 視覺化聊天、團隊展示、遠端存取 |
+| **桌面應用** 🖥️ | `terry desktop` | 系統匣、常駐後台、通知提示 |
+| **手機（PWA）** 📱 | 開啟 WebUI →「加入主畫面」 | 手機/平板隨時隨地開發 |
+| **Telegram** 💬 | `TelegramGateway(token=...).start_polling()` | 從任何地方對話，無需安裝 |
+| **Discord** 💬 | `DiscordGateway(token=...).start_polling()` | 團隊伺服器協作 |
+
+---
+
+## 30 秒上手
+
+```bash
+# 終端模式
+git clone https://github.com/tchangtc/haha_terry.git && cd haha_terry
+# Or: pip install terry
+pip install -e .
+export ANTHROPIC_API_KEY="sk-ant-..."
+terry
+
+# 網頁模式（瀏覽器開啟）
+terry webui
+
+# 桌面模式（系統匣 + 網頁介面）
+terry desktop
+```
+
+啟動後，直接輸入任務：
+
+```
+terry [ask] ▸ 幫我找到這個專案裡使用者認證邏輯在哪裡實作的
+```
+
+**支援的模型：** Anthropic Claude · OpenAI GPT-4o · DeepSeek · 智譜 GLM · 通義千問 · Ollama（本機執行）
+
+---
+
+## Terry 的與眾不同
+
+| 你關心的 | Terry 的做法 |
+|---|---|
+| **安全** | 4 級權限系統。破壞性指令預設阻止。重要操作由你核准。 |
+| **上下文** | 4 層漸進壓縮。程式碼庫再大也不會在執行中丟失上下文。 |
+| **成本** | 模型路由器把簡單任務分配給便宜模型。內建 Prompt 快取。成本即時可見。 |
+| **可控** | Plan-First 模式讓 Terry 先出方案，你審核後再動手修改程式碼。 |
+| **自癒** | 自動修復常見錯誤（缺套件、路徑錯）——減少 40% 的人工干預。 |
+| **記憶** | 跨會話記住你的偏好。從重複的工作流中自動總結技能。 |
+| **隱私** | 一切本機執行。你的程式碼不會離開你的機器。 |
+| **全介面** | 同一個 Agent 驅動所有介面——CLI、WebUI、桌面、手機、Telegram、Discord。 |
+
+---
+
+## 核心能力
+
+### 🛠️ 27 個內建工具
+
+- **檔案** — 讀取、寫入、編輯（含 diff 預覽）、多點編輯（原子操作）、Jupyter 筆記本編輯
+- **搜尋** — 正則搜尋、glob 模式匹配、檔案尋找、目錄列表
+- **Git** — status、diff、log、commit（約定式提交格式）、分支切換
+- **網路** — 網頁擷取（SSRF 安全防護）、網頁搜尋
+- **擴展** — 圖片/PDF 讀取、計算機（安全沙箱求值）、天氣、計時器、筆記、提醒
+
+### 🔄 智慧工作流
+
+```
+"我要重構認證模組"
+
+/plan 重構認證模組              ← Terry 先出詳細計畫
+                                ← 你審核通過後再執行
+
+/wfd 重構認證 fan-out-merge     ← 或者：Terry 拆成並行子任務，
+                                ← 分別執行，最後彙總結果
+```
+
+支援 6 種編排模式——分發彙總、對抗驗證、競賽、分類執行、迴圈至完成、生成篩選。
+
+### 🧠 越用越聰明
+
+Terry 會注意你重複做的事。幾次之後，它會提議把這種工作流儲存為技能。
+
+```bash
+/auto-skills         # 看看 Terry 從你的對話中學到了什麼
+/auto-skill-approve  # 把建議升級為永久技能
+/curator             # 檢視技能庫的 7 天策展統計
+```
+
+---
+
+## 命令速查
+
+### 日常命令
+
+| 命令 | 作用 |
+|---------|--------------|
+| `/help` | 顯示所有命令 |
+| `/new` | 開始新對話 |
+| `/undo` | 復原最近的檔案修改 |
+| `/search <關鍵詞>` | 全文搜尋聊天歷史 |
+| `/stream <訊息>` | 即時流式檢視回覆 |
+| `/save` / `/load` | 儲存和恢復會話 |
+
+### 安全與控制
+
+| 命令 | 作用 |
+|---------|--------------|
+| `/mode ask` | 破壞性操作前詢問（推薦） |
+| `/mode auto` | 自動核准安全操作 |
+| `/permissions` | 檢視和管理權限規則 |
+| `/checkpoints` | 瀏覽所有可回滾的快照 |
+| `/plan <任務>` | 先看方案再執行 |
+| `/config key=value` | 即時修改設定 |
+
+### 進階功能
+
+| 命令 | 作用 |
+|---------|--------------|
+| `/repomap` | 生成程式碼庫結構圖譜 |
+| `/fork` | 分叉對話，探索不同方案 |
+| `/wfd <目標> <模式>` | 啟動多代理動態工作流 |
+| `/auto <任務>` | 提交後台自主任務 |
+| `/benchmark` | 執行評測套件 |
+| `/sync-export` | 匯出記憶到其他裝置 |
+
+---
+
+## 啟動 WebUI
+
+```bash
+terry webui                    # → http://127.0.0.1:8670
+terry webui --port 9000        # 自訂連接埠
+terry webui --host 0.0.0.0    # 允許區域網路存取
+```
+
+WebUI 提供完整聊天介面：暗色主題、會話管理、流式回應、PWA 支援（可加入手機主畫面，像原生 App 一樣使用）。
+
+## 連接訊息平台
+
+```python
+# Telegram：在手機上透過 Bot 和 Terry 對話
+from terry.server.gateways.telegram_gateway import TelegramGateway
+TelegramGateway(token="...", agent_factory=lambda: agent).start_polling()
+
+# Discord：把 Terry 帶到團隊伺服器
+from terry.server.gateways.discord_gateway import DiscordGateway
+DiscordGateway(token="...", agent_factory=lambda: agent).start_polling()
+```
+
+---
+
+## 支援的 LLM 提供商
+
+| 提供商 | 設定方式 | 最適合 |
+|----------|-------|----------|
+| **Anthropic Claude** | `export ANTHROPIC_API_KEY=...` | 複雜推理、大型程式碼庫 |
+| **OpenAI GPT-4o** | `export OPENAI_API_KEY=...` | 通用任務 |
+| **DeepSeek** | `export DEEPSEEK_API_KEY=...` | 高性價比程式開發 |
+| **智譜 GLM** | `export ZHIPU_API_KEY=...` | 中文場景支援 |
+| **通義千問** | `export DASHSCOPE_API_KEY=...` | 有競爭力的效能 |
+| **Ollama（本機）** | `ollama pull llama3` | 完全離線、零成本 |
+
+需要其他提供商？新增 8 行設定即可——參考 [adapter.py](terry/core/adapter.py)。
+
+---
+
+## 架構一覽
+
+```
+CLI · WebUI · Desktop · Mobile(PWA) · Telegram · Discord
+                        │
+        ┌───────────────┴───────────────┐
+        ▼                               ▼
+┌──────────────┐              ┌─────────────────┐
+│  HTTP Server │              │  CLI REPL (Rich) │
+│  (REST+SSE)  │              │  45+ 命令        │
+└──────┬───────┘              └───────┬─────────┘
+       │                              │
+       └──────────┬───────────────────┘
+                  ▼
+        ┌─────────────────┐
+        │  Agent (ReAct)  │  ← 規劃、路由到 LLM、執行工具
+        └────────┬────────┘
+                 │
+    ┌────────────┼────────────┬──────────────┐
+    ▼            ▼            ▼              ▼
+┌───────┐ ┌─────────┐ ┌──────────┐ ┌──────────────┐
+│24     │ │4 級     │ │檢查點    │ │動態工作      │
+│工具   │ │安全     │ │和回滾    │ │流引擎 (6)    │
+└───────┘ └─────────┘ └──────────┘ └──────────────┘
+```
+
+- **41 個核心模組**，職責清晰
+- **6 種互動介面** — CLI、WebUI、桌面、PWA、Telegram、Discord
+- **554 個測試** — pytest + 依賴注入
+
+---
+
+
+## 分發方式
+
+| 方式 | 命令 | 平台 |
+|--------|---------|----------|
+| **PyPI** | `pip install terry` | 全平台 (x86_64 + arm64) |
+| **Docker** | `docker compose up` | 全平台 |
+| **containerd** | `nerdctl compose up` | Linux 伺服器 |
+| **Kubernetes** | `kubectl apply -f deploy/kubernetes/terry.yaml` | 叢集 |
+| **Homebrew** | `brew install terry` | macOS |
+| **原始碼** | `pip install -e .` | Python 3.12+ |
+
+### 支援的架構
+
+| 架構 | 平台 | 狀態 |
+|-------------|----------|--------|
+| **x86_64 (amd64)** | Intel/AMD 伺服器、雲端虛擬機 | ✅ |
+| **aarch64 (arm64)** | Apple Silicon M1-M4、AWS Graviton、樹莓派 5 | ✅ |
+| **armv7** | 樹莓派 3 | ✅ |
+
+### 行動端 App
+
+| 平台 | 方法 | 安裝 |
+|----------|--------|---------|
+| **Android** | PWA → APK (Bubblewrap TWA) | `bubblewrap build` |
+| **iOS** | PWA → 加入主畫面 | Safari → 分享 → 加入 |
+| **雙平台** | Telegram Bot | `/start` 在 Telegram 中 |
+
+
+## 文件
+
+- **[INSTALL.md](INSTALL.md)** — macOS、Linux、Windows 詳細安裝指南
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** — 如何貢獻工具、技能或修復
+- **[CHANGELOG.md](CHANGELOG.md)** — 每個版本的變更記錄
+- **[docs/skills/README.md](docs/skills/README.md)** — 建立自訂技能
+- **[RUNTIME_SECURITY.md](RUNTIME_SECURITY.md)** — 生產部署安全功能
+
+---
+
+## 參與貢獻
+
+```bash
+git clone https://github.com/YOUR_USERNAME/haha_terry.git
+git checkout -b feat/my-cool-tool
+# 新增你的工具：繼承 BaseTool，在 discover_tools() 中匯入
+pip install -e ".[dev]"
+python -m pytest tests/ -v
+# 提交 PR！
+```
+
+詳見 [CONTRIBUTING.md](CONTRIBUTING.md)。
+
+---
+
+## 授權條款
+
+Terry 基於 **MIT 授權條款** 發布。
+
+Copyright (c) 2026 Terry Contributors
+
+```
+版權所有 (c) 2026 Terry Contributors
+
+特此免費授予任何取得本軟體及相關文件檔案（"軟體"）副本的人
+不受限制地處理本軟體的權利，包括但不限於使用、複製、修改、
+合併、發布、分發、再授權和/或銷售本軟體副本的權利...
+```
+
+完整授權文字：[LICENSE](LICENSE)
+
+**署名聲明：** "Terry" 名稱及其標識為 Terry Contributors 的商標。其他商標均為其各自所有者的財產。
+
+### 第三方依賴授權
+
+Terry 依賴以下開源套件（均為 MIT 或 Apache 2.0）：
+
+| 套件 | 授權 | 用途 |
+|---------|---------|-------|
+| anthropic | MIT | Anthropic Claude SDK |
+| openai | Apache 2.0 | OpenAI 及相容提供商 |
+| httpx | BSD | HTTP 客戶端 |
+| rich | MIT | 終端 UI |
+| typer | MIT | CLI 框架 |
+| pyyaml | MIT | YAML 解析 |
+| tiktoken | MIT | Token 計數 |
+| python-dotenv | BSD | 環境變數載入 |
+
+### 貢獻授權
+
+向 Terry 貢獻程式碼即表示您同意您的貢獻將基於 MIT 授權條款發布。詳見 [CONTRIBUTING.md](CONTRIBUTING.md)。
+
+---
+
+<p align="center">
+  <sub>用 ❤️ 構建，來自 Terry 社群 · <a href="#terry-">回到頂部 ↑</a></sub>
+</p>

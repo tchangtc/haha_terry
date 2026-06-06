@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import time
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -253,7 +252,7 @@ class TimerTool(BaseTool):
             return []
 
         try:
-            with open(self.timers_file, "r") as f:
+            with open(self.timers_file) as f:
                 return json.load(f)
         except Exception:
             return []

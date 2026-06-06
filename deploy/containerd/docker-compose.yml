@@ -1,0 +1,26 @@
+# Terry — containerd/nerdctl deployment
+# Usage: nerdctl compose -f deploy/containerd/docker-compose.yml up
+# nerdctl is Docker-compatible CLI for containerd: https://github.com/containerd/nerdctl
+
+version: "3.8"
+
+services:
+  terry:
+    build: ../..
+    image: terry:latest
+    container_name: terry-agent
+    stdin_open: true
+    tty: true
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
+    volumes:
+      - ../..:/app
+      - terry_data:/home/terry/.terry
+    working_dir: /app
+    restart: "no"
+    entrypoint: ["python", "-m", "terry.cli"]
+
+volumes:
+  terry_data:

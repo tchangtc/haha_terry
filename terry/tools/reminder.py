@@ -191,7 +191,7 @@ class ReminderTool(BaseTool):
             return []
 
         try:
-            with open(self.reminders_file, "r") as f:
+            with open(self.reminders_file) as f:
                 return json.load(f)
         except Exception:
             return []

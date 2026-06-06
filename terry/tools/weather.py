@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import os
-import json
-from urllib.parse import quote
 from pathlib import Path
 
 import httpx
@@ -84,7 +82,7 @@ class WeatherTool(BaseTool):
         """
         url = "https://api.openweathermap.org/data/2.5/weather"
         params = {
-            "q": location if not "," in location else None,
+            "q": location if "," not in location else None,
             "lat": location.split(",")[0] if "," in location else None,
             "lon": location.split(",")[1] if "," in location else None,
             "appid": self.api_key,
@@ -113,7 +111,7 @@ class WeatherTool(BaseTool):
         """
         url = "https://api.openweathermap.org/data/2.5/forecast"
         params = {
-            "q": location if not "," in location else None,
+            "q": location if "," not in location else None,
             "lat": location.split(",")[0] if "," in location else None,
             "lon": location.split(",")[1] if "," in location else None,
             "appid": self.api_key,

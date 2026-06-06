@@ -1,0 +1,91 @@
+# Terry — Kubernetes Deployment (uses containerd runtime)
+# Usage: kubectl apply -f deploy/kubernetes/terry.yaml
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: terry
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: terry-api-key
+  namespace: terry
+type: Opaque
+stringData:
+  ANTHROPIC_API_KEY: "sk-ant-..."  # Replace with your key
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: terry-data
+  namespace: terry
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: terry-agent
+  namespace: terry
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: terry
+  template:
+    metadata:
+      labels:
+        app: terry
+    spec:
+      containers:
+      - name: terry
+        image: terry:latest
+        imagePullPolicy: IfNotPresent
+        stdin: true
+        tty: true
+        env:
+        - name: ANTHROPIC_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: terry-api-key
+              key: ANTHROPIC_API_KEY
+        - name: TERRY_LANGUAGE
+          value: "en"
+        volumeMounts:
+        - name: terry-data
+          mountPath: /home/terry/.terry
+        - name: app
+          mountPath: /app
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+      volumes:
+      - name: terry-data
+        persistentVolumeClaim:
+          claimName: terry-data
+      - name: app
+        hostPath:
+          path: /path/to/terry/project
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: terry-webui
+  namespace: terry
+spec:
+  selector:
+    app: terry
+  ports:
+  - port: 8670
+    targetPort: 8670
+    name: webui
+  type: ClusterIP

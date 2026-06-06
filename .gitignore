@@ -32,11 +32,18 @@ Thumbs.db
 # Logs
 *.log
 
-# Terry data
+# Terry internal state — DO NOT COMMIT
 .terry/
+.terry_todos.json
 .trajectories/
 *.db
 *.sqlite
+feedback.jsonl
+scheduled_tasks.json
+permissions.json
+tasks.json
+checkpoint_index.json
+*_report_*.json
 
 # Config (keep examples)
 terry.json

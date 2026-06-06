@@ -129,7 +129,7 @@ class CalculatorTool(BaseTool):
             result = op(left, right)
             # Check for overflow
             if isinstance(result, (int, float)) and abs(result) > self.MAX_VALUE:
-                raise ValueError(f"Result exceeds maximum allowed value")
+                raise ValueError("Result exceeds maximum allowed value")
             return result
 
         elif isinstance(node, ast.Compare):
@@ -139,7 +139,7 @@ class CalculatorTool(BaseTool):
             right = self._safe_eval(node.comparators[0], depth + 1)
             op = self._safe_operators.get(type(node.ops[0]))
             if op is None:
-                raise ValueError(f"Unsupported comparison operator")
+                raise ValueError("Unsupported comparison operator")
             return 1 if op(left, right) else 0
 
         elif isinstance(node, ast.Name):
@@ -166,7 +166,7 @@ class CalculatorTool(BaseTool):
             result = func(*args)
             # Check for overflow
             if isinstance(result, (int, float)) and abs(result) > self.MAX_VALUE:
-                raise ValueError(f"Result exceeds maximum allowed value")
+                raise ValueError("Result exceeds maximum allowed value")
             return result
 
         elif isinstance(node, ast.Expression):
@@ -242,7 +242,7 @@ class CalculatorTool(BaseTool):
         import re
         match = re.match(r'([\d.]+)\s*(.+)', from_part)
         if not match:
-            return f"Error: Invalid format. Use: <value> <from_unit> to <to_unit>"
+            return "Error: Invalid format. Use: <value> <from_unit> to <to_unit>"
 
         value = float(match.group(1))
         from_unit = match.group(2).strip()

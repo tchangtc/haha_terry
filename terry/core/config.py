@@ -7,8 +7,8 @@ import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from .adapter import PROVIDERS as _ADAPTER_PROVIDERS
 from .platform_utils import get_config_dir, get_data_dir
-from .adapter import PROVIDERS as _ADAPTER_PROVIDERS, get_provider, list_providers
 
 
 @dataclass
@@ -67,12 +67,14 @@ class TerryConfig:
     max_input_tokens: int = 200000
     compression_threshold: float = 0.75
     sandbox_mode: str = "ask"  # ask | auto | deny
+    permission_level: str = "medium"  # low | medium | high | critical
     skills_paths: list[str] = field(default_factory=lambda: [
         "./skills",
         str(get_config_dir() / "skills")
     ])
     memory_enabled: bool = True
     memory_path: str = str(get_data_dir() / "memory")
+    auto_commit_enabled: bool = False  # OFF by default — auto-commit after file edits
 
     def validate(self) -> list[str]:
         """Validate configuration and return a list of warnings/errors.
@@ -150,6 +152,7 @@ class TerryConfig:
             "max_input_tokens": self.max_input_tokens,
             "compression_threshold": self.compression_threshold,
             "sandbox_mode": self.sandbox_mode,
+            "permission_level": self.permission_level,
             "skills_paths": self.skills_paths,
             "memory_enabled": self.memory_enabled,
             "memory_path": self.memory_path,
@@ -172,6 +175,7 @@ class TerryConfig:
             max_input_tokens=data.get("max_input_tokens", 200000),
             compression_threshold=data.get("compression_threshold", 0.75),
             sandbox_mode=data.get("sandbox_mode", "ask"),
+            permission_level=data.get("permission_level", "medium"),
             skills_paths=data.get("skills_paths", [
                 "./skills",
                 str(get_config_dir() / "skills")

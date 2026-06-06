@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#1a1a2e">
+<meta name="description" content="Terry AI Coding Agent - Web Interface">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Terry">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='36' fill='%231a1a2e'/><text x='90' y='125' font-size='96' text-anchor='middle' fill='%2300d4aa'>🤖</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+<title>Terry AI Agent</title>
+<style>
+:root {
+  --bg: #1a1a2e; --bg2: #16213e; --bg3: #0f3460;
+  --text: #e0e0e0; --text2: #a0a0b0; --accent: #00d4aa;
+  --accent2: #e94560; --border: #2a2a4a; --msg-user: #0f3460; --msg-bot: #1a1a2e;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --radius: 12px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
+
+/* Header */
+header { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 10px 16px; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+header h1 { font-size: 18px; font-weight: 600; } header h1 span { color: var(--accent); }
+.status { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+.header-actions { margin-left: auto; display: flex; gap: 8px; }
+.header-btn { background: var(--bg3); border: 1px solid var(--border); color: var(--text2); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+.header-btn:hover { color: var(--text); border-color: var(--accent); }
+
+/* Chat area */
+.chat { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.msg { max-width: 85%; padding: 12px 16px; border-radius: var(--radius); line-height: 1.5; font-size: 14px; word-wrap: break-word; }
+.msg.user { align-self: flex-end; background: var(--msg-user); border: 1px solid var(--border); }
+.msg.assistant { align-self: flex-start; background: var(--msg-bot); border: 1px solid var(--border); }
+.msg .role { font-size: 11px; color: var(--accent); margin-bottom: 4px; font-weight: 600; text-transform: uppercase; }
+.msg .time { font-size: 10px; color: var(--text2); margin-top: 6px; }
+.msg pre { background: #0a0a1a; padding: 10px; border-radius: 8px; overflow-x: auto; margin: 8px 0; font-size: 13px; }
+.msg code { font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 13px; }
+.msg p { margin: 4px 0; }
+.typing { display: flex; gap: 6px; padding: 12px 16px; align-self: flex-start; }
+.typing span { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: bounce 1.4s infinite; }
+.typing span:nth-child(2) { animation-delay: 0.2s; } .typing span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes bounce { 0%,80%,100% { opacity: 0.3; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-6px); } }
+.empty-state { text-align: center; padding: 40px 20px; color: var(--text2); }
+.empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+.empty-state h2 { font-size: 18px; margin-bottom: 8px; color: var(--text); }
+.empty-state p { font-size: 13px; max-width: 400px; margin: 0 auto; }
+
+/* Input area */
+.input-area { background: var(--bg2); border-top: 1px solid var(--border); padding: 12px 16px; display: flex; gap: 10px; flex-shrink: 0; }
+.input-area textarea { flex: 1; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 10px 14px; border-radius: var(--radius); resize: none; font-size: 14px; font-family: var(--font); min-height: 44px; max-height: 120px; outline: none; }
+.input-area textarea:focus { border-color: var(--accent); }
+.send-btn { background: var(--accent); color: var(--bg); border: none; padding: 10px 20px; border-radius: var(--radius); cursor: pointer; font-weight: 600; font-size: 14px; white-space: nowrap; }
+.send-btn:hover { opacity: 0.9; } .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Sidebar */
+.sidebar { position: fixed; top: 0; left: 0; width: 280px; height: 100%; background: var(--bg2); border-right: 1px solid var(--border); transform: translateX(-100%); transition: transform 0.2s; z-index: 100; display: flex; flex-direction: column; }
+.sidebar.open { transform: translateX(0); }
+.sidebar-header { padding: 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.sidebar-list { flex: 1; overflow-y: auto; padding: 8px; }
+.sidebar-item { padding: 10px 12px; border-radius: 8px; cursor: pointer; font-size: 13px; color: var(--text2); margin-bottom: 4px; }
+.sidebar-item:hover { background: var(--bg3); color: var(--text); }
+.sidebar-item.active { background: var(--bg3); color: var(--accent); }
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99; display: none; }
+.overlay.show { display: block; }
+
+/* Hints */
+.hints { display: flex; gap: 8px; padding: 8px 16px; flex-wrap: wrap; }
+.hint { background: var(--bg3); border: 1px solid var(--border); padding: 6px 12px; border-radius: 16px; font-size: 12px; cursor: pointer; color: var(--text2); white-space: nowrap; }
+.hint:hover { border-color: var(--accent); color: var(--text); }
+
+@media (max-width: 768px) { .sidebar { width: 240px; } }
+@media (max-width: 600px) { .msg { max-width: 92%; } .hints { display: none; } header h1 { font-size: 15px; } .send-btn { padding: 8px 14px; font-size: 13px; } }
+@media (max-width: 400px) { header h1 { font-size: 13px; } .header-btn { padding: 4px 8px; font-size: 11px; } }
+
+/* Safe area insets for notched devices */
+@supports (padding: env(safe-area-inset-top)) {
+  header { padding-top: calc(10px + env(safe-area-inset-top)); padding-left: calc(16px + env(safe-area-inset-left)); padding-right: calc(16px + env(safe-area-inset-right)); }
+  .input-area { padding-bottom: calc(12px + env(safe-area-inset-bottom)); padding-left: calc(16px + env(safe-area-inset-left)); padding-right: calc(16px + env(safe-area-inset-right)); }
+  .sidebar { padding-top: env(safe-area-inset-top); }
+}
+
+/* Touch-friendly minimum 44x44px targets */
+.header-btn { min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center; }
+.send-btn { min-height: 44px; }
+.hint { min-height: 36px; display: flex; align-items: center; }
+.sidebar-item { min-height: 44px; display: flex; align-items: center; }
+
+/* Landscape mode optimization */
+@media (orientation: landscape) and (max-height: 500px) {
+  header { padding: 6px 16px; }
+  .input-area { padding: 8px 16px; }
+  .msg { padding: 8px 12px; font-size: 13px; }
+  .empty-state { padding: 16px 20px; }
+  .empty-state .icon { font-size: 32px; margin-bottom: 8px; }
+  .empty-state h2 { font-size: 15px; }
+  .empty-state p { font-size: 12px; }
+}
+
+/* Improve textarea auto-resize */
+.input-area textarea { line-height: 1.4; overflow-y: auto; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="status" id="status"></div>
+  <h1>Terry <span>Agent</span></h1>
+  <div class="header-actions">
+    <button class="header-btn" onclick="toggleSidebar()" title="Sessions">☰</button>
+    <button class="header-btn" onclick="newSession()" title="New">+ New</button>
+  </div>
+</header>
+
+<div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <strong>Sessions</strong>
+    <button class="header-btn" onclick="toggleSidebar()">✕</button>
+  </div>
+  <div class="sidebar-list" id="sessionList"></div>
+</div>
+
+<div class="chat" id="chat">
+  <div class="empty-state">
+    <div class="icon">🤖</div>
+    <h2>Terry AI Agent</h2>
+    <p>Describe what you need — Terry reads your codebase, runs commands, edits files.</p>
+  </div>
+</div>
+
+<div class="hints" id="hints">
+  <span class="hint" onclick="sendHint(this)">Show git status</span>
+  <span class="hint" onclick="sendHint(this)">Find auth logic</span>
+  <span class="hint" onclick="sendHint(this)">List all Python files</span>
+  <span class="hint" onclick="sendHint(this)">Run the tests</span>
+  <span class="hint" onclick="sendHint(this)">Explain the architecture</span>
+</div>
+
+<div class="input-area">
+  <textarea id="input" rows="1" placeholder="Message Terry..." onkeydown="handleKey(event)"></textarea>
+  <button class="send-btn" id="sendBtn" onclick="sendMessage()">Send</button>
+</div>
+
+<script>
+const API = '';
+let sessionId = 'web_' + Date.now().toString(36);
+let isProcessing = false;
+let deferredPrompt = null;
+
+// PWA install prompt
+window.addEventListener('beforeinstallprompt', function(e) {
+  e.preventDefault(); deferredPrompt = e;
+  var bar = document.createElement('div');
+  bar.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#0f3460;color:#fff;padding:12px 16px;text-align:center;z-index:200;font-size:14px;display:flex;justify-content:center;align-items:center;gap:12px';
+  bar.innerHTML = '<span>📱 Install Terry to your device</span><button style="background:#00d4aa;color:#000;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-weight:600">Install</button><button style="background:none;border:none;color:#888;cursor:pointer;font-size:18px">&times;</button>';
+  bar.querySelector('button').onclick = function() { deferredPrompt.prompt(); deferredPrompt.userChoice.then(function(r) { bar.remove(); }); };
+  bar.querySelector('button:last-child').onclick = function() { bar.remove(); };
+  document.body.appendChild(bar);
+});
+
+// Initialize
+fetch(API + '/api/health').then(r => r.json()).then(d => {
+  document.getElementById('status').style.background = d.status === 'ok' ? '#00d4aa' : '#e94560';
+}).catch(() => {
+  document.getElementById('status').style.background = '#e94560';
+});
+
+// Send message
+async function sendMessage(text) {
+  const input = document.getElementById('input');
+  const msg = text || input.value.trim();
+  if (!msg || isProcessing) return;
+  input.value = ''; input.style.height = 'auto';
+
+  addMessage('user', msg);
+  showTyping();
+  isProcessing = true;
+  document.getElementById('sendBtn').disabled = true;
+  document.getElementById('hints').style.display = 'none';
+
+  try {
+    const res = await fetch(API + '/api/chat', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({message: msg, session_id: sessionId}),
+    });
+    const data = await res.json();
+    hideTyping();
+    if (data.error) {
+      addMessage('assistant', '❌ Error: ' + data.error);
+    } else {
+      addMessage('assistant', data.response);
+      showRating(msg, data.response);
+    }
+  } catch(e) {
+    hideTyping();
+    addMessage('assistant', '❌ Connection error. Is the server running?');
+  }
+  isProcessing = false;
+  document.getElementById('sendBtn').disabled = false;
+  document.getElementById('hints').style.display = 'flex';
+}
+
+function addMessage(role, content) {
+  const chat = document.getElementById('chat');
+  // Remove empty state
+  const empty = chat.querySelector('.empty-state');
+  if (empty) empty.remove();
+
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  const time = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+  div.innerHTML = '<div class="role">' + (role === 'user' ? 'You' : 'Terry') + '</div>'
+    + formatContent(content)
+    + '<div class="time">' + time + '</div>';
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function formatContent(text) {
+  if (!text) return '';
+  // Escape HTML
+  text = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  // Code blocks with language label
+  text = text.replace(/```(\w*)\n([\s\S]*?)```/g, function(m, lang, code) {
+    var label = lang ? '<div style="font-size:10px;color:#888;padding:4px 10px 0">' + lang + '</div>' : '';
+    return label + '<pre><code>' + code + '</code></pre>';
+  });
+  // Inline code
+  text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+  // Bold
+  text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  // Italic
+  text = text.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+  // Headers
+  text = text.replace(/^### (.+)$/gm, '<h4>$1</h4>');
+  text = text.replace(/^## (.+)$/gm, '<h3>$1</h3>');
+  // Lists
+  text = text.replace(/^- (.+)$/gm, '<li>$1</li>');
+  // Line breaks
+  text = text.replace(/\n\n/g, '<br><br>');
+  text = text.replace(/\n/g, '<br>');
+  return text;
+}
+
+// Show welcome message on first load
+(function() {
+  var tips = [
+    'Try: "Find where authentication logic is implemented"',
+    'Try: "Review this file for security issues"',
+    'Try: "Generate tests for the User class"',
+    'Tip: Describe what you need in plain English',
+  ];
+  var el = document.getElementById('chat');
+  var tip = tips[Math.floor(Math.random() * tips.length)];
+  el.querySelector('.empty-state p').textContent = tip;
+})();
+
+function showTyping() {
+  const chat = document.getElementById('chat');
+  const div = document.createElement('div');
+  div.className = 'typing';
+  div.id = 'typing-indicator';
+  div.innerHTML = '<span></span><span></span><span></span>';
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+function hideTyping() {
+  const el = document.getElementById('typing-indicator');
+  if (el) el.remove();
+}
+
+// ── Feedback rating component ─────────────────────────────────
+let lastUserMsg = '', lastAssistantMsg = '';
+
+function showRating(userMsg, assistantMsg) {
+  lastUserMsg = userMsg; lastAssistantMsg = assistantMsg;
+  // Only show ~20% of the time
+  if (Math.random() > 0.2) return;
+
+  const chat = document.getElementById('chat');
+  const div = document.createElement('div');
+  div.className = 'msg assistant';
+  div.id = 'rating-bar';
+  div.style.cssText = 'opacity:0.7;font-size:12px;text-align:center;padding:8px;transition:opacity 0.3s;';
+  div.innerHTML = `
+    <span style="color:#888;">Was this helpful?</span>
+    <button onclick="rateFeedback('good')" style="background:none;border:1px solid #333;color:#0f0;padding:4px 12px;border-radius:6px;cursor:pointer;margin:0 4px;font-size:16px;">👍</button>
+    <button onclick="rateFeedback('bad')" style="background:none;border:1px solid #333;color:#f44;padding:4px 12px;border-radius:6px;cursor:pointer;margin:0 4px;font-size:16px;">👎</button>
+  `;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+  // Auto-dismiss after 8s
+  setTimeout(() => { const el = document.getElementById('rating-bar'); if(el) el.style.opacity='0'; setTimeout(()=>{if(el)el.remove();},300); }, 8000);
+}
+
+async function rateFeedback(rating) {
+  const bar = document.getElementById('rating-bar');
+  if (bar) { bar.innerHTML = '<span style="color:#888;">Thanks for your feedback! ✨</span>'; setTimeout(()=>bar.remove(),1500); }
+  try {
+    await fetch(API + '/api/feedback', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({rating, session_id: sessionId, user_message: lastUserMsg, assistant_preview: lastAssistantMsg}),
+    });
+  } catch(e) {}
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+function sendHint(el) { sendMessage(el.textContent); }
+function newSession() {
+  sessionId = 'web_' + Date.now().toString(36);
+  document.getElementById('chat').innerHTML = '<div class="empty-state"><div class="icon">🤖</div><h2>New Session</h2><p>Ready for a fresh conversation.</p></div>';
+  toggleSidebar();
+}
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('show');
+}
+
+// Load sessions into sidebar
+function loadSessions() {
+  fetch(API + '/api/sessions').then(r => r.json()).then(d => {
+    const list = document.getElementById('sessionList');
+    list.innerHTML = (d.sessions || []).map(s =>
+      '<div class="sidebar-item' + (s.id === sessionId ? ' active' : '') + '" onclick="switchSession(\'' + s.id + '\')">'
+      + '💬 Session ' + s.id.slice(0,8) + '<br><small>' + s.message_count + ' messages</small></div>'
+    ).join('');
+  }).catch(() => {});
+}
+loadSessions();
+setInterval(loadSessions, 30000);
+
+function switchSession(sid) {
+  sessionId = sid;
+  document.getElementById('chat').innerHTML = '';
+  fetch(API + '/api/sessions/' + sid + '/messages').then(r => r.json()).then(d => {
+    (d.messages || []).forEach(m => addMessage(m.role, m.content));
+  }).catch(() => {});
+  toggleSidebar();
+}
+
+// SSE streaming (connect for real-time updates)
+const evtSource = new EventSource(API + '/api/stream?session=' + sessionId);
+evtSource.addEventListener('assistant_message', e => {
+  // Background streaming updates (already handled by POST response)
+});
+
+// ── Handle PWA shortcuts ──
+(function() {
+  const params = new URLSearchParams(location.search);
+
+  // ?new=1 — Start new session from shortcut
+  if (params.get('new') === '1') {
+    sessionId = 'web_' + Date.now().toString(36);
+    history.replaceState(null, '', '/');
+  }
+
+  // ?share=1&text=... — Handle share target
+  if (params.get('share') === '1' && params.get('text')) {
+    const sharedText = params.get('text');
+    document.getElementById('input').value = sharedText;
+    document.getElementById('input').focus();
+    history.replaceState(null, '', '/');
+  }
+})();
+
+// ── Auto-resize textarea ──
+(function() {
+  const textarea = document.getElementById('input');
+  textarea.addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+  });
+})();
+</script>
+
+<script>
+// PWA Service Worker registration
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>

@@ -5,6 +5,69 @@ All notable changes to Terry will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-06-06
+
+### Added
+
+#### Multi-Interface Support
+- **WebUI**: Full chat interface with dark theme, SSE streaming, session management, PWA support
+- **Desktop**: System tray app (macOS/Windows/Linux) with browser auto-launch
+- **Mobile**: PWA manifest + service worker for offline access
+- **Telegram Gateway**: HTTP long-polling bot with command support
+- **Discord Gateway**: REST API polling bot with @mention trigger
+
+#### Tools (24 total, +8 from v0.1.0)
+- **Git Workflow (5)**: git_diff, git_commit, git_log, git_status, git_checkout
+- **MultiEdit**: Atomic multi-location file editing with rollback
+- **NotebookEdit**: Jupyter .ipynb cell-level editing (replace/insert/delete)
+- **ReadImage**: PNG/JPG/GIF/WebP/PDF reading with base64 encoding
+- **Harness Tool**: 8-pattern multi-agent orchestration exposed as a tool
+
+#### Security
+- **4-Level Permission System**: low/medium/high/critical with persistent rule store
+- **Checkpoint System**: File snapshots (git-aware + tar-based) with `/undo` support
+- **Enhanced Permission Hook**: Integration with PermissionStore for allow/deny/ask rules
+
+#### Orchestration & Autonomy
+- **Dynamic Workflow Engine**: 6 patterns (fan-out-merge, adversarial-verify, tournament, classify-execute, loop-until-done, generate-filter)
+- **Harness Engine**: Unified orchestration layer with 8 patterns, token budget tracking, checkpoint/resume
+- **Autonomous Agent**: Background clone→analyze→fix→test→commit→PR pipeline
+- **Skill Auto-Creator**: Pattern detection from conversations → auto-generate SKILL.md files
+- **Skills Curator**: 7-day autonomous skill library assessment and pruning
+
+#### Core Engine Improvements
+- **AutoHealer**: Automatic detection and fixing of common tool errors (command not found, missing modules)
+- **Precise Token Counting**: tiktoken integration replacing heuristic chars//4 estimation
+- **Structured Memory**: 5 memory types (user/feedback/project/reference/note) with [[wiki-link]] cross-references
+- **Plan-First Mode**: LLM-generated structured execution plans with user approval
+- **Model Router**: Task complexity-based routing to cheap/powerful models
+- **Feedback Collector**: Non-blocking user rating (thumbs up/down) with 15% sampling
+
+#### Integration & Platform
+- **MCP Client**: Model Context Protocol support (stdio + SSE transports)
+- **LSP Client**: Language Server Protocol (diagnostics, hover, go-to-definition)
+- **Cross-Platform Memory Sync**: JSON export/import + cloud sync stubs
+- **FTS5 Conversation Search**: SQLite full-text search across all sessions
+- **Benchmark Framework**: 4 evaluation suites + SWE-bench-style scoring system
+- **VS Code Extension**: 6 commands (chat, explain, fix, review, generate tests, start server)
+
+#### Developer Experience
+- **@mention Syntax**: @file, @symbol, @git context injection
+- **Conversation Fork**: Branch conversations to explore alternatives
+- **Streaming Response**: Real-time token-by-token output in CLI and WebUI
+- **Tab Completion**: readline-based command completion for all 45+ commands
+- **Proactive Suggestions**: Context-aware next-action recommendations
+- **Speculative Execution**: Background file pre-fetching during tool execution
+
+### Changed
+- Tools: 16 → 24 (+8)
+- Core modules: 12 → 45 (+33)
+- CLI commands: 19 → 48+
+- Tests: 13 → 118
+- Security levels: 3 (deny/ask/auto) → 4 (low/medium/high/critical)
+- LLM providers: 4 → 6+ (added Zhipu GLM, Qwen, custom adapters)
+- README: Three-language support (EN/zh-CN/zh-TW)
+
 ## [0.1.0] - 2026-06-05
 
 ### Added

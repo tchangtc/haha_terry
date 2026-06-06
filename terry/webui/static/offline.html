@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1a1a2e">
+<title>Terry — Offline</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: #1a1a2e;
+    color: #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    padding: 20px;
+    text-align: center;
+  }
+  .container { max-width: 420px; }
+  .icon { font-size: 72px; margin-bottom: 24px; }
+  h1 { color: #00d4aa; font-size: 24px; margin-bottom: 12px; }
+  p { color: #a0a0b0; font-size: 15px; line-height: 1.6; margin-bottom: 16px; }
+  code { background: #0a0a1a; padding: 4px 10px; border-radius: 4px; font-size: 13px; color: #00d4aa; }
+  button {
+    background: #00d4aa;
+    color: #1a1a2e;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: opacity 0.2s;
+  }
+  button:hover { opacity: 0.9; }
+  .status { margin-top: 24px; font-size: 12px; color: #666; }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #e94560; margin-right: 6px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="icon">🤖</div>
+  <h1>Terry is Offline</h1>
+  <p>The Terry server is not reachable right now. This could mean:</p>
+  <ul style="text-align: left; color: #a0a0b0; font-size: 14px; line-height: 1.8; margin: 0 auto 20px; max-width: 320px;">
+    <li>Your network connection is down</li>
+    <li>The Terry server isn't running</li>
+    <li>The server address has changed</li>
+  </ul>
+  <p>Start the server with:<br><code>terry webui</code></p>
+  <button onclick="location.reload()">🔄 Retry Connection</button>
+  <div class="status">
+    <span class="dot"></span>Server unreachable
+  </div>
+</div>
+<script>
+  // Auto-retry every 30 seconds
+  setInterval(() => {
+    fetch('/api/health')
+      .then(r => r.json())
+      .then(d => { if (d.status === 'ok') location.reload(); })
+      .catch(() => {});
+  }, 30000);
+</script>
+</body>
+</html>

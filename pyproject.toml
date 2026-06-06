@@ -1,6 +1,6 @@
 [project]
 name = "terry"
-version = "0.1.0"
+version = "0.2.0"
 description = "A personal AI coding agent - the harness for your LLM"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -24,6 +24,7 @@ dependencies = [
     "rich>=15.0.0",
     "typer>=0.26.7",
     "pyyaml>=6.0.0",
+    "tiktoken>=0.7.0",
 ]
 
 [project.optional-dependencies]
@@ -48,9 +49,17 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["terry"]
 
+[tool.hatch.build]
+only-packages = true
+
+[tool.hatch.build.force-include]
+"skills" = "terry/skills"
+"terry/locale" = "terry/locale"
+"terry/webui/static" = "terry/webui/static"
+
 [tool.ruff]
 target-version = "py312"
-line-length = 100
+line-length = 120
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP"]
@@ -58,3 +67,29 @@ select = ["E", "F", "I", "N", "W", "UP"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+
+[tool.ruff.lint.per-file-ignores]
+"terry/tools/notebook.py" = ["E501"]
+"terry/tools/notes.py" = ["E501"]
+"terry/tools/reminder.py" = ["E501"]
+"terry/core/error_recovery.py" = ["E501"]
+"terry/core/repomap.py" = ["E501"]
+"terry/core/spec_exec.py" = ["E501"]
+"terry/core/swe_bench.py" = ["E501"]
+"terry/core/security/__init__.py" = ["F401"]
+"terry/core/ai/__init__.py" = ["F401"]
+"terry/core/infra/__init__.py" = ["F401"]
+"terry/core/scheduling/__init__.py" = ["F401"]
+"terry/core/storage/__init__.py" = ["F401"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "terry/**/*.py",
+    "terry/**/*.json",
+    "terry/**/*.html",
+    "terry/**/*.js",
+    "terry/**/*.txt",
+    "skills/**/*.md",
+    "README.md",
+    "LICENSE",
+]

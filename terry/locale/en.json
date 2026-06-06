@@ -81,7 +81,16 @@
     "ls": {
       "name": "ls",
       "description": "List directory contents"
-    }
+    },
+    "multi_edit": {"name": "multi_edit", "description": "Edit multiple locations at once"},
+    "notebook_edit": {"name": "notebook_edit", "description": "Edit Jupyter notebooks"},
+    "git_diff": {"name": "git_diff", "description": "Show git diff"},
+    "git_commit": {"name": "git_commit", "description": "Commit changes"},
+    "git_log": {"name": "git_log", "description": "Show commit history"},
+    "git_status": {"name": "git_status", "description": "Show repo status"},
+    "git_checkout": {"name": "git_checkout", "description": "Switch branches"},
+    "read_image": {"name": "read_image", "description": "Read images and PDFs"},
+    "harness": {"name": "harness", "description": "Orchestrate sub-agents"}
   },
   "commands": {
     "help": {
@@ -115,7 +124,12 @@
     "language": {
       "description": "Change language",
       "usage": "language <en|zh>"
-    }
+    },
+    "tutorial": {"description": "Step-by-step tutorial", "usage": "/tutorial"},
+    "undo": {"description": "Revert last change", "usage": "/undo"},
+    "checkpoints": {"description": "List undo snapshots", "usage": "/checkpoints"},
+    "plan": {"description": "Plan before executing", "usage": "/plan <request>"},
+    "config": {"description": "View or change settings", "usage": "/config [key=value]" }
   },
   "errors": {
     "unknown_command": "Unknown command: {command}",

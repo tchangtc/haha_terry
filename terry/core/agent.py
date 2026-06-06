@@ -4,24 +4,58 @@ from __future__ import annotations
 
 import time
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
-from .config import TerryConfig
-from .llm import LLMClient
-from .context_compact import ContextCompactor
-from .error_recovery import ErrorRecovery, wrap_llm_call_with_recovery
-from .memory import Memory, get_memory
-from .session import Session, get_session
-from .subagent import SubAgentManager
-from .logger import Logger, get_logger
-from .metrics import Metrics, get_metrics, estimate_cost
-from .cache import LLMCache, ToolCache, get_llm_cache, get_tool_cache
-from .skill import SkillManager, SkillExecutor, get_skill_manager
-from .text_utils import extract_text
-from ..tools import ToolRegistry, discover_tools, tool_registry
-from ..hooks import HookRegistry, hook_registry
-from ..hooks.permission import permission_hook, SandboxMode
+from ..hooks import hook_registry
 from ..hooks.logging_hook import log_hook
+from ..hooks.permission import SandboxMode, permission_hook
+from ..tools import discover_tools, tool_registry
+from . import agent_hooks
+from .autonomous_agent import AutonomousAgent, SkillAutoCreator
+from .cache import LLMCache, ToolCache, get_llm_cache, get_tool_cache
+from .checkpoint import CheckpointManager, get_checkpoint_manager
+from .code_index import CodeSemanticIndex
+from .commands import CommandRegistry
+from .config import TerryConfig
+from .context_compact import ContextCompactor
+from .curator import SkillsCurator
+from .docker_sandbox import DockerSandbox
+from .dynamic_workflow import DynamicWorkflowEngine
+from .error_recovery import (
+    AutoHealer,
+    ErrorRecovery,
+    auto_commit_after_edit,
+    wrap_llm_call_with_recovery,
+)
+from .feedback import get_feedback_collector
+from .fts_search import FTSSearch
+from .harness import HarnessEngine
+from .knowledge_graph import KnowledgeGraph
+from .llm import LLMClient
+from .local_embed import LocalEmbedder
+from .logger import get_logger
+from .memory import Memory, get_memory
+from .memory_sync import MemorySync
+from .metrics import Metrics, estimate_cost, get_metrics
+from .model_router import ModelRouter
+from .permissions import PermissionLevel, PermissionStore, get_permission_store
+from .planner import Planner
+from .prompt_cache import PromptCache
+from .rag import ProjectRAG
+from .scheduler import CronScheduler
+from .security import RequestValidator
+from .session import Session, get_session
+from .skill import SkillExecutor, SkillManager, get_skill_manager
+from .skill_market import SkillMarket
+from .spec_exec import SpeculativeExecutor
+from .store import TerryStore
+from .subagent import SubAgentManager
+from .suggester import ProactiveSuggester
+from .task_dag import TaskDAG
+from .telemetry import Telemetry
+from .text_utils import extract_text
+from .thinking import ExtendedThinking
+from .workflow import WorkflowEngine
 
 
 class Agent:
@@ -37,6 +71,8 @@ class Agent:
         enable_cache: bool = True,
         enable_subagents: bool = True,
         enable_skills: bool = True,
+        enable_checkpoint: bool = True,
+        enable_planner: bool = True,
         log_level: str = "INFO",
     ):
         """Initialize production-grade agent.
@@ -68,12 +104,16 @@ class Agent:
         self.tools = tool_registry
         self.logger.info(f"Registered {len(self.tools.list_tools())} tools")
 
-        # Initialize hooks (permission_hook uses config's sandbox_mode)
+        # Initialize hooks (permission_hook uses config's sandbox_mode + permission level)
         self._mode: SandboxMode = SandboxMode(self.config.sandbox_mode)
         hook_registry.register("PreToolUse", log_hook)
         hook_registry.register(
             "PreToolUse",
-            lambda block: permission_hook(block, self.workdir, self._mode),
+            lambda block: permission_hook(
+                block, self.workdir, self._mode,
+                permission_store=self.permission_store,
+                permission_level=self.permission_level,
+            ),
         )
         self.hooks = hook_registry
 
@@ -89,6 +129,10 @@ class Agent:
             base_delay=1.0,
             max_delay=60.0,
         )
+
+        # Initialize auto-healer
+        self.auto_healer = AutoHealer(workdir=self.workdir, max_attempts=2)
+        self.logger.info("AutoHealer enabled")
 
         # Initialize optional features
         self.memory: Memory | None = None
@@ -118,6 +162,140 @@ class Agent:
         if enable_subagents:
             self.subagent_manager = SubAgentManager(config, self.workdir, self.tools)
             self.logger.info("Subagent system enabled")
+
+        # Initialize permission store
+        self.permission_store: PermissionStore = get_permission_store()
+        self.permission_level: PermissionLevel = PermissionLevel.from_sandbox_mode(
+            config.sandbox_mode
+        )
+        self.logger.info(f"Permission system enabled (level: {self.permission_level.value})")
+
+        # Initialize checkpoint manager
+        self.checkpoint_manager: CheckpointManager | None = None
+        if enable_checkpoint:
+            self.checkpoint_manager = get_checkpoint_manager(
+                workdir=self.workdir,
+            )
+            self.logger.info(
+                f"Checkpoint system enabled "
+                f"({len(self.checkpoint_manager.list_checkpoints())} existing)"
+            )
+
+        # Initialize planner
+        self.planner: Planner | None = None
+        self.plan: dict | None = None  # Active execution plan
+        if enable_planner:
+            self.planner = Planner(llm_client=self.llm)
+            self.logger.info("Planner enabled")
+
+        # ── P2/P3: Advanced subsystems (all optional, lazy-init) ──
+
+        # Extended thinking (smart context allocation)
+        self.extended_thinking = ExtendedThinking(
+            model=config.model.model,
+        )
+
+        # Task DAG (persistent task dependency graph)
+        self.task_dag = TaskDAG()
+
+        # Knowledge graph (cross-session entity tracking)
+        self.knowledge_graph = KnowledgeGraph()
+
+        # Cron scheduler (24/7 autonomous operation)
+        self.scheduler = CronScheduler()
+
+        # Skills curator (self-evolving skill library)
+        self.skills_curator = SkillsCurator()
+
+        # Workflow engine (declarative YAML workflows)
+        self.workflow_engine = WorkflowEngine(agent=self)
+
+        # Prompt cache manager
+        self.prompt_cache = PromptCache(model=config.model.model)
+
+        # Speculative executor (pre-fetch likely-needed files)
+        self.spec_exec = SpeculativeExecutor()
+
+        # Proactive suggester (suggests next actions)
+        self.suggester = ProactiveSuggester()
+
+        # FTS5 conversation search
+        self.fts_search = FTSSearch()
+
+        # Skill marketplace client
+        self.skill_market = SkillMarket()
+
+        # Local embedder for semantic search
+        self.local_embedder = LocalEmbedder()
+
+        # Code semantic index
+        self.code_index = CodeSemanticIndex(workdir=self.workdir)
+
+        # Project RAG
+        self.project_rag = ProjectRAG(workdir=self.workdir)
+
+        # Docker sandbox
+        self.docker_sandbox = DockerSandbox(workdir=self.workdir)
+
+        # Model router
+        self.model_router = ModelRouter(
+            complex_client=self.llm,
+            simple_client=None,  # Configure via config
+        )
+
+        # Dynamic workflow engine (Gap-1)
+        self.dynamic_workflow = DynamicWorkflowEngine(
+            agent_factory=lambda: self,
+        )
+        self.logger.info("Dynamic workflow engine enabled")
+
+        # Memory sync (Gap-2: cross-platform)
+        self.memory_sync = MemorySync()
+
+        # Autonomous agent + skill auto-creator (Gap-3)
+        self.autonomous_agent = AutonomousAgent(
+            agent_factory=lambda: Agent(
+                config=self.config, workdir=self.workdir,
+                enable_subagents=False, enable_skills=False,
+                enable_memory=False, enable_session=False,
+                enable_metrics=False, enable_cache=False,
+                enable_checkpoint=False, enable_planner=False,
+            ),
+            workdir=self.workdir,
+        )
+        self.skill_auto_creator = SkillAutoCreator()
+
+        self.logger.info(
+            "Gap-1/2/3 subsystems initialized",
+            dynamic_workflow=True, memory_sync=True,
+            autonomous_agent=True, skill_auto_creator=True,
+        )
+
+        # Feedback collector
+        self.feedback = get_feedback_collector()
+
+        # Unified data store
+        self.store = TerryStore()
+        self.logger.info("TerryStore initialized", **self.store.stats())
+
+        # Telemetry / observability
+        self.telemetry = Telemetry()
+        self.logger.info("Telemetry initialized")
+
+        # Command registry
+        self.commands = CommandRegistry()
+
+        # Harness engine — unified orchestration layer
+        self.harness = HarnessEngine(
+            agent_factory=lambda: Agent(
+                config=self.config, workdir=self.workdir,
+                enable_subagents=False, enable_skills=False,
+                enable_memory=False, enable_session=False,
+                enable_metrics=True, enable_cache=False,
+                enable_checkpoint=False, enable_planner=False,
+            ),
+        )
+        self.logger.info("Harness engine initialized")
 
         # Initialize skill system
         self.skill_manager: SkillManager | None = None
@@ -241,24 +419,25 @@ class Agent:
         Returns:
             Agent's response
         """
+        # Validate prompt input
+        is_valid, error_msg = RequestValidator.validate_prompt(user_message)
+        if not is_valid:
+            return f"Error: {error_msg}"
+
         start_time = time.time()
 
         # Log user message
         self.logger.info("User message", length=len(user_message))
 
-        # Match and activate skill if applicable
-        if self.skill_manager:
-            matched_skill = self.skill_manager.match_skill(user_message)
-            if matched_skill:
-                self.active_skill = matched_skill.name
-                self.logger.info(f"Activated skill: {matched_skill.name}")
+        # Pre-process: FTS index, @mention, skill matching (agent_hooks)
+        enriched_message = agent_hooks.pre_process(self, user_message)
 
         # Add to session
         if self.session:
-            self.session.add_message("user", user_message)
+            self.session.add_message("user", enriched_message)
 
         # Add to conversation history
-        self.messages.append({"role": "user", "content": user_message})
+        self.messages.append({"role": "user", "content": enriched_message})
 
         # Trigger hooks
         self.hooks.trigger("UserPromptSubmit", user_message)
@@ -285,56 +464,13 @@ class Agent:
                     self.metrics.increment("context_compactions")
                 self.messages = self.compactor.compact(self.messages, self.llm)
 
-            # Check cache for response
-            if use_cache and self.llm_cache:
-                cached_response = self.llm_cache.get_response(
-                    self.messages,
-                    system=system,
-                    tools=tools_def,
-                    model=self.config.model.model,
-                )
-                if cached_response:
-                    self.logger.info("Cache hit for LLM response")
-                    if self.metrics:
-                        self.metrics.increment("llm_cache_hits")
-                    response = cached_response
-                else:
-                    response = self._call_llm(system, tools_def)
-                    if response:
-                        # Cache the response
-                        self.llm_cache.set_response(
-                            self.messages,
-                            response,
-                            system=system,
-                            tools=tools_def,
-                            model=self.config.model.model,
-                        )
-            else:
-                response = self._call_llm(system, tools_def)
-
+            # LLM call with caching and metrics (extracted)
+            response = self._get_llm_response(system, tools_def, use_cache)
             if not response:
                 return "Error: Failed to get LLM response"
 
-            # Add assistant response to history
             self.messages.append({"role": "assistant", "content": response["content"]})
-
-            # Track metrics
-            if self.metrics and "usage" in response:
-                usage = response["usage"]
-                input_tokens = usage.get("input_tokens", 0)
-                output_tokens = usage.get("output_tokens", 0)
-
-                self.metrics.increment("input_tokens", input_tokens)
-                self.metrics.increment("output_tokens", output_tokens)
-                self.metrics.increment("llm_calls")
-
-                # Estimate cost
-                cost = estimate_cost(
-                    self.config.model.name,
-                    input_tokens,
-                    output_tokens,
-                )
-                self.metrics.add_cost(self.config.model.provider, cost)
+            self._track_llm_metrics(response)
 
             # Check if we're done (no tool calls)
             if response["stop_reason"] != "tool_use":
@@ -348,6 +484,9 @@ class Agent:
                 if self.session:
                     self.session.add_message("assistant", response_text)
                     self.session.save()
+
+                # Post-process: FTS, suggestions, knowledge, auto-skill, tips, feedback (agent_hooks)
+                response_text = agent_hooks.post_process(self, user_message, response_text, start_time)
 
                 # Log completion
                 duration = time.time() - start_time
@@ -373,6 +512,40 @@ class Agent:
             # Save session periodically
             if self.session and len(self.messages) % 10 == 0:
                 self.session.save()
+
+    def _get_llm_response(
+        self, system: str, tools_def: list, use_cache: bool = True
+    ) -> dict | None:
+        """Get LLM response with caching support."""
+        if use_cache and self.llm_cache:
+            cached = self.llm_cache.get_response(
+                self.messages, system=system, tools=tools_def, model=self.config.model.model
+            )
+            if cached:
+                self.logger.info("Cache hit for LLM response")
+                if self.metrics:
+                    self.metrics.increment("llm_cache_hits")
+                return cached
+
+        response = self._call_llm(system, tools_def)
+        if response and use_cache and self.llm_cache:
+            self.llm_cache.set_response(
+                self.messages, response, system=system, tools=tools_def, model=self.config.model.model
+            )
+        return response
+
+    def _track_llm_metrics(self, response: dict) -> None:
+        """Track token usage and cost from LLM response."""
+        if not self.metrics or "usage" not in response:
+            return
+        usage = response["usage"]
+        inp = usage.get("input_tokens", 0)
+        out = usage.get("output_tokens", 0)
+        self.metrics.increment("input_tokens", inp)
+        self.metrics.increment("output_tokens", out)
+        self.metrics.increment("llm_calls")
+        cost = estimate_cost(self.config.model.model, inp, out)
+        self.metrics.add_cost(self.config.model.provider, cost)
 
     def _call_llm(
         self,
@@ -475,7 +648,7 @@ class Agent:
         return results
 
     def _execute_tool(self, tool_name: str, tool_input: dict[str, Any]) -> str:
-        """Execute a single tool with timing.
+        """Execute a single tool with timing and auto-checkpoint.
 
         Args:
             tool_name: Tool name
@@ -485,9 +658,13 @@ class Agent:
             Tool output
         """
         # Maximum output size per tool (prevents context overflow from large files)
-        MAX_TOOL_OUTPUT = 100_000  # ~25K tokens
+        max_tool_output = 100_000  # ~25K tokens
 
         start_time = time.time()
+
+        # Auto-create checkpoint before destructive operations
+        if self.checkpoint_manager:
+            self.checkpoint_manager.create_pre_tool_snapshot(tool_name, tool_input)
 
         try:
             output = self.tools.execute(tool_name, **tool_input)
@@ -495,10 +672,11 @@ class Agent:
 
             # Truncate large outputs to prevent context overflow
             output_str = str(output)
-            if len(output_str) > MAX_TOOL_OUTPUT:
+            if len(output_str) > max_tool_output:
+                omitted = len(output_str) - max_tool_output
                 output_str = (
-                    output_str[:MAX_TOOL_OUTPUT]
-                    + f"\n\n... (output truncated, {len(output_str) - MAX_TOOL_OUTPUT} "
+                    output_str[:max_tool_output]
+                    + f"\n\n... (output truncated, {omitted} "
                     f"chars omitted. Use read_file with limit= to read specific portions.)"
                 )
 
@@ -509,6 +687,14 @@ class Agent:
                 output_length=len(output_str),
             )
 
+            # Speculative prefetch for likely next reads
+            if self.spec_exec:
+                predicted = self.spec_exec.analyze_tool_call(
+                    tool_name, tool_input, output_str
+                )
+                if predicted:
+                    self.spec_exec.prefetch_files(self.workdir, predicted)
+
             if self.metrics:
                 self.metrics.timer_stop(f"tool_{tool_name}", start_time)
 
@@ -517,7 +703,27 @@ class Agent:
             self.logger.error("Tool execution failed", tool=tool_name, error=str(e), exc_info=True)
             if self.metrics:
                 self.metrics.increment("tool_errors")
+            error_str = str(e)
+
+            # Attempt auto-healing
+            healed = self.auto_healer.attempt_heal(
+                tool_name, tool_input, error_str
+            )
+            if healed:
+                self.logger.info("AutoHealer applied fix", tool=tool_name)
+                if self.metrics:
+                    self.metrics.increment("auto_heals")
+                return healed
+
             return f"Error executing {tool_name}: {e}"
+
+        # Auto-commit after successful file edits (disabled by default)
+        if self.config.auto_commit_enabled:
+            commit_msg = auto_commit_after_edit(
+                self.workdir, tool_name, tool_input, output_str
+            )
+            if commit_msg:
+                self.logger.info("Auto-committed change", path=tool_input.get("path", ""))
 
     def _wrap_up(self) -> str:
         """Force the agent to stop using tools and provide a final response.
@@ -554,6 +760,119 @@ class Agent:
             Extracted text
         """
         return extract_text(content)
+
+    def _track_knowledge(self, user_msg: str, assistant_msg: str) -> None:
+        """Extract entities from conversation and add to knowledge graph."""
+        if not self.knowledge_graph:
+            return
+
+        # Simple entity extraction: file paths, function names, error types
+        import re
+
+        # File paths
+        files = set(re.findall(r"['\"]?([\w./-]+\.(?:py|js|ts|md|yaml|json))['\"]?", user_msg + " " + assistant_msg))
+        for f in files:
+            self.knowledge_graph.add_node(f"file:{f}", "file", name=f)
+
+        # Error types
+        errors = set(re.findall(r"(?:Error|Exception):\s*(\w+)", assistant_msg))
+        for e in errors:
+            self.knowledge_graph.add_node(f"error:{e}", "error", name=e)
+            for f in files:
+                self.knowledge_graph.add_edge(f"file:{f}", f"error:{e}", "had_error")
+
+    def fork(self) -> Agent:
+        """Fork the agent state, creating a new conversation branch.
+
+        The current agent's messages are cloned into the fork.
+        Returns the forked agent for chaining.
+        """
+        forked = Agent(
+            config=self.config,
+            workdir=self.workdir,
+            enable_memory=False,
+            enable_session=False,
+            enable_metrics=False,
+            enable_cache=False,
+            enable_subagents=False,
+            enable_skills=False,
+            enable_checkpoint=False,
+            enable_planner=False,
+        )
+        # Clone current messages
+        import copy
+        forked.messages = copy.deepcopy(self.messages)
+        self.logger.info("Agent forked", message_count=len(forked.messages))
+        return forked
+
+    def parse_mentions(self, text: str) -> str:
+        """Parse @-mention syntax and inject relevant context.
+
+        Supports:
+          @file:path/to/file.py  — inject file contents (first 100 lines)
+          @symbol:ClassName      — search repo map for class/function definition
+          @git:branch-name       — show git log for branch
+
+        Returns the input text with injected context appended.
+        """
+        import re
+
+        mentions = re.findall(r"@(file|symbol|git):(\S+)", text)
+        if not mentions:
+            return text
+
+        context_parts = ["\n\n---\n## Injected Context\n"]
+
+        for mtype, mvalue in mentions:
+            if mtype == "file":
+                file_path = self.workdir / mvalue
+                if file_path.exists():
+                    try:
+                        content = file_path.read_text(encoding="utf-8", errors="replace")
+                        preview = "\n".join(content.split("\n")[:100])
+                        context_parts.append(
+                            f"\n### @file:{mvalue}\n```\n{preview}\n```\n"
+                        )
+                    except Exception:
+                        context_parts.append(f"\n*(Could not read @file:{mvalue})*\n")
+
+            elif mtype == "symbol":
+                try:
+                    from .repomap import RepoMapGenerator
+                    gen = RepoMapGenerator(self.workdir)
+                    symbols = gen.find_symbol(mvalue)
+                    if symbols:
+                        context_parts.append(f"\n### @symbol:{mvalue}\n")
+                        for s in symbols[:5]:
+                            context_parts.append(
+                                f"- `{s['type']}` **{s['name']}** → "
+                                f"`{s['file']}:{s['line']}`\n"
+                            )
+                            if s.get("signature"):
+                                context_parts.append(f"  ```{s['signature']}```\n")
+                except Exception:
+                    context_parts.append(f"\n*(Could not resolve @symbol:{mvalue})*\n")
+
+            elif mtype == "git":
+                import subprocess
+                try:
+                    result = subprocess.run(
+                        ["git", "log", "--oneline", "-n", "5", mvalue],
+                        cwd=self.workdir,
+                        capture_output=True,
+                        text=True,
+                        timeout=10,
+                    )
+                    if result.stdout:
+                        context_parts.append(
+                            f"\n### @git:{mvalue}\n```\n{result.stdout.strip()}\n```\n"
+                        )
+                except Exception:
+                    pass
+
+        if len(context_parts) > 1:
+            return text + "\n".join(context_parts)
+        return text
 
     def reset(self) -> None:
         """Reset the agent state."""

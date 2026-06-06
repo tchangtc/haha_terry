@@ -179,7 +179,7 @@ class NotesTool(BaseTool):
             return []
 
         try:
-            with open(self.notes_file, "r") as f:
+            with open(self.notes_file) as f:
                 return json.load(f)
         except Exception:
             return []

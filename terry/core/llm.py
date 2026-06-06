@@ -4,13 +4,13 @@ from __future__ import annotations
 
 import json
 import os
-from typing import Any, Iterator
+from typing import Any
 
 from anthropic import Anthropic
 from openai import OpenAI
 
+from .adapter import ProviderAdapter, get_provider
 from .config import ModelConfig
-from .adapter import get_provider, ProviderAdapter
 
 
 class LLMClient:
@@ -90,8 +90,7 @@ class LLMClient:
                     kwargs["tools"] = tools
 
                 with self.client.messages.stream(**kwargs) as stream:
-                    for text in stream.text_stream:
-                        yield text
+                    yield from stream.text_stream
             else:
                 # OpenAI-compatible streaming
                 openai_messages = []

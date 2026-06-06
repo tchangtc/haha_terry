@@ -1,0 +1,93 @@
+{
+  "name": "terry-vscode",
+  "displayName": "Terry AI Agent",
+  "description": "AI coding agent for VS Code \u2014 chat, edit, and automate your workflow",
+  "version": "0.2.0",
+  "publisher": "terry-ai",
+  "license": "MIT",
+  "icon": "icon.png",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Machine Learning",
+    "Programming Languages",
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "terry.chat",
+        "title": "Terry: Open Chat"
+      },
+      {
+        "command": "terry.explain",
+        "title": "Terry: Explain Selected Code"
+      },
+      {
+        "command": "terry.fix",
+        "title": "Terry: Fix Selected Code"
+      },
+      {
+        "command": "terry.review",
+        "title": "Terry: Review Current File"
+      },
+      {
+        "command": "terry.generateTests",
+        "title": "Terry: Generate Tests for Current File"
+      },
+      {
+        "command": "terry.startServer",
+        "title": "Terry: Start Server"
+      },
+      {
+        "command": "terry.openSettings",
+        "title": "Terry: Open Settings"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "terry.chat",
+        "key": "ctrl+shift+t",
+        "mac": "cmd+shift+t"
+      }
+    ],
+    "configuration": {
+      "title": "Terry",
+      "properties": {
+        "terry.serverUrl": {
+          "type": "string",
+          "default": "http://127.0.0.1:8670",
+          "description": "Terry server URL"
+        },
+        "terry.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "API key for Terry server authentication (optional)"
+        },
+        "terry.enableStreaming": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable streaming responses for real-time chat"
+        },
+        "terry.autoStartServer": {
+          "type": "boolean",
+          "default": true,
+          "description": "Auto-start Terry server when VS Code opens"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.3.0",
+    "@types/node": "^20.0.0"
+  }
+}

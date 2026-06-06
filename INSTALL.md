@@ -320,7 +320,6 @@ python tests/test_terry.py
 ## 下一步 / Next Steps
 
 1. **配置 API 密钥**: 参考 README.md
-2. **阅读快速开始**: `docs/internal/QUICKSTART.md`
 3. **了解工具**: 在 Terry 中输入 `/tools`
 4. **查看示例**: 参考 `examples/` 目录（如果存在）
 

@@ -1,0 +1,78 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Terry — Cross-Platform Guide</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:#1a1a2e;color:#e0e0e0;padding:20px;max-width:800px;margin:0 auto}
+h1{color:#00d4aa;margin:20px 0}h2{color:#00d4aa;margin:16px 0 8px;font-size:18px}
+.card{background:#16213e;border:1px solid #2a2a4a;border-radius:12px;padding:16px;margin:12px 0}
+code{background:#0a0a1a;padding:2px 8px;border-radius:4px;font-size:13px;display:inline-block;margin:4px 0}
+pre{background:#0a0a1a;padding:12px;border-radius:8px;overflow-x:auto;font-size:13px;margin:8px 0}
+.os-icon{font-size:24px;margin-right:8px}
+@media(max-width:600px){body{padding:12px}code,pre{font-size:11px}}
+</style></head><body>
+
+<h1>Terry — Cross-Platform Installation Guide</h1>
+
+<div class="card">
+<h2><span class="os-icon"></span> All Platforms (Python)</h2>
+<pre><code>git clone https://github.com/tchangtc/haha_terry.git && cd haha_terry
+pip install -e . || pip install -r requirements.txt
+export ANTHROPIC_API_KEY="sk-ant-..."
+terry</code></pre>
+</div>
+
+<div class="card">
+<h2>🪟 Windows</h2>
+<pre><code># Use PowerShell or cmd.exe
+git clone https://github.com/tchangtc/haha_terry.git
+cd haha_terry
+pip install -e . || pip install -r requirements.txt
+set ANTHROPIC_API_KEY=sk-ant-...
+terry
+
+# For ANSI colors in older Windows, run:
+pip install colorama</code></pre>
+</div>
+
+<div class="card">
+<h2>🍎 macOS</h2>
+<pre><code>git clone https://github.com/tchangtc/haha_terry.git && cd haha_terry
+pip install -e . || pip install -r requirements.txt
+export ANTHROPIC_API_KEY="sk-ant-..."
+terry               # CLI mode
+terry webui          # Browser mode
+terry desktop        # Desktop tray mode</code></pre>
+</div>
+
+<div class="card">
+<h2>🐧 Linux</h2>
+<pre><code>git clone https://github.com/tchangtc/haha_terry.git && cd haha_terry
+pip install -e . || pip install -r requirements.txt
+export ANTHROPIC_API_KEY="sk-ant-..."
+terry
+# For desktop tray: pip install pystray pillow</code></pre>
+</div>
+
+<div class="card">
+<h2>📱 Android / iOS (Mobile)</h2>
+<p>Open WebUI in your mobile browser, then:</p>
+<pre><code># Start on your computer:
+terry webui --host 0.0.0.0
+
+# On your phone, open:
+http://YOUR_COMPUTER_IP:8670
+
+# Add to Home Screen for app-like experience</code></pre>
+<p>Or use Telegram: <code>pip install httpx</code> and run the Telegram gateway.</p>
+</div>
+
+<div class="card">
+<h2>🐳 Docker (Any Platform)</h2>
+<pre><code>docker compose up terry</code></pre>
+</div>
+
+<p style="text-align:center;color:#666;margin-top:24px;font-size:12px">
+  Terry v0.2.0 · MIT License · Works on Windows, macOS, Linux, iOS, Android
+</p>
+</body></html>

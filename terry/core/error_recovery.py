@@ -1,10 +1,12 @@
-"""Error recovery system - handle LLM errors gracefully."""
+"""Error recovery system - handle LLM errors gracefully with auto-healing."""
 
 from __future__ import annotations
 
+import re
+import subprocess
 import time
+from pathlib import Path
 from typing import Any
-
 
 # Model fallback chain: if primary model fails with 529 (overloaded),
 # automatically try cheaper/faster alternatives.
@@ -135,6 +137,192 @@ class ErrorRecovery:
         """Reset fallback state (call after successful LLM call)."""
         self._active_fallback = None
         self._consecutive_529_count = {}
+
+
+class AutoHealer:
+    """Attempts to auto-fix common tool execution errors.
+
+    When a tool returns an error, AutoHealer analyzes the error message
+    and attempts corrective actions before giving up.
+    """
+
+    # Common error patterns and their fixes
+    HEALING_PATTERNS: list[tuple[str, str, str]] = [
+        # (error_regex, fix_description, fix_command_template)
+        (r"command not found:?\s*(\S+)", "Install missing command", "which {cmd} 2>/dev/null || apt-get install -y {cmd} 2>/dev/null || brew install {cmd} 2>/dev/null || pip install {cmd}"),
+        (r"No module named ['\"]?(\w+)['\"]?", "Install missing Python module", "pip install {cmd}"),
+        (r"cannot access ['\"]?([^'\"]+)['\"]?: No such file", "Create parent directory", "mkdir -p $(dirname {path})"),
+        (r"Permission denied", "Retry with sudo", "sudo !!"),
+        (r"ModuleNotFoundError: No module named ['\"]?(\w+)['\"]?", "Install Python package", "pip install {cmd}"),
+        (r"SyntaxError:.*", "Check syntax", None),  # Just report, can't auto-fix
+        (r"ImportError:.*", "Check imports", None),
+    ]
+
+    def __init__(self, workdir: Path | None = None, max_attempts: int = 2):
+        self.workdir = workdir or Path.cwd()
+        self.max_attempts = max_attempts
+
+    def analyze_error(self, tool_name: str, error_text: str) -> dict[str, Any] | None:
+        """Analyze a tool error and determine if it can be healed.
+
+        Returns:
+            Dict with 'healable', 'suggestion', 'fix_command' or None
+        """
+        for pattern, description, fix_template in self.HEALING_PATTERNS:
+            match = re.search(pattern, error_text, re.IGNORECASE)
+            if match:
+                cmd = match.group(1) if match.groups() else ""
+                path_match = re.search(r"['\"]?([^'\"]+)['\"]?", error_text)
+                path = path_match.group(1) if path_match else ""
+
+                fix_cmd = None
+                if fix_template:
+                    fix_cmd = fix_template.format(cmd=cmd, path=path)
+
+                return {
+                    "healable": fix_cmd is not None,
+                    "pattern": pattern,
+                    "description": description,
+                    "fix_command": fix_cmd,
+                    "matched_value": cmd or path,
+                }
+        return None
+
+    def attempt_heal(
+        self,
+        tool_name: str,
+        tool_input: dict,
+        error_text: str,
+        retry_count: int = 0,
+    ) -> str | None:
+        """Attempt to heal a tool error and retry.
+
+        Returns:
+            Fixed result string if healed, None if couldn't heal
+        """
+        if retry_count >= self.max_attempts:
+            return None
+
+        analysis = self.analyze_error(tool_name, error_text)
+        if analysis is None or not analysis["healable"]:
+            return None
+
+        fix_cmd = analysis["fix_command"]
+        if fix_cmd is None:
+            return None
+
+        # Try the fix command
+        try:
+            result = subprocess.run(
+                ["/bin/sh", "-c", fix_cmd],
+                cwd=self.workdir,
+                capture_output=True,
+                text=True,
+                timeout=60,
+                encoding="utf-8",
+                errors="replace",
+            )
+            fix_output = (result.stdout + result.stderr).strip()
+
+            # Don't retry if fix failed
+            if result.returncode != 0 and "apt-get" not in fix_cmd:
+                return None
+
+            return (
+                f"[AutoHealer] Applied fix: {analysis['description']}\n"
+                f"Fix command: {fix_cmd}\n"
+                f"Fix output: {fix_output[:500]}\n\n"
+                f"Original error: {error_text}"
+            )
+        except Exception:
+            return None
+
+
+def auto_commit_after_edit(
+    workdir: Path,
+    tool_name: str,
+    tool_input: dict,
+    tool_output: str,
+) -> str | None:
+    """Auto-commit changes after write/edit operations.
+
+    Only commits if the working directory is a git repo and the
+    tool execution was successful (no error in output).
+
+    Returns commit message or None if no commit made.
+    """
+    if "Error" in tool_output or "Permission denied" in tool_output:
+        return None
+
+    if tool_name not in ("write_file", "edit_file", "multi_edit"):
+        return None
+
+    # Check if it's a git repo
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--git-dir"],
+            cwd=workdir,
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        if result.returncode != 0:
+            return None
+    except Exception:
+        return None
+
+    # Get the file path
+    file_path = tool_input.get("path", "")
+    if not file_path:
+        return None
+
+    # Stage and commit
+    try:
+        # Use conventional commit format with meaningful context
+        commit_type = "chore"
+        file_stem = Path(file_path).stem
+        if tool_name == "write_file":
+            commit_type = "feat" if file_path.endswith(".py") else "chore"
+        elif tool_name in ("edit_file", "multi_edit"):
+            commit_type = "fix"
+
+        scope = Path(file_path).parent.name if Path(file_path).parent.name else "root"
+        msg = f"{commit_type}({scope}): update {Path(file_path).name}"
+
+        subprocess.run(
+            ["git", "add", "--", file_path],
+            cwd=workdir,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+
+        # Dedup: only commit if there are staged changes
+        diff_check = subprocess.run(
+            ["git", "diff", "--cached", "--quiet"],
+            cwd=workdir,
+            capture_output=True,
+            timeout=5,
+        )
+        if diff_check.returncode == 0:
+            return None  # No changes to commit
+
+        result = subprocess.run(
+            ["git", "commit", "-m", msg],
+            cwd=workdir,
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+
+        if result.returncode == 0:
+            # User-visible notification
+            import sys
+            print(f"\U0001f4dd Auto-committed: {msg}", file=sys.stderr)
+            return f"Committed: {msg}"
+        return None
+    except Exception:
+        return None
 
 
 def wrap_llm_call_with_recovery(

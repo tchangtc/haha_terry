@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import os
-import json
-from urllib.parse import quote_plus
 from pathlib import Path
 
 import httpx

@@ -288,7 +288,7 @@ def test_agent_integration():
         status = agent.get_status()
         assert "workdir" in status, "Status missing workdir"
         assert "tools_available" in status, "Status missing tools_available"
-        assert status["tools_available"] == 16, f"Expected 16 tools, got {status['tools_available']}"
+        assert status["tools_available"] >= 20, f"Expected 20+ tools, got {status['tools_available']}"
         print(f"   ✅ Agent initialized with {status['tools_available']} tools")
 
         # Test metrics integration

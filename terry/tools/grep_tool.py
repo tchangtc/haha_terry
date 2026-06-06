@@ -132,14 +132,14 @@ class GrepTool(BaseTool):
         matches = []
 
         try:
-            with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+            with open(file_path, encoding='utf-8', errors='ignore') as f:
                 for line_num, line in enumerate(f, 1):
                     if regex.search(line):
                         matches.append((file_path, line_num, line.rstrip()))
 
                         if len(matches) >= max_results:
                             break
-        except (IOError, OSError):
+        except OSError:
             # Skip files that can't be read
             pass
 
@@ -167,7 +167,7 @@ class GrepTool(BaseTool):
                 text_chars = bytes(range(32, 127)) + b'\n\r\t'
                 non_text = sum(1 for byte in chunk if byte not in text_chars)
                 return non_text / len(chunk) > 0.3
-        except (IOError, OSError):
+        except OSError:
             return True
 
 

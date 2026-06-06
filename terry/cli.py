@@ -4,18 +4,18 @@ from __future__ import annotations
 
 import atexit
 import os
-import sys
 from pathlib import Path
 
 import typer
 from dotenv import load_dotenv
 from rich.console import Console
-from rich.panel import Panel
 from rich.markdown import Markdown
+from rich.panel import Panel
 
 from . import __version__
-from .core.config import TerryConfig
 from .core.agent import Agent
+from .core.config import TerryConfig
+from .core.ux import FirstRunWizard, TipsEngine
 from .i18n import get_i18n, t
 
 # Enable readline support for command history on Unix
@@ -99,6 +99,19 @@ def main_callback(
     workdir = Path.cwd()
     agent = Agent(config=cfg, workdir=workdir)
 
+    # First-run wizard
+    if FirstRunWizard.is_first_run():
+        console.print(Panel(
+            FirstRunWizard.get_welcome(),
+            title="🚀 Welcome to Terry!",
+            border_style="green",
+        ))
+        FirstRunWizard.mark_complete()
+    else:
+        tip = TipsEngine.get_random_tip()
+        if tip:
+            console.print(f"\033[90m{tip}\033[0m")
+
     # Show startup banner
     mode_str = agent.get_mode()
     mode_colors = {"deny": "red", "ask": "yellow", "auto": "green"}
@@ -121,7 +134,7 @@ def main_callback(
 
 def run_repl(agent: Agent):
     """Interactive REPL loop with mode indicator and Shift+Tab support."""
-    i18n = get_i18n()
+    get_i18n()
 
     # Setup readline for command history and Shift+Tab mode cycling
     history_file = None
@@ -136,14 +149,30 @@ def run_repl(agent: Agent):
         readline.set_history_length(1000)
         atexit.register(lambda: readline.write_history_file(str(history_file)))
 
-    console.print(f"[dim]{t('cli.help_hint')}[/dim]\n")
+    # Setup tab completion for commands
+    commands_list = [
+        "/help", "/exit", "/new", "/model", "/mode", "/tools", "/context",
+        "/language", "/save", "/load", "/skills", "/skill", "/activate",
+        "/deactivate", "/reload-skills", "/undo", "/checkpoints", "/plan",
+        "/config", "/permissions", "/fork", "/stream", "/repomap", "/search",
+        "/benchmark", "/replay", "/workflow", "/curator", "/tasks",
+    ]
+    if _readline_available:
+        def completer(text, state):
+            options = [c for c in commands_list if c.startswith(text)]
+            if state < len(options):
+                return options[state]
+            return None
+        readline.set_completer(completer)
+        readline.parse_and_bind("tab: complete")
+
+    console.print(f"[dim]{t('cli.help_hint')} (Tab to complete commands)[/dim]\n")
 
     while True:
         mode_str = agent.get_mode()
         # Colored mode label
         mode_colors = {"deny": "red", "ask": "yellow", "auto": "green"}
-        mode_color = mode_colors.get(mode_str, "white")
-        mode_label = f"[{mode_color}]{mode_str}[/{mode_color}]"
+        mode_colors.get(mode_str, "white")
 
         try:
             prompt = f"\033[36mterry [{mode_str}] ▸ \033[0m"
@@ -176,171 +205,14 @@ def run_repl(agent: Agent):
 
 
 def handle_command(cmd: str, agent: Agent) -> bool:
-    """Handle slash commands. Returns True to continue, False to exit."""
-    i18n = get_i18n()
-    parts = cmd.split(maxsplit=1)
-    command = parts[0].lower()
-
-    if command in ("/exit", "/quit", "/q"):
-        console.print(f"[dim]{t('cli.goodbye')}[/dim]")
-        return False
-
-    elif command == "/help":
-        console.print(Panel(
-            f"[bold]{t('commands.help.description')}[/bold]\n\n"
-            f"/help     - {t('commands.help.description')}\n"
-            f"/exit     - {t('commands.quit.description')}\n"
-            f"/new      - {t('commands.reset.description')}\n"
-            f"/model    - Show current model\n"
-            f"/mode     - Cycle sandbox mode (deny ↔ ask ↔ auto)\n"
-            f"/mode <m> - Set mode to deny, ask, or auto\n"
-            f"/tools    - {t('tools.bash.description')}\n"
-            f"/context  - Show context usage\n"
-            f"/language - {t('commands.language.description')}\n"
-            f"/save     - {t('commands.save.description')}\n"
-            f"/load     - {t('commands.load.description')}\n\n"
-            f"[bold]Skill Commands[/bold]\n"
-            f"/skills          - List all available skills\n"
-            f"/skill <name>    - Show skill details\n"
-            f"/activate <name> - Manually activate a skill\n"
-            f"/deactivate      - Deactivate current skill\n"
-            f"/reload-skills   - Reload skills from disk",
-            title="Help",
-        ))
+    """Handle slash commands via CommandRegistry. Returns True to continue, False to exit."""
+    from .cli_commands import cli_registry
+    result = cli_registry.dispatch(cmd, agent)
+    if result is None:
+        # Unknown command
+        console.print(f"[dim]{t('errors.unknown_command', command=cmd)}. Type /help[/dim]")
         return True
-
-    elif command == "/new":
-        agent.reset()
-        console.print(f"[dim]{t('status.conversation_reset')}[/dim]")
-        return True
-
-    elif command == "/model":
-        console.print(f"Current model: {agent.config.model.provider}/{agent.config.model.model}")
-        return True
-
-    elif command == "/tools":
-        tools = agent.tools.list_tools()
-        if tools:
-            console.print("[bold]Available Tools:[/bold]")
-            for tool in tools:
-                console.print(f"  - {tool.name}: {tool.description}")
-        else:
-            console.print("No tools available")
-        return True
-
-    elif command == "/context":
-        msg_count = len(agent.messages)
-        tool_count = agent.tool_call_count
-        console.print(f"Messages: {msg_count}, Tool calls: {tool_count}/{agent.config.max_tool_calls}")
-        return True
-
-    elif command == "/mode":
-        if len(parts) > 1:
-            new_mode = parts[1].strip().lower()
-            if agent.set_mode(new_mode):
-                mode_color = {"deny": "red", "ask": "yellow", "auto": "green"}.get(new_mode, "white")
-                console.print(f"[{mode_color}]Mode changed to: {new_mode}[/{mode_color}]")
-            else:
-                console.print(f"[red]Invalid mode: {new_mode}. Use: deny, ask, auto[/red]")
-        else:
-            # No argument: cycle to next mode
-            new_mode = agent.cycle_mode()
-            mode_color = {"deny": "red", "ask": "yellow", "auto": "green"}.get(new_mode, "white")
-            console.print(f"[{mode_color}]Mode: {new_mode} (cycle with Shift+Tab in permission prompts)[/{mode_color}]")
-        return True
-
-    elif command == "/language":
-        if len(parts) > 1:
-            new_lang = parts[1].strip().lower()
-            if i18n.set_language(new_lang):
-                console.print(f"[green]{t('status.language_changed', language=new_lang.upper())}[/green]")
-            else:
-                console.print(f"[yellow]Unsupported language: {new_lang}. Supported: {', '.join(i18n.get_supported_languages())}[/yellow]")
-        else:
-            console.print(f"Current language: {i18n.get_language().upper()}")
-            console.print(f"Supported languages: {', '.join(i18n.get_supported_languages())}")
-            console.print(f"Usage: /language <{'|'.join(i18n.get_supported_languages())}>")
-        return True
-
-    elif command == "/save":
-        filename = parts[1].strip() if len(parts) > 1 else None
-        if agent.session:
-            path = agent.save_session(filename)
-            console.print(f"[green]{t('status.session_saved', filename=path)}[/green]")
-        else:
-            console.print("[yellow]Session management not available[/yellow]")
-        return True
-
-    elif command == "/load":
-        if len(parts) > 1:
-            filename = parts[1].strip()
-            if agent.session:
-                if agent.load_session(filename):
-                    console.print(f"[green]{t('status.session_loaded', filename=filename)}[/green]")
-                else:
-                    console.print(f"[red]Failed to load session: {filename}[/red]")
-            else:
-                console.print("[yellow]Session management not available[/yellow]")
-        else:
-            console.print(f"[yellow]{t('commands.load.usage')}[/yellow]")
-        return True
-
-    # Skill commands
-    elif command == "/skills":
-        skills = agent.list_skills()
-        if skills:
-            console.print("[bold]Available Skills:[/bold]")
-            for skill in skills:
-                status = " [green](active)[/green]" if skill.get('active') else ""
-                console.print(f"  - [bold]{skill['name']}[/bold]{status}: {skill['description']}")
-        else:
-            console.print("[yellow]No skills available[/yellow]")
-        return True
-
-    elif command == "/skill":
-        if len(parts) > 1:
-            skill_name = parts[1].strip()
-            skill_info = agent.get_skill_info(skill_name)
-            if skill_info:
-                status = " [green](active)[/green]" if skill_info.get('active') else ""
-                console.print(Panel(
-                    f"[bold]{skill_info['name']}[/bold]{status}\n\n"
-                    f"{skill_info['description']}\n\n"
-                    f"[dim]Content preview:[/dim]\n{skill_info['content'][:200]}...",
-                    title="Skill Details",
-                    border_style="blue",
-                ))
-            else:
-                console.print(f"[red]Skill not found: {skill_name}[/red]")
-        else:
-            console.print("[yellow]Usage: /skill <skill_name>[/yellow]")
-        return True
-
-    elif command == "/activate":
-        if len(parts) > 1:
-            skill_name = parts[1].strip()
-            if agent.activate_skill(skill_name):
-                console.print(f"[green]Skill activated: {skill_name}[/green]")
-            else:
-                console.print(f"[red]Failed to activate skill: {skill_name}[/red]")
-        else:
-            console.print("[yellow]Usage: /activate <skill_name>[/yellow]")
-        return True
-
-    elif command == "/deactivate":
-        agent.deactivate_skill()
-        console.print("[green]Skill deactivated[/green]")
-        return True
-
-    elif command == "/reload-skills":
-        count = agent.reload_skills()
-        console.print(f"[green]Reloaded {count} skills[/green]")
-        return True
-
-    else:
-        console.print(f"[dim]{t('errors.unknown_command', command=command)}. Type /help for available commands[/dim]")
-        return True
-
+    return result
 
 @app.command("run")
 def run_cmd(
@@ -356,6 +228,91 @@ def run_cmd(
     ctx = Context(command=run_cmd, info_name="run", parent=None)
     main_callback(ctx, config=config, model=model, api_key=api_key,
                   language=language, debug=debug, version=None)
+
+
+@app.command("webui")
+def webui_cmd(
+    host: str = typer.Option("127.0.0.1", "--host", "-h", help="Bind address"),
+    port: int = typer.Option(8670, "--port", "-p", help="Listen port"),
+    no_browser: bool = typer.Option(False, "--no-browser", help="Don't open browser"),
+):
+    """Start the Terry WebUI server."""
+    from .webui.server import WebUIServer
+
+    # Create agent factory
+    def agent_factory():
+        cfg = TerryConfig.load()
+        cfg.model.api_key = cfg.model.api_key or os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("OPENAI_API_KEY") or ""  # noqa: E501
+        return Agent(config=cfg)
+
+    server = WebUIServer(agent_factory=agent_factory, host=host, port=port)
+    server.start()
+
+    if not no_browser:
+        import webbrowser
+        webbrowser.open(f"http://{host}:{port}")
+
+    console.print(f"\n[dim]WebUI: http://{host}:{port}[/dim]")
+    console.print("[dim]Press Ctrl+C to stop[/dim]\n")
+    try:
+        import time
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        server.stop()
+        console.print("[dim]WebUI stopped[/dim]")
+
+
+@app.command("desktop")
+def desktop_cmd(
+    host: str = typer.Option("127.0.0.1", "--host", "-h", help="Bind address"),
+    port: int = typer.Option(8670, "--port", "-p", help="Listen port"),
+    no_tray: bool = typer.Option(False, "--no-tray", help="Disable system tray icon"),
+    browser_only: bool = typer.Option(False, "--browser", help="Browser only, no tray"),
+):
+    """Start Terry in desktop mode (system tray + WebUI)."""
+    from .desktop import start_browser_only, start_system_tray
+
+    def agent_factory():
+        cfg = TerryConfig.load()
+        cfg.model.api_key = cfg.model.api_key or os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("OPENAI_API_KEY") or ""  # noqa: E501
+        return Agent(config=cfg)
+
+    if browser_only or no_tray:
+        start_browser_only(host=host, port=port)
+    else:
+        start_system_tray(agent_factory=agent_factory, host=host, port=port)
+
+
+@app.command("swe-bench")
+def swe_bench_cmd(
+    difficulty: str = typer.Option(None, "--difficulty", "-d", help="Filter by difficulty (easy/medium/hard)"),
+    output: str = typer.Option(None, "--output", "-o", help="Output directory for reports"),
+):
+    """Run SWE-bench evaluation and generate score report."""
+    from pathlib import Path
+
+    from .core.swe_bench import SWEBenchRunner
+
+    def agent_factory():
+        cfg = TerryConfig.load()
+        cfg.model.api_key = cfg.model.api_key or os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("OPENAI_API_KEY") or ""  # noqa: E501
+        return Agent(config=cfg, enable_subagents=False, enable_skills=False,
+                     enable_memory=False, enable_session=False, enable_metrics=True,
+                     enable_cache=False, enable_checkpoint=False, enable_planner=False)
+
+    runner = SWEBenchRunner(
+        agent_factory=agent_factory,
+        output_dir=Path(output) if output else None,
+    )
+
+    report = runner.run_all(difficulty=difficulty)
+    console.print("\n[bold]SWE-bench Report:[/bold]")
+    console.print(f"  Total: {report['total']}, Passed: {report['passed']}, Failed: {report['failed']}")
+    console.print(f"  Pass Rate: {report['pass_rate']}")
+    console.print(f"  Avg Score: {report['avg_score']}")
+    console.print(f"  Total Time: {report['total_time_s']}s")
+    console.print(f"  Total Cost: ${report['total_cost_usd']}")
 
 
 @app.command("init")

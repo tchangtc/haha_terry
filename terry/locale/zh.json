@@ -78,10 +78,16 @@
       "name": "find",
       "description": "搜索文件"
     },
-    "ls": {
-      "name": "ls",
-      "description": "列出目录内容"
-    }
+    "ls": {"name": "ls", "description": "列出目录内容"},
+    "multi_edit": {"name": "multi_edit", "description": "原子性多点编辑"},
+    "notebook_edit": {"name": "notebook_edit", "description": "编辑Jupyter笔记本"},
+    "git_diff": {"name": "git_diff", "description": "显示Git差异"},
+    "git_commit": {"name": "git_commit", "description": "提交变更"},
+    "git_log": {"name": "git_log", "description": "显示提交历史"},
+    "git_status": {"name": "git_status", "description": "显示仓库状态"},
+    "git_checkout": {"name": "git_checkout", "description": "切换分支"},
+    "read_image": {"name": "read_image", "description": "读取图片和PDF"},
+    "harness": {"name": "harness", "description": "编排多代理工作流"}
   },
   "commands": {
     "help": {
@@ -112,10 +118,12 @@
       "description": "加载会话",
       "usage": "load <文件名>"
     },
-    "language": {
-      "description": "切换语言",
-      "usage": "language <en|zh>"
-    }
+    "language": {"description": "切换语言", "usage": "language <en|zh>"},
+    "tutorial": {"description": "分步教学", "usage": "/tutorial"},
+    "undo": {"description": "撤销最近的修改", "usage": "/undo"},
+    "checkpoints": {"description": "列出可回滚快照", "usage": "/checkpoints"},
+    "plan": {"description": "先出方案再执行", "usage": "/plan <请求>"},
+    "config": {"description": "查看或修改设置", "usage": "/config [key=value]"}
   },
   "errors": {
     "unknown_command": "未知命令：{command}",

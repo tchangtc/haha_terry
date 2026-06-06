@@ -64,22 +64,37 @@ tool_registry = ToolRegistry()
 
 
 def discover_tools():
-    """Import built-in tool modules to trigger auto-registration."""
+    """Import built-in tool modules to trigger auto-registration.
+
+    Returns:
+        ToolRegistry: The global tool registry with all discovered tools
+    """
     from . import (  # noqa: F401
         bash,
-        read_file,
-        write_file,
+        calculator,
         edit_file,
+        find_tool,
+        git,
         glob_tool,
         grep_tool,
+        harness_tool,
+        ls_tool,
+        notebook,
+        notes,
+        read_file,
+        reminder,
+        timer,
+        todo_write,
+        weather,
         web_fetch,
         web_search,
-        todo_write,
-        reminder,
-        notes,
-        timer,
-        calculator,
-        weather,
-        find_tool,
-        ls_tool,
+        write_file,
     )
+
+    # Optional: multimodal support (requires PyMuPDF for PDF text extraction)
+    try:
+        from . import read_image  # noqa: F401
+    except ImportError:
+        pass
+
+    return tool_registry

@@ -2,12 +2,10 @@
 
 from __future__ import annotations
 
-import os
-import re
-import yaml
-from pathlib import Path
-from typing import Any, Optional
 from dataclasses import dataclass, field
+from pathlib import Path
+
+import yaml
 
 
 @dataclass
@@ -18,11 +16,11 @@ class Skill:
     description: str
     content: str
     triggers: list[str] = field(default_factory=list)
-    path: Optional[Path] = None
+    path: Path | None = None
     metadata: dict = field(default_factory=dict)
 
     @classmethod
-    def from_file(cls, skill_path: Path) -> Optional["Skill"]:
+    def from_file(cls, skill_path: Path) -> Skill | None:
         """Load a skill from a SKILL.md file.
 
         Args:
@@ -96,7 +94,7 @@ class SkillManager:
         self.skills.clear()
         self._load_skills()
 
-    def get_skill(self, name: str) -> Optional[Skill]:
+    def get_skill(self, name: str) -> Skill | None:
         """Get a skill by name.
 
         Args:
@@ -115,7 +113,7 @@ class SkillManager:
         """
         return list(self.skills.values())
 
-    def match_skill(self, user_input: str) -> Optional[Skill]:
+    def match_skill(self, user_input: str) -> Skill | None:
         """Match user input to the most appropriate skill.
 
         Args:
@@ -200,10 +198,10 @@ class SkillExecutor:
 
 
 # Global skill manager instance
-_skill_manager: Optional[SkillManager] = None
+_skill_manager: SkillManager | None = None
 
 
-def get_skill_manager(skills_dirs: Optional[list[Path]] = None) -> SkillManager:
+def get_skill_manager(skills_dirs: list[Path] | None = None) -> SkillManager:
     """Get or create the global skill manager instance.
 
     Args:

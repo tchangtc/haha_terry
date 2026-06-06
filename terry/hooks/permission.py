@@ -14,18 +14,18 @@ Architecture:
 from __future__ import annotations
 
 import re
-from enum import Enum
+from collections.abc import Callable
+from enum import StrEnum
 from pathlib import Path
-from typing import Callable
 
 
-class SandboxMode(str, Enum):
+class SandboxMode(StrEnum):
     DENY = "deny"
     ASK = "ask"
     AUTO = "auto"
 
     @classmethod
-    def cycle(cls, current: "SandboxMode") -> "SandboxMode":
+    def cycle(cls, current: SandboxMode) -> SandboxMode:
         """Cycle to the next mode in order: ask → auto → deny → ask."""
         order = [cls.ASK, cls.AUTO, cls.DENY]
         try:
@@ -165,8 +165,17 @@ def permission_hook(
     block,
     workdir: Path,
     mode: SandboxMode = SandboxMode.ASK,
+    permission_store=None,
+    permission_level=None,
 ) -> str | None:
-    """PreToolUse hook: mode-aware 3-gate permission check.
+    """PreToolUse hook: mode-aware 3-gate permission check with rule store.
+
+    Args:
+        block: Tool call block with .name and .input attributes
+        workdir: Working directory for path escape checks
+        mode: Sandbox mode (deny/ask/auto)
+        permission_store: Optional PermissionStore for rule checking
+        permission_level: Optional PermissionLevel for fine-grained control
 
     Returns:
         None = allow execution
@@ -175,7 +184,31 @@ def permission_hook(
     tool_name = block.name
     args = block.input
 
-    # ── Gate 1: Hard deny (always enforced) ──────────────────────
+    # Resolve permission level from mode if not explicitly provided
+    from ..core.permissions import PermissionLevel
+    if permission_level is None:
+        permission_level = PermissionLevel.from_sandbox_mode(mode.value)
+
+    # ── Check persistent permission rules first ──────────────────
+    if permission_store is not None:
+        command_or_path = ""
+        if tool_name == "bash":
+            command_or_path = args.get("command", "")
+        elif tool_name in ("write_file", "edit_file", "read_file", "multi_edit"):
+            command_or_path = args.get("path", "")
+
+        rule_result = permission_store.check(
+            tool_name, command_or_path, permission_level
+        )
+        if rule_result is not None and "Denied" in rule_result:
+            print(f"\033[31m⛔ {rule_result}\033[0m")
+            return rule_result
+        # Explicit allow from rules
+        if rule_result is None and permission_store.get_applicable(tool_name, command_or_path):
+            # Has an explicit allow rule
+            pass
+
+    # ── Gate 1: Hard deny (always enforced regardless of level) ──
     if tool_name == "bash":
         command = args.get("command", "")
         reason = check_deny_list(command)
@@ -183,48 +216,60 @@ def permission_hook(
             print(f"\033[31m⛔ {reason}\033[0m")
             return "Permission denied by deny list"
 
-    # ── Gate 2: Destructive (mode-dependent) ─────────────────────
+    # ── Gate 2: Destructive (level-dependent) ────────────────────
     if tool_name == "bash":
         command = args.get("command", "")
         reason = check_destructive(command)
         if reason:
-            if mode == SandboxMode.DENY:
-                print(f"\033[31m⛔ [{format_mode(mode)}] {reason}\033[0m")
+            if permission_level in (PermissionLevel.HIGH, PermissionLevel.CRITICAL):
+                print(f"\033[31m⛔ [{permission_level.value}] {reason}\033[0m")
                 return f"Permission denied: {reason}"
 
-            elif mode == SandboxMode.ASK:
+            elif permission_level == PermissionLevel.MEDIUM:
                 print(f"\033[33m⚠  {reason}\033[0m")
                 print(f"   Tool: {tool_name}({args})")
-                print(f"   [y=allow N=deny Shift+Tab=cycle mode ({mode.value}→{SandboxMode.cycle(mode).value})]")
+                print("   [y=allow N=deny Shift+Tab=cycle mode]")
                 choice = _prompt("   ▸ ")
                 if choice in ("", "n", "no"):
                     return "Permission denied by user"
                 if choice in ("y", "yes"):
+                    # Optionally save as persistent rule
+                    if permission_store and choice == "allow-always":
+                        from ..core.permissions import PermissionRule
+                        permission_store.add_rule(PermissionRule(
+                            tool=tool_name,
+                            pattern=command[:80],
+                            action="allow",
+                        ))
                     return None
-                # Any other input: treat as denial
                 return "Permission denied (invalid response)"
 
-            elif mode == SandboxMode.AUTO:
-                print(f"\033[33m⚡ [{format_mode(mode)}] {reason} — auto-approved\033[0m")
+            elif permission_level == PermissionLevel.LOW:
+                print(f"\033[33m⚡ [{permission_level.value}] {reason} — auto-approved\033[0m")
 
-    # ── Gate 3: Path escape (mode-dependent) ─────────────────────
+    # ── Gate 3: Path escape (level-dependent) ────────────────────
     reason = check_path_escape(tool_name, args, workdir)
     if reason:
-        if mode == SandboxMode.DENY:
-            print(f"\033[31m⛔ [{format_mode(mode)}] {reason}\033[0m")
+        if permission_level in (PermissionLevel.HIGH, PermissionLevel.CRITICAL):
+            print(f"\033[31m⛔ [{permission_level.value}] {reason}\033[0m")
             return f"Permission denied: {reason}"
 
-        elif mode == SandboxMode.ASK:
+        elif permission_level == PermissionLevel.MEDIUM:
             print(f"\033[33m⚠  {reason}\033[0m")
             print(f"   Tool: {tool_name}({args})")
-            print(f"   [y=allow N=deny Shift+Tab=cycle mode ({mode.value}→{SandboxMode.cycle(mode).value})]")
+            print("   [y=allow N=deny]")
             choice = _prompt("   ▸ ")
             if choice not in ("y", "yes"):
                 return "Permission denied by user"
 
-        elif mode == SandboxMode.AUTO:
-            # Path escape blocked even in auto (too dangerous)
-            print(f"\033[31m⛔ [{format_mode(mode)}] {reason} — blocked\033[0m")
+        elif permission_level == PermissionLevel.LOW:
+            # Path escape blocked even in low (too dangerous)
+            print(f"\033[31m⛔ [{permission_level.value}] {reason} — blocked\033[0m")
             return f"Permission denied: {reason}"
+
+    # ── Critical level: deny everything else ─────────────────────
+    if permission_level == PermissionLevel.CRITICAL:
+        print("\033[31m⛔ [critical] All operations blocked\033[0m")
+        return "Permission denied: critical mode"
 
     return None

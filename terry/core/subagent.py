@@ -7,19 +7,18 @@ This prevents file conflicts and provides filesystem-level safety.
 
 from __future__ import annotations
 
+import queue
 import shutil
 import subprocess
 import threading
-import queue
-import uuid
-from typing import Any, Callable
+from collections.abc import Callable
 from pathlib import Path
 
+from ..hooks import hook_registry
+from ..tools import ToolRegistry
 from .config import TerryConfig
 from .llm import LLMClient
 from .text_utils import extract_text
-from ..tools import ToolRegistry
-from ..hooks import hook_registry
 
 
 class SubAgent:
@@ -60,7 +59,6 @@ class SubAgent:
     def _run(self) -> None:
         """Run the subagent task."""
         self.status = "running"
-        workdir = self.workdir
 
         try:
             # Build messages
@@ -105,7 +103,7 @@ class SubAgent:
                             if len(output_str) > self.MAX_TOOL_OUTPUT_LENGTH:
                                 output_str = (
                                     output_str[:self.MAX_TOOL_OUTPUT_LENGTH]
-                                    + f"\n\n... (output truncated)"
+                                    + "\n\n... (output truncated)"
                                 )
                             output = output_str
                         except Exception as e:
@@ -127,8 +125,20 @@ class SubAgent:
             self.result_queue.put("Error: Maximum tool calls exceeded")
 
         except Exception as e:
-            self.status = "failed"
-            self.result_queue.put(f"Error: {e}")
+            error_str = str(e).lower()
+            # Graceful degradation: flag provider incompatibility instead of failing
+            if any(kw in error_str for kw in (
+                "accessdenied", "invalidparameter",
+                "thinking options", "reasoning_effort",
+                "not supported", "unavailable",
+            )):
+                self.status = "degraded"
+                self.result_queue.put(
+                    f"[Subagent unavailable — compatibility issue]\n{e}\n\nTask: {self.prompt[:200]}"
+                )
+            else:
+                self.status = "failed"
+                self.result_queue.put(f"Error: {e}")
 
     def wait(self, timeout: float | None = None) -> str:
         """Wait for the subagent to complete.
@@ -218,6 +228,79 @@ def _remove_worktree(base_dir: Path, worktree_path: Path) -> None:
             shutil.rmtree(worktree_path, ignore_errors=True)
         except Exception:
             pass
+
+
+# ── Orchestrator ───────────────────────────────────────────────────
+
+class Orchestrator:
+    """Coordinates multiple subagents with pipeline, parallel, and map-reduce patterns."""
+
+    def __init__(self, manager: SubAgentManager):
+        self.manager = manager
+
+    def pipeline(
+        self, prompt: str, stages: list[dict], timeout: float = 300
+    ) -> dict[str, str]:
+        """Execute stages sequentially, passing results forward.
+
+        Each stage receives the previous stage's output.
+        """
+        results = {}
+        current_input = prompt
+
+        for stage in stages:
+            task_id = self.manager.spawn(
+                f"{stage.get('description', '')}\n\nInput:\n{current_input}"
+            )
+            try:
+                output = self.manager.wait(task_id, timeout=timeout)
+                results[stage.get("name", task_id)] = output
+                current_input = output
+            except TimeoutError:
+                results[stage.get("name", task_id)] = "Error: Timeout"
+                break
+
+        return results
+
+    def parallel(
+        self, tasks: list[dict], timeout: float = 300
+    ) -> dict[str, str]:
+        """Execute multiple tasks in parallel.
+
+        Each task is a dict with 'name' and 'prompt' keys.
+        """
+        task_ids = {}
+        for task in tasks:
+            tid = self.manager.spawn(task["prompt"])
+            task_ids[tid] = task.get("name", tid)
+
+        return self.manager.wait_all(timeout=timeout)
+
+    def map_reduce(
+        self,
+        items: list[str],
+        map_prompt: str,
+        reduce_prompt: str = "Combine and summarize the following results:\n{results}",
+        timeout: float = 300,
+    ) -> str:
+        """Map: apply map_prompt to each item in parallel.
+        Reduce: combine all results with reduce_prompt.
+        """
+        # Map phase
+        tasks = [
+            {"name": f"map_{i}", "prompt": map_prompt.replace("{item}", item)}
+            for i, item in enumerate(items)
+        ]
+        map_results = self.parallel(tasks, timeout=timeout)
+
+        # Reduce phase
+        combined = "\n---\n".join(
+            f"Item {i}: {r}" for i, r in enumerate(map_results.values())
+        )
+        reduce_task = {"name": "reduce", "prompt": reduce_prompt.replace("{results}", combined)}
+        reduce_results = self.parallel([reduce_task], timeout=timeout)
+
+        return list(reduce_results.values())[0] if reduce_results else ""
 
 
 # ── SubAgentManager ────────────────────────────────────────────────

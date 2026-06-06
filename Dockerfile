@@ -1,5 +1,7 @@
 # Terry - Personal AI Coding Agent
 # Multi-stage build for minimal image size
+# Supports: linux/amd64, linux/arm64 (Apple Silicon, AWS Graviton, Raspberry Pi 4/5)
+# Build for both: docker buildx build --platform linux/amd64,linux/arm64 -t terry .
 
 FROM python:3.12-slim AS builder
 WORKDIR /app

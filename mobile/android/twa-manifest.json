@@ -1,0 +1,17 @@
+{
+  "packageId": "ai.terry.app",
+  "host": "terry.ai",
+  "name": "Terry AI Agent",
+  "launcherName": "Terry",
+  "display": "standalone",
+  "backgroundColor": "#1a1a2e",
+  "themeColor": "#1a1a2e",
+  "startUrl": "/",
+  "iconUrl": "https://raw.githubusercontent.com/tchangtc/haha_terry/main/terry/webui/static/icon.png",
+  "maskableIconUrl": "https://raw.githubusercontent.com/tchangtc/haha_terry/main/terry/webui/static/icon-maskable.png",
+  "shortcuts": [],
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "terry"
+  }
+}

@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-import shlex
 import subprocess
-import sys
 from pathlib import Path
 
 from ..core.platform_utils import is_windows
+from ..core.security import RequestValidator
 from . import BaseTool, tool_registry
 
 
@@ -32,12 +31,20 @@ class BashTool(BaseTool):
 
     def execute(self, command: str) -> str:
         """Execute a shell command (cross-platform)."""
+        # Sanitize command to prevent dangerous patterns
+        is_safe, sanitized_command, warning = RequestValidator.sanitize_bash_command(command)
+        if not is_safe:
+            return f"Error: {warning}"
+
+        # Use sanitized command if available, otherwise original
+        command_to_run = sanitized_command if is_safe else command
+
         try:
             # Platform-specific command execution
             if is_windows():
                 # Windows: use cmd.exe
                 result = subprocess.run(
-                    ['cmd.exe', '/c', command],
+                    ['cmd.exe', '/c', command_to_run],
                     cwd=self.workdir,
                     capture_output=True,
                     text=True,
@@ -49,7 +56,7 @@ class BashTool(BaseTool):
                 # Unix-like: use sh -c
                 shell = '/bin/sh'
                 result = subprocess.run(
-                    [shell, '-c', command],
+                    [shell, '-c', command_to_run],
                     cwd=self.workdir,
                     capture_output=True,
                     text=True,

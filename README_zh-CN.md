@@ -7,9 +7,9 @@
   <a href="https://github.com/tchangtc/haha_terry/actions"><img src="https://img.shields.io/badge/CI-passing-brightgreen.svg" alt="CI"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
   <a href="#"><img src="https://img.shields.io/badge/python-3.12+-green.svg" alt="Python"></a>
-  <a href="#"><img src="https://img.shields.io/badge/version-0.2.0-orange.svg" alt="Version"></a>
-  <a href="#"><img src="https://img.shields.io/badge/tests-554%20passed-brightgreen.svg" alt="Tests"></a>
-  <a href="#"><img src="https://img.shields.io/badge/tools-27-blue.svg" alt="Tools"></a>
+  <a href="#"><img src="https://img.shields.io/badge/version-0.3.0-orange.svg" alt="Version"></a>
+  <a href="#"><img src="https://img.shields.io/badge/tests-710%20passed-brightgreen.svg" alt="Tests"></a>
+  <a href="#"><img src="https://img.shields.io/badge/tools-29-blue.svg" alt="Tools"></a>
   <a href="#"><img src="https://img.shields.io/badge/modules-50-orange.svg" alt="Modules"></a>
   <a href="#"><img src="https://img.shields.io/badge/ruff-0%20issues-green.svg" alt="Ruff"></a>
   <a href="#"><img src="https://img.shields.io/badge/CLI-✅-purple.svg" alt="CLI"></a>
@@ -231,7 +231,7 @@ CLI · WebUI · Desktop · Mobile(PWA) · Telegram · Discord
 
 - **41 个核心模块**，职责清晰
 - **6 种交互界面** — CLI、WebUI、桌面、PWA、Telegram、Discord
-- **554 个测试** — pytest + 依赖注入
+- **710 个测试** — pytest + 依赖注入
 
 ---
 

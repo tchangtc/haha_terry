@@ -1,0 +1,14 @@
+[
+  {
+    "content": "Write tests",
+    "status": "completed"
+  },
+  {
+    "content": "Add features",
+    "status": "in_progress"
+  },
+  {
+    "content": "Update docs",
+    "status": "pending"
+  }
+]

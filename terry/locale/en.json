@@ -1,0 +1,136 @@
+{
+  "app": {
+    "name": "Terry",
+    "description": "Your intelligent personal assistant",
+    "tagline": "Smart, helpful, always by your side"
+  },
+  "cli": {
+    "welcome": "Welcome to Terry!",
+    "help_hint": "Type /help for available commands, /exit to quit",
+    "thinking": "Thinking...",
+    "processing": "Processing your request...",
+    "error": "Sorry, an error occurred",
+    "goodbye": "Goodbye! Have a great day!",
+    "prompt": "You",
+    "model_info": "Model: {provider}/{model}",
+    "language_info": "Language: {language}",
+    "tools_info": "Tools: {tools}",
+    "workdir_info": "Working directory: {workdir}"
+  },
+  "tools": {
+    "bash": {
+      "name": "bash",
+      "description": "Execute shell commands"
+    },
+    "read_file": {
+      "name": "read_file",
+      "description": "Read file contents"
+    },
+    "write_file": {
+      "name": "write_file",
+      "description": "Write content to a file"
+    },
+    "edit_file": {
+      "name": "edit_file",
+      "description": "Edit file content"
+    },
+    "glob": {
+      "name": "glob",
+      "description": "Find files by pattern"
+    },
+    "grep": {
+      "name": "grep",
+      "description": "Search file contents"
+    },
+    "web_fetch": {
+      "name": "web_fetch",
+      "description": "Fetch web content"
+    },
+    "web_search": {
+      "name": "web_search",
+      "description": "Search the web for information"
+    },
+    "todo_write": {
+      "name": "todo_write",
+      "description": "Manage task lists"
+    },
+    "reminder": {
+      "name": "reminder",
+      "description": "Set and manage reminders"
+    },
+    "notes": {
+      "name": "notes",
+      "description": "Create and manage notes"
+    },
+    "timer": {
+      "name": "timer",
+      "description": "Set timers and alarms"
+    },
+    "calculator": {
+      "name": "calculator",
+      "description": "Perform mathematical calculations"
+    },
+    "weather": {
+      "name": "weather",
+      "description": "Get weather information"
+    },
+    "find": {
+      "name": "find",
+      "description": "Search for files"
+    },
+    "ls": {
+      "name": "ls",
+      "description": "List directory contents"
+    }
+  },
+  "commands": {
+    "help": {
+      "description": "Show help information",
+      "usage": "help [command]"
+    },
+    "quit": {
+      "description": "Exit Terry",
+      "usage": "quit"
+    },
+    "clear": {
+      "description": "Clear screen",
+      "usage": "clear"
+    },
+    "history": {
+      "description": "Show conversation history",
+      "usage": "history [number]"
+    },
+    "reset": {
+      "description": "Reset conversation",
+      "usage": "reset"
+    },
+    "save": {
+      "description": "Save current session",
+      "usage": "save [filename]"
+    },
+    "load": {
+      "description": "Load a session",
+      "usage": "load <filename>"
+    },
+    "language": {
+      "description": "Change language",
+      "usage": "language <en|zh>"
+    }
+  },
+  "errors": {
+    "unknown_command": "Unknown command: {command}",
+    "api_key_missing": "API key not configured. Please set {provider}_API_KEY",
+    "network_error": "Network error. Please check your connection",
+    "rate_limit": "Rate limit exceeded. Please wait a moment",
+    "tool_not_found": "Tool not found: {tool}",
+    "permission_denied": "Permission denied",
+    "file_not_found": "File not found: {path}"
+  },
+  "status": {
+    "session_saved": "Session saved: {filename}",
+    "session_loaded": "Session loaded: {filename}",
+    "language_changed": "Language changed to: {language}",
+    "conversation_reset": "Conversation reset",
+    "cache_cleared": "Cache cleared"
+  }
+}

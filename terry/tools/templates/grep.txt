@@ -1,0 +1,21 @@
+Search for text patterns in files using regex.
+
+## When to use
+- Finding function/variable definitions across the codebase
+- Searching for error messages in logs
+- Locating configuration keys or import statements
+- Finding all usages of a deprecated API
+
+## Parameters
+- `pattern`: Regex pattern to search for
+- `path`: Directory or file to search in
+- `ignore_case`: Set to true for case-insensitive search
+
+## Safety
+- Path is validated to be within workspace
+- Results limited to prevent context overflow
+
+## Best practices
+- Use specific patterns (e.g., `def function_name\(`) rather than broad ones
+- Escape special regex characters in literal strings
+- Combine with read_file to inspect matched files

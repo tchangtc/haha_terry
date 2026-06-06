@@ -1,0 +1,16 @@
+Read the contents of a file.
+
+## When to use
+- Inspecting source code or configuration files
+- Reading documentation within the project
+- Checking file contents before editing
+- Reading log files or output files
+
+## Parameters
+- `path`: Relative or absolute path within workspace
+- `limit`: Optional maximum number of lines (use for large files)
+
+## Safety
+- Path must be within the workspace — attempts to read outside will be blocked
+- Non-existent files return a clear error
+- Binary files may produce garbled output; use file first

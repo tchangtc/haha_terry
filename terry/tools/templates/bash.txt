@@ -1,0 +1,21 @@
+Execute a shell command in the working directory.
+
+## When to use
+- Running tests, linting, or build commands
+- Installing packages or dependencies
+- File system operations (mkdir, cp, mv, rsync)
+- Git operations (commit, branch, diff, log)
+- System inspection (ps, top, df, free)
+
+## Safety rules
+- Commands matching deny-list patterns are ALWAYS blocked
+- Destructive commands (rm, chmod 777, git push --force) require confirmation
+- Maximum execution time: 120 seconds
+- Output truncated at 50KB
+- Do NOT use sudo — it is blocked
+
+## Best practices
+- Prefer dedicated tools (read_file, write_file, edit_file, grep) over shell equivalents
+- Use find/ls/glob tools instead of shell find/ls for path safety
+- Quote paths with spaces
+- Use -y/--yes flags for non-interactive package managers

@@ -1,0 +1,13 @@
+Search the web for current information.
+
+## When to use
+- Finding current documentation or news
+- Researching libraries and APIs
+- Searching for solutions to errors
+
+## Parameters
+- `query`: Search query string
+- `num_results`: Max results (default 5, max 10)
+
+## Note
+Requires SERPER_API_KEY or GOOGLE_SEARCH_API_KEY env var.

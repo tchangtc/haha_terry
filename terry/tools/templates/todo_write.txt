@@ -1,0 +1,15 @@
+Create or update a structured task list.
+
+## When to use
+- Planning multi-step tasks before execution
+- Tracking progress during complex operations
+- Organizing sub-tasks for clarity
+
+## Parameters
+- `todos`: List of {content, status} objects
+  - status: "pending", "in_progress", or "completed"
+
+## Best practices
+- Create todos at the start of multi-step work
+- Mark items complete as you finish them
+- Keep descriptions short and actionable

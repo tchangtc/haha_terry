@@ -1,0 +1,23 @@
+Fetch text content from a URL with SSRF protection.
+
+## When to use
+- Reading online documentation or API references
+- Fetching data from public APIs
+- Checking web page contents
+
+## Parameters
+- `url`: Full URL to fetch (http/https only)
+- `max_chars`: Maximum characters to return (default 50000)
+
+## Safety (automatic, non-bypassable)
+- DNS-resolved IP checked against ALL private ranges
+- 10.x, 172.16-31.x, 192.168.x, 169.254.x are ALL blocked
+- AWS/GCP/Azure metadata endpoints blocked
+- Redirect chain is checked at each hop
+- localhost/127.0.0.1/::1 are blocked
+- FTP and other non-HTTP schemes rejected
+
+## Best practices
+- Prefer web_search for finding pages, then web_fetch for reading
+- Use max_chars to limit large pages
+- The tool follows redirects (max 5) but validates each target

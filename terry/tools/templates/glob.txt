@@ -1,0 +1,10 @@
+Find files matching a glob pattern.
+
+## When to use
+- Finding all Python files: **/*.py
+- Finding config files: **/*.json, **/*.yaml
+- Project exploration and structure discovery
+
+## Parameters
+- `pattern`: Glob pattern (supports ** for recursive)
+- `path`: Starting directory (default: workspace root)

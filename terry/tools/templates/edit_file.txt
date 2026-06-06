@@ -1,0 +1,16 @@
+Replace exact text in a file with a diff preview.
+
+## When to use
+- Making targeted changes to existing files
+- Refactoring variable/function names
+- Fixing bugs in specific lines
+
+## Parameters
+- `path`: File to edit within workspace
+- `old_text`: EXACT text to find (must appear exactly once)
+- `new_text`: Replacement text
+
+## Rules
+- old_text MUST be unique in the file
+- Include 2-3 surrounding lines for uniqueness
+- The replacement shows as unified diff

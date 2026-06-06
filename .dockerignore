@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+tc_terry/
+.venv/
+.git/
+.pytest_cache/
+.mypy_cache/
+.env
+.env.local
+.terry/
+*.log

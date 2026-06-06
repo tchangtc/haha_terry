@@ -1,0 +1,19 @@
+Write content to a file. Creates the file if it doesn't exist, overwrites if it does.
+
+## When to use
+- Creating new source files or configuration files
+- Generating output files, reports, or documentation
+- Writing test fixtures or data files
+
+## Parameters
+- `path`: File path within workspace
+- `content`: Full text content to write (UTF-8)
+
+## Safety
+- Path must be within workspace
+- Parent directories are created automatically
+- Overwrites existing files — check with read_file first if unsure
+
+## Best practices
+- For targeted changes to existing files, use edit_file instead
+- Include newline at end of file unless intentionally absent

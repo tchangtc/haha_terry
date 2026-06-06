@@ -1,0 +1,136 @@
+{
+  "app": {
+    "name": "Terry",
+    "description": "您的智能个人助手",
+    "tagline": "聪明、贴心、随时待命"
+  },
+  "cli": {
+    "welcome": "欢迎使用 Terry！",
+    "help_hint": "输入 /help 查看可用命令，输入 /exit 退出",
+    "thinking": "思考中...",
+    "processing": "正在处理您的请求...",
+    "error": "抱歉，发生了一个错误",
+    "goodbye": "再见！祝您有美好的一天！",
+    "prompt": "您",
+    "model_info": "模型: {provider}/{model}",
+    "language_info": "语言: {language}",
+    "tools_info": "工具: {tools}",
+    "workdir_info": "工作目录: {workdir}"
+  },
+  "tools": {
+    "bash": {
+      "name": "bash",
+      "description": "执行 shell 命令"
+    },
+    "read_file": {
+      "name": "read_file",
+      "description": "读取文件内容"
+    },
+    "write_file": {
+      "name": "write_file",
+      "description": "写入内容到文件"
+    },
+    "edit_file": {
+      "name": "edit_file",
+      "description": "编辑文件内容"
+    },
+    "glob": {
+      "name": "glob",
+      "description": "按模式查找文件"
+    },
+    "grep": {
+      "name": "grep",
+      "description": "搜索文件内容"
+    },
+    "web_fetch": {
+      "name": "web_fetch",
+      "description": "获取网页内容"
+    },
+    "web_search": {
+      "name": "web_search",
+      "description": "搜索网络信息"
+    },
+    "todo_write": {
+      "name": "todo_write",
+      "description": "管理任务列表"
+    },
+    "reminder": {
+      "name": "reminder",
+      "description": "设置和管理提醒"
+    },
+    "notes": {
+      "name": "notes",
+      "description": "创建和管理笔记"
+    },
+    "timer": {
+      "name": "timer",
+      "description": "设置计时器和闹钟"
+    },
+    "calculator": {
+      "name": "calculator",
+      "description": "执行数学计算"
+    },
+    "weather": {
+      "name": "weather",
+      "description": "获取天气信息"
+    },
+    "find": {
+      "name": "find",
+      "description": "搜索文件"
+    },
+    "ls": {
+      "name": "ls",
+      "description": "列出目录内容"
+    }
+  },
+  "commands": {
+    "help": {
+      "description": "显示帮助信息",
+      "usage": "help [命令名]"
+    },
+    "quit": {
+      "description": "退出 Terry",
+      "usage": "quit"
+    },
+    "clear": {
+      "description": "清屏",
+      "usage": "clear"
+    },
+    "history": {
+      "description": "显示对话历史",
+      "usage": "history [数量]"
+    },
+    "reset": {
+      "description": "重置对话",
+      "usage": "reset"
+    },
+    "save": {
+      "description": "保存当前会话",
+      "usage": "save [文件名]"
+    },
+    "load": {
+      "description": "加载会话",
+      "usage": "load <文件名>"
+    },
+    "language": {
+      "description": "切换语言",
+      "usage": "language <en|zh>"
+    }
+  },
+  "errors": {
+    "unknown_command": "未知命令：{command}",
+    "api_key_missing": "API 密钥未配置。请设置 {provider}_API_KEY",
+    "network_error": "网络错误。请检查您的网络连接",
+    "rate_limit": "请求频率超限。请稍等片刻",
+    "tool_not_found": "工具未找到：{tool}",
+    "permission_denied": "权限被拒绝",
+    "file_not_found": "文件未找到：{path}"
+  },
+  "status": {
+    "session_saved": "会话已保存：{filename}",
+    "session_loaded": "会话已加载：{filename}",
+    "language_changed": "语言已切换为：{language}",
+    "conversation_reset": "对话已重置",
+    "cache_cleared": "缓存已清除"
+  }
+}

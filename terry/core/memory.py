@@ -334,6 +334,31 @@ class Memory:
                 })
         return results
 
+    def vector_search(self, query: str, top_k: int = 10) -> list[dict[str, Any]]:
+        """Semantic search via vector embeddings (falls back to keyword if no embedder)."""
+        return _vector_search_impl(self.memories, query, top_k)
+
+    def hybrid_search(self, query: str, top_k: int = 10) -> list[dict[str, Any]]:
+        """Combine keyword + vector search with Reciprocal Rank Fusion."""
+        keyword_results = self.search(query)
+        vector_results = self.vector_search(query, top_k * 2)
+        if not vector_results or all(r.get("score", 0) == 0 for r in vector_results):
+            return keyword_results[:top_k]
+        scores: dict[str, float] = {}
+        for rank, r in enumerate(keyword_results):
+            scores[r["name"]] = scores.get(r["name"], 0) + 1.0 / (rank + 60)
+        for rank, r in enumerate(vector_results):
+            scores[r["name"]] = scores.get(r["name"], 0) + 1.0 / (rank + 60)
+        seen: set[str] = set()
+        merged = []
+        for name, _ in sorted(scores.items(), key=lambda x: -x[1]):
+            if name in seen: continue
+            seen.add(name)
+            mem = self.memories.get(name)
+            if mem:
+                merged.append({"name": name, "description": mem.get("description", ""), "type": mem.get("type", "note"), "file": mem.get("file", ""), "score": round(scores[name], 4)})
+        return merged[:top_k]
+
     def get_tags(self) -> list[dict[str, int]]:
         """Get all tags with usage counts, sorted by frequency."""
         tag_counts: dict[str, int] = {}
@@ -416,3 +441,31 @@ def reset_memory() -> None:
     """Reset memory singleton."""
     global _memory_instance
     _memory_instance = None
+
+
+def _vector_search_impl(memories: dict, query: str, top_k: int = 10) -> list[dict[str, Any]]:
+    """Vector search implementation using LocalEmbedder."""
+    try:
+        from .local_embed import LocalEmbedder
+        embedder = LocalEmbedder()
+        query_vec = embedder.embed(query)
+        scores = []
+        for name, mem in memories.items():
+            doc = f"{mem.get('description', '')} {mem.get('content', '')}"
+            doc_vec = embedder.embed(doc[:500])
+            sim = _cosine_sim(query_vec, doc_vec)
+            if sim > 0.1:
+                scores.append((name, sim, mem))
+        scores.sort(key=lambda x: -x[1])
+        return [{"name": n, "description": m.get("description", ""), "type": m.get("type", "note"), "file": m.get("file", ""), "score": round(s, 4)} for n, s, m in scores[:top_k]]
+    except (ImportError, OSError, RuntimeError):
+        return []
+
+def _cosine_sim(a: list[float], b: list[float]) -> float:
+    """Cosine similarity between two vectors."""
+    dot = sum(x * y for x, y in zip(a, b))
+    norm_a = sum(x * x for x in a) ** 0.5
+    norm_b = sum(x * x for x in b) ** 0.5
+    if norm_a == 0 or norm_b == 0:
+        return 0.0
+    return dot / (norm_a * norm_b)

@@ -188,99 +188,38 @@ class Agent:
             self.planner = Planner(llm_client=self.llm)
             self.logger.info("Planner enabled")
 
-        # ── P2/P3: Advanced subsystems (all optional, lazy-init) ──
-
-        # Extended thinking (smart context allocation)
-        self.extended_thinking = ExtendedThinking(
-            model=config.model.model,
+        # ── Advanced subsystems (delegated to AgentSubsystems) ──
+        from .agent_subsystems import AgentSubsystems
+        self.subsystems = AgentSubsystems.create(
+            workdir=self.workdir, model=config.model.model, agent_factory=lambda: self
         )
+        # Flatten hot-path refs for backward compatibility
+        self.extended_thinking = self.subsystems.extended_thinking
+        self.task_dag = self.subsystems.task_dag
+        self.knowledge_graph = self.subsystems.knowledge_graph
+        self.scheduler = self.subsystems.scheduler
+        self.skills_curator = self.subsystems.skills_curator
+        self.workflow_engine = self.subsystems.workflow_engine
+        self.prompt_cache = self.subsystems.prompt_cache
+        self.spec_exec = self.subsystems.spec_exec
+        self.suggester = self.subsystems.suggester
+        self.fts_search = self.subsystems.fts_search
+        self.skill_market = self.subsystems.skill_market
+        self.local_embedder = self.subsystems.local_embedder
+        self.code_index = self.subsystems.code_index
+        self.project_rag = self.subsystems.project_rag
+        self.docker_sandbox = self.subsystems.docker_sandbox
+        self.model_router = self.subsystems.model_router
+        self.dynamic_workflow = self.subsystems.dynamic_workflow
+        self.memory_sync = self.subsystems.memory_sync
+        self.autonomous_agent = self.subsystems.autonomous_agent
+        self.skill_auto_creator = self.subsystems.skill_auto_creator
+        self.logger.info("Advanced subsystems initialized via AgentSubsystems")
 
-        # Task DAG (persistent task dependency graph)
-        self.task_dag = TaskDAG()
-
-        # Knowledge graph (cross-session entity tracking)
-        self.knowledge_graph = KnowledgeGraph()
-
-        # Cron scheduler (24/7 autonomous operation)
-        self.scheduler = CronScheduler()
-
-        # Skills curator (self-evolving skill library)
-        self.skills_curator = SkillsCurator()
-
-        # Workflow engine (declarative YAML workflows)
-        self.workflow_engine = WorkflowEngine(agent=self)
-
-        # Prompt cache manager
-        self.prompt_cache = PromptCache(model=config.model.model)
-
-        # Speculative executor (pre-fetch likely-needed files)
-        self.spec_exec = SpeculativeExecutor()
-
-        # Proactive suggester (suggests next actions)
-        self.suggester = ProactiveSuggester()
-
-        # FTS5 conversation search
-        self.fts_search = FTSSearch()
-
-        # Skill marketplace client
-        self.skill_market = SkillMarket()
-
-        # Local embedder for semantic search
-        self.local_embedder = LocalEmbedder()
-
-        # Code semantic index
-        self.code_index = CodeSemanticIndex(workdir=self.workdir)
-
-        # Project RAG
-        self.project_rag = ProjectRAG(workdir=self.workdir)
-
-        # Docker sandbox
-        self.docker_sandbox = DockerSandbox(workdir=self.workdir)
-
-        # Model router
-        self.model_router = ModelRouter(
-            complex_client=self.llm,
-            simple_client=None,  # Configure via config
-        )
-
-        # Dynamic workflow engine (Gap-1)
-        self.dynamic_workflow = DynamicWorkflowEngine(
-            agent_factory=lambda: self,
-        )
-        self.logger.info("Dynamic workflow engine enabled")
-
-        # Memory sync (Gap-2: cross-platform)
-        self.memory_sync = MemorySync()
-
-        # Autonomous agent + skill auto-creator (Gap-3)
-        self.autonomous_agent = AutonomousAgent(
-            agent_factory=lambda: Agent(
-                config=self.config, workdir=self.workdir,
-                enable_subagents=False, enable_skills=False,
-                enable_memory=False, enable_session=False,
-                enable_metrics=False, enable_cache=False,
-                enable_checkpoint=False, enable_planner=False,
-            ),
-            workdir=self.workdir,
-        )
-        self.skill_auto_creator = SkillAutoCreator()
-
-        self.logger.info(
-            "Gap-1/2/3 subsystems initialized",
-            dynamic_workflow=True, memory_sync=True,
-            autonomous_agent=True, skill_auto_creator=True,
-        )
-
-        # Feedback collector
+        # Feedback + Store + Telemetry (small, keep inline)
         self.feedback = get_feedback_collector()
-
-        # Unified data store
         self.store = TerryStore()
-        self.logger.info("TerryStore initialized", **self.store.stats())
-
-        # Telemetry / observability
         self.telemetry = Telemetry()
-        self.logger.info("Telemetry initialized")
 
         # Command registry
         self.commands = CommandRegistry()
@@ -339,75 +278,16 @@ class Agent:
         return self._mode.value
 
     def build_system_prompt(self) -> str:
-        """Build comprehensive system prompt with context.
-
-        Returns:
-            System prompt string
-        """
-        parts = [
-            f"You are Terry, a production-grade AI coding agent working in {self.workdir}.",
-            "You have access to powerful tools for file operations, code search, and system commands.",
-            "",
-            "## Guidelines",
-            "- Use tools to solve tasks efficiently",
-            "- Be concise and helpful in your responses",
-            "- Explain your reasoning when appropriate",
-            "- Ask for clarification if the task is unclear",
-            "",
-            "## Available Tools",
-        ]
-
-        # Add tool descriptions
-        for tool in self.tools.list_tools():
-            parts.append(f"- **{tool.name}**: {tool.description}")
-
-        # Add active skill context if available
-        if self.active_skill and self.skill_manager:
-            skill = self.skill_manager.get_skill(self.active_skill)
-            if skill:
-                skill_context = self.skill_manager.get_skill_context(skill)
-                parts.extend([
-                    "",
-                    "## Active Skill",
-                    skill_context,
-                ])
-
-        # Add available skills list
-        if self.skill_manager:
-            skills = self.skill_manager.list_skills()
-            if skills:
-                parts.extend([
-                    "",
-                    "## Available Skills",
-                    "You have access to the following specialized skills:",
-                ])
-                for skill in skills:
-                    parts.append(f"- **{skill.name}**: {skill.description}")
-                parts.append("")
-                parts.append("When a user request matches a skill's purpose, follow the skill's instructions.")
-
-        # Add memory context if available
-        if self.memory:
-            memory_list = self.memory.list_memories()
-            if memory_list:
-                parts.extend([
-                    "",
-                    "## Your Memories",
-                    "You have persistent memories from previous sessions:",
-                ])
-                for mem in memory_list[:10]:  # Limit to 10 memories
-                    parts.append(f"- **{mem['name']}**: {mem['description']}")
-
-        # Add current session info
-        if self.session:
-            parts.extend([
-                "",
-                "## Current Session",
-                f"Session ID: {self.session.session_id}",
-                f"Messages in session: {len(self.session.get_messages())}",
-            ])
-
-        return "\n".join(parts)
+        """Build comprehensive system prompt with context."""
+        from .agent_prompts import build_system_prompt
+        return build_system_prompt(
+            workdir=str(self.workdir),
+            tools=self.tools.list_tools(),
+            active_skill=self.active_skill,
+            skill_manager=self.skill_manager,
+            memory=self.memory,
+            session=self.session,
+        )
 
     def run(self, user_message: str, use_cache: bool = True) -> str:
         """Run the agent loop with full feature integration.
@@ -474,34 +354,7 @@ class Agent:
 
             # Check if we're done (no tool calls)
             if response["stop_reason"] != "tool_use":
-                # Trigger Stop hook
-                self.hooks.trigger("Stop", self.messages)
-
-                # Extract response text
-                response_text = extract_text(response["content"])
-
-                # Add to session
-                if self.session:
-                    self.session.add_message("assistant", response_text)
-                    self.session.save()
-
-                # Post-process: FTS, suggestions, knowledge, auto-skill, tips, feedback (agent_hooks)
-                response_text = agent_hooks.post_process(self, user_message, response_text, start_time)
-
-                # Log completion
-                duration = time.time() - start_time
-                self.logger.info(
-                    "Agent loop completed",
-                    duration=duration,
-                    tool_calls=self.tool_call_count,
-                    message_count=len(self.messages),
-                )
-
-                if self.metrics:
-                    self.metrics.timer_stop("agent_loop", start_time)
-                    self.metrics.increment("completed_turns")
-
-                return response_text
+                return self._handle_final_response(user_message, response, start_time)
 
             # Execute tool calls
             results = self._execute_tools(response["content"])
@@ -578,6 +431,31 @@ class Agent:
             if self.metrics:
                 self.metrics.increment("llm_errors")
             return None
+
+    def _handle_final_response(self, user_message: str, response: Any, start_time: float) -> str:
+        """Handle the final assistant response (no more tool calls)."""
+        self.hooks.trigger("Stop", self.messages)
+        response_text = extract_text(response["content"])
+
+        if self.session:
+            self.session.add_message("assistant", response_text)
+            self.session.save()
+
+        response_text = agent_hooks.post_process(self, user_message, response_text, start_time)
+
+        duration = time.time() - start_time
+        self.logger.info(
+            "Agent loop completed",
+            duration=duration,
+            tool_calls=self.tool_call_count,
+            message_count=len(self.messages),
+        )
+
+        if self.metrics:
+            self.metrics.timer_stop("agent_loop", start_time)
+            self.metrics.increment("completed_turns")
+
+        return response_text
 
     def _execute_tools(self, content: Any) -> list[dict[str, Any]]:
         """Execute tool calls from LLM response.
@@ -698,6 +576,14 @@ class Agent:
             if self.metrics:
                 self.metrics.timer_stop(f"tool_{tool_name}", start_time)
 
+            # Auto-commit after successful file edits (disabled by default)
+            if self.config.auto_commit_enabled:
+                commit_msg = auto_commit_after_edit(
+                    self.workdir, tool_name, tool_input, output_str
+                )
+                if commit_msg:
+                    self.logger.info("Auto-committed change", path=tool_input.get("path", ""))
+
             return output_str
         except Exception as e:
             self.logger.error("Tool execution failed", tool=tool_name, error=str(e), exc_info=True)
@@ -716,14 +602,6 @@ class Agent:
                 return healed
 
             return f"Error executing {tool_name}: {e}"
-
-        # Auto-commit after successful file edits (disabled by default)
-        if self.config.auto_commit_enabled:
-            commit_msg = auto_commit_after_edit(
-                self.workdir, tool_name, tool_input, output_str
-            )
-            if commit_msg:
-                self.logger.info("Auto-committed change", path=tool_input.get("path", ""))
 
     def _wrap_up(self) -> str:
         """Force the agent to stop using tools and provide a final response.

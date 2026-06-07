@@ -5,6 +5,7 @@ from __future__ import annotations
 import ast
 import math
 import operator
+import re
 from pathlib import Path
 
 from . import BaseTool, tool_registry
@@ -239,7 +240,6 @@ class CalculatorTool(BaseTool):
         to_unit = parts[1].strip()
 
         # Parse value and from_unit
-        import re
         match = re.match(r'([\d.]+)\s*(.+)', from_part)
         if not match:
             return "Error: Invalid format. Use: <value> <from_unit> to <to_unit>"
@@ -313,7 +313,6 @@ class CalculatorTool(BaseTool):
         Returns:
             Percentage result
         """
-        import re
 
         # Pattern: X% of Y
         match = re.match(r'([\d.]+)\s*%\s*of\s*([\d.]+)', expression, re.IGNORECASE)

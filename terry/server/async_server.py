@@ -13,6 +13,7 @@ import asyncio
 import json
 import time
 import uuid
+from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
 from typing import Any

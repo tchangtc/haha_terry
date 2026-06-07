@@ -3,14 +3,11 @@
 from __future__ import annotations
 
 import asyncio
-import json
-import time
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import StrEnum
-from pathlib import Path
 from typing import Any
 
 
@@ -165,7 +162,7 @@ class AsyncSubAgentManager:
                             + metrics.get("counters", {}).get("output_tokens", 0)
                         )
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             sub_agent.status = AsyncSubAgentStatus.FAILED
             sub_agent.error = f"Timeout after {timeout}s"
         except asyncio.CancelledError:
@@ -209,7 +206,7 @@ class AsyncSubAgentManager:
         if task:
             try:
                 await asyncio.wait_for(task, timeout=timeout)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 return f"Timeout waiting for {agent_id}"
 
         agent = self._agents[agent_id]
@@ -292,7 +289,7 @@ class AsyncSubAgentManager:
         prompts: list[str],
         timeout: float | None = None,
     ) -> dict[str, str]:
-        """Run multiple prompts in parallel.
+        """Run multiple prompts in parallel using asyncio.gather.
 
         Args:
             prompts: List of prompts
@@ -306,11 +303,13 @@ class AsyncSubAgentManager:
             agent_id = await self.spawn(prompt, timeout)
             agent_ids.append(agent_id)
 
-        results = {}
-        for i, agent_id in enumerate(agent_ids):
-            result = await self.wait(agent_id, timeout)
-            results[str(i)] = result
+        # True parallel wait via asyncio.gather
+        wait_tasks = [self.wait(aid, timeout) for aid in agent_ids]
+        raw_results = await asyncio.gather(*wait_tasks, return_exceptions=True)
 
+        results = {}
+        for i, r in enumerate(raw_results):
+            results[str(i)] = str(r) if isinstance(r, Exception) else r
         return results
 
     async def run_sequential(

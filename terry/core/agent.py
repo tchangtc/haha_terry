@@ -11,51 +11,32 @@ from ..hooks.logging_hook import log_hook
 from ..hooks.permission import SandboxMode, permission_hook
 from ..tools import discover_tools, tool_registry
 from . import agent_hooks
-from .autonomous_agent import AutonomousAgent, SkillAutoCreator
-from .cache import LLMCache, ToolCache, get_llm_cache, get_tool_cache
+from .cache import LLMCache, ToolCache
 from .checkpoint import CheckpointManager, get_checkpoint_manager
-from .code_index import CodeSemanticIndex
 from .commands import CommandRegistry
 from .config import TerryConfig
 from .context_compact import ContextCompactor
-from .curator import SkillsCurator
-from .docker_sandbox import DockerSandbox
-from .dynamic_workflow import DynamicWorkflowEngine
 from .error_recovery import (
     AutoHealer,
     ErrorRecovery,
     auto_commit_after_edit,
     wrap_llm_call_with_recovery,
 )
-from .feedback import get_feedback_collector
-from .fts_search import FTSSearch
 from .harness import HarnessEngine
-from .knowledge_graph import KnowledgeGraph
 from .llm import LLMClient
-from .local_embed import LocalEmbedder
 from .logger import get_logger
 from .memory import Memory, get_memory
-from .memory_sync import MemorySync
 from .metrics import Metrics, estimate_cost, get_metrics
-from .model_router import ModelRouter
 from .permissions import PermissionLevel, PermissionStore, get_permission_store
 from .planner import Planner
-from .prompt_cache import PromptCache
-from .rag import ProjectRAG
-from .scheduler import CronScheduler
+from .platform_utils import get_terry_dir
 from .security import RequestValidator
 from .session import Session, get_session
 from .skill import SkillExecutor, SkillManager, get_skill_manager
-from .skill_market import SkillMarket
-from .spec_exec import SpeculativeExecutor
 from .store import TerryStore
 from .subagent import SubAgentManager
-from .suggester import ProactiveSuggester
-from .task_dag import TaskDAG
 from .telemetry import Telemetry
 from .text_utils import extract_text
-from .thinking import ExtendedThinking
-from .workflow import WorkflowEngine
 
 
 class Agent:
@@ -119,6 +100,7 @@ class Agent:
 
         # Initialize context management
         self.compactor = ContextCompactor(
+            config=config,
             max_tokens=config.max_input_tokens,
             compression_threshold=config.compression_threshold,
         )
@@ -131,7 +113,7 @@ class Agent:
         )
 
         # Initialize auto-healer
-        self.auto_healer = AutoHealer(workdir=self.workdir, max_attempts=2)
+        self.auto_healer = AutoHealer(workdir=self.workdir, max_attempts=config.auto_healer_max_attempts)
         self.logger.info("AutoHealer enabled")
 
         # Initialize optional features
@@ -154,8 +136,18 @@ class Agent:
         self.llm_cache: LLMCache | None = None
         self.tool_cache: ToolCache | None = None
         if enable_cache:
-            self.llm_cache = get_llm_cache()
-            self.tool_cache = get_tool_cache()
+            from .cache import Cache as _Cache
+            from .cache import set_cache as _set_cache
+            from .cache import set_llm_cache as _set_llm_cache
+            from .cache import set_tool_cache as _set_tool_cache
+            _cache_instance = _Cache(config=config)
+            _set_cache(_cache_instance)
+            _llm_cache_instance = LLMCache(cache=_cache_instance, config=config)
+            _set_llm_cache(_llm_cache_instance)
+            _tool_cache_instance = ToolCache(cache=_cache_instance, config=config)
+            _set_tool_cache(_tool_cache_instance)
+            self.llm_cache = _llm_cache_instance
+            self.tool_cache = _tool_cache_instance
             self.logger.info("Caching enabled")
 
         self.subagent_manager: SubAgentManager | None = None
@@ -217,7 +209,11 @@ class Agent:
         self.logger.info("Advanced subsystems initialized via AgentSubsystems")
 
         # Feedback + Store + Telemetry (small, keep inline)
-        self.feedback = get_feedback_collector()
+        from .feedback import FeedbackCollector
+        from .feedback import set_feedback_collector as _set_fc
+        _fc_instance = FeedbackCollector(config=config)
+        _set_fc(_fc_instance)
+        self.feedback = _fc_instance
         self.store = TerryStore()
         self.telemetry = Telemetry()
 

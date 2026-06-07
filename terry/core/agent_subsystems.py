@@ -18,11 +18,11 @@ from .dynamic_workflow import DynamicWorkflowEngine
 from .fts_search import FTSSearch
 from .knowledge_graph import KnowledgeGraph
 from .local_embed import LocalEmbedder
+from .memory_sync import MemorySync
 from .model_router import ModelRouter
 from .prompt_cache import PromptCache
 from .rag import ProjectRAG
 from .scheduler import CronScheduler
-from .memory_sync import MemorySync
 from .skill_market import SkillMarket
 from .spec_exec import SpeculativeExecutor
 from .suggester import ProactiveSuggester
@@ -70,88 +70,104 @@ class AgentSubsystems:
     skill_auto_creator: SkillAutoCreator | None = None
 
     @classmethod
-    def create(cls, workdir: Path, model: str, agent_factory: Any = None) -> "AgentSubsystems":
+    def create(cls, workdir: Path, model: str, agent_factory: Any = None) -> AgentSubsystems:
         """Factory: initialize all subsystems with graceful degradation."""
         subsystems = cls(workdir=workdir, agent_factory=agent_factory)
 
         try:
             subsystems.extended_thinking = ExtendedThinking(model=model)
         except Exception:
+            logger.warning("extended_thinking init failed", exc_info=True)
             pass
 
         try:
             subsystems.task_dag = TaskDAG()
         except Exception:
+            logger.warning("task_dag init failed", exc_info=True)
             pass
 
         try:
             subsystems.knowledge_graph = KnowledgeGraph()
         except Exception:
+            logger.warning("knowledge_graph init failed", exc_info=True)
             pass
 
         try:
             subsystems.scheduler = CronScheduler()
         except Exception:
+            logger.warning("scheduler init failed", exc_info=True)
             pass
 
         try:
             subsystems.skills_curator = SkillsCurator()
         except Exception:
+            logger.warning("skills_curator init failed", exc_info=True)
             pass
 
         try:
             subsystems.workflow_engine = WorkflowEngine(agent=agent_factory() if agent_factory else None)
         except Exception:
+            logger.warning("workflow_engine init failed", exc_info=True)
             pass
 
         try:
             subsystems.prompt_cache = PromptCache(model=model)
         except Exception:
+            logger.warning("prompt_cache init failed", exc_info=True)
             pass
 
         try:
             subsystems.spec_exec = SpeculativeExecutor()
         except Exception:
+            logger.warning("spec_exec init failed", exc_info=True)
             pass
 
         try:
             subsystems.suggester = ProactiveSuggester()
         except Exception:
+            logger.warning("suggester init failed", exc_info=True)
             pass
 
         try:
             subsystems.fts_search = FTSSearch()
         except Exception:
+            logger.warning("fts_search init failed", exc_info=True)
             pass
 
         try:
             subsystems.skill_market = SkillMarket()
         except Exception:
+            logger.warning("skill_market init failed", exc_info=True)
             pass
 
         try:
             subsystems.local_embedder = LocalEmbedder()
         except Exception:
+            logger.warning("local_embedder init failed", exc_info=True)
             pass
 
         try:
             subsystems.code_index = CodeSemanticIndex(workdir=workdir)
         except Exception:
+            logger.warning("code_index init failed", exc_info=True)
             pass
 
         try:
             subsystems.project_rag = ProjectRAG(workdir=workdir)
         except Exception:
+            logger.warning("project_rag init failed", exc_info=True)
             pass
 
         try:
             subsystems.docker_sandbox = DockerSandbox(workdir=workdir)
         except Exception:
+            logger.warning("docker_sandbox init failed", exc_info=True)
             pass
 
         try:
             subsystems.model_router = ModelRouter(complex_client=None)
         except Exception:
+            logger.warning("model_router init failed", exc_info=True)
             pass
 
         try:

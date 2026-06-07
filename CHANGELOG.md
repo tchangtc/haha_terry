@@ -5,6 +5,18 @@ All notable changes to Terry will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-06-07
+
+### Fixed
+- Version consistency: all version strings updated to 0.3.0 across 15 locations
+- Ruff lint: 43 lint errors resolved (0 remaining in terry/ package)
+- Documentation: accurate module counts, line counts, security middleware status
+- Dockerfile: added missing tiktoken to fallback install, removed unused uv.lock copy
+- Python requirement: lowered from >=3.12 to >=3.11 (matches actual StrEnum usage)
+- Code bugs: missing Callable import, deprecated asyncio.TimeoutError, unused variable
+- VSCode extension: version bump to 0.3.0
+- Environment: added missing environment variables to .env.example
+
 ## [0.2.0] - 2026-06-06
 
 ### Added

@@ -9,8 +9,8 @@
   <a href="#"><img src="https://img.shields.io/badge/python-3.12+-green.svg" alt="Python"></a>
   <a href="#"><img src="https://img.shields.io/badge/version-0.3.0-orange.svg" alt="Version"></a>
   <a href="#"><img src="https://img.shields.io/badge/tests-710%20passed-brightgreen.svg" alt="Tests"></a>
-  <a href="#"><img src="https://img.shields.io/badge/tools-29-blue.svg" alt="Tools"></a>
-  <a href="#"><img src="https://img.shields.io/badge/modules-50-orange.svg" alt="Modules"></a>
+  <a href="#"><img src="https://img.shields.io/badge/tools-26-blue.svg" alt="Tools"></a>
+  <a href="#"><img src="https://img.shields.io/badge/modules-106-orange.svg" alt="Modules"></a>
   <a href="#"><img src="https://img.shields.io/badge/ruff-0%20issues-green.svg" alt="Ruff"></a>
   <a href="#"><img src="https://img.shields.io/badge/CLI-✅-purple.svg" alt="CLI"></a>
   <a href="#"><img src="https://img.shields.io/badge/WebUI-✅-purple.svg" alt="WebUI"></a>
@@ -93,7 +93,7 @@ terry [ask] ▸ 幫我找到這個專案裡使用者認證邏輯在哪裡實作�
 
 ## 核心能力
 
-### 🛠️ 27 個內建工具
+### 🛠️ 26 個內建工具
 
 - **檔案** — 讀取、寫入、編輯（含 diff 預覽）、多點編輯（原子操作）、Jupyter 筆記本編輯
 - **搜尋** — 正則搜尋、glob 模式匹配、檔案尋找、目錄列表

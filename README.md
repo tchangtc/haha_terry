@@ -9,8 +9,8 @@
   <a href="#"><img src="https://img.shields.io/badge/python-3.12+-green.svg" alt="Python"></a>
   <a href="#"><img src="https://img.shields.io/badge/version-0.3.0-orange.svg" alt="Version"></a>
   <a href="#"><img src="https://img.shields.io/badge/tests-710%20passed-brightgreen.svg" alt="Tests"></a>
-  <a href="#"><img src="https://img.shields.io/badge/tools-29-blue.svg" alt="Tools"></a>
-  <a href="#"><img src="https://img.shields.io/badge/modules-50-orange.svg" alt="Modules"></a>
+  <a href="#"><img src="https://img.shields.io/badge/tools-26-blue.svg" alt="Tools"></a>
+  <a href="#"><img src="https://img.shields.io/badge/modules-106-orange.svg" alt="Modules"></a>
   <a href="#"><img src="https://img.shields.io/badge/ruff-0%20issues-green.svg" alt="Ruff"></a>
   <a href="#"><img src="https://img.shields.io/badge/CLI-✅-purple.svg" alt="CLI"></a>
   <a href="#"><img src="https://img.shields.io/badge/WebUI-✅-purple.svg" alt="WebUI"></a>
@@ -58,25 +58,30 @@ Terry is an AI coding agent you can talk to from **anywhere** — your terminal,
 Works on **Windows, macOS, Linux** — same commands everywhere.
 
 ```bash
-# All platforms: clone, install, run
+# Create a virtual environment (Python 3.12+ required)
+python3 -m venv .venv && source .venv/bin/activate
+
+# Clone and install
 git clone https://github.com/tchangtc/haha_terry.git && cd haha_terry
-# Or: pip install terry
-pip install -e . || pip install -r requirements.txt
-# Get key: https://console.anthropic.com/settings/keys
+pip install -e .
+
+# Set API key (Anthropic, or use DeepSeek/OpenAI — see .env.example)
 export ANTHROPIC_API_KEY="sk-ant-..."
+# 💡 Beginners: copy .env.example → .env and edit the key there
+
+# Start!
 terry
-
-# WebUI mode (open in browser)
-terry webui
-
-# Desktop mode (system tray + WebUI)
-terry desktop
 ```
 
-Once started, type a task and hit Enter:
+**No API key?** Use free local models: `terry --provider ollama --model llama3`
 
-```
-terry [ask] ▸ Find where authentication logic is implemented in this project
+### First things to try
+
+```bash
+terry ▸ Show git status                          # See what Terry can do
+terry ▸ Find where authentication is implemented  # Search your codebase
+terry ▸ Create a Python file that prints hello    # Generate code
+terry webui                                       # Open in browser
 ```
 
 **Works with:** Anthropic Claude · OpenAI GPT-4o · DeepSeek · Zhipu GLM · Qwen · Ollama (local)
@@ -100,7 +105,7 @@ terry [ask] ▸ Find where authentication logic is implemented in this project
 
 ## Core Capabilities
 
-### 🛠️ Rich Tool Set (27 tools)
+### 🛠️ Rich Tool Set (26 tools)
 
 - **Files** — read, write, edit (with diff preview), multi-edit (atomic), Jupyter notebook editing
 - **Search** — grep with regex, glob patterns, file finder, directory listing

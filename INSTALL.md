@@ -27,7 +27,7 @@
 powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 
 # 2. 克隆仓库
-git clone https://github.com/terry-ai/terry.git
+git clone https://github.com/tchangtc/haha_terry.git
 cd terry
 
 # 3. 创建虚拟环境
@@ -53,7 +53,7 @@ terry
 # 从 https://python.org 下载并安装
 
 # 2. 克隆仓库
-git clone https://github.com/terry-ai/terry.git
+git clone https://github.com/tchangtc/haha_terry.git
 cd terry
 
 # 3. 创建虚拟环境
@@ -83,7 +83,7 @@ terry
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # 2. 克隆仓库
-git clone https://github.com/terry-ai/terry.git
+git clone https://github.com/tchangtc/haha_terry.git
 cd terry
 
 # 3. 创建虚拟环境
@@ -123,7 +123,7 @@ python -c "import platform; print(platform.machine())"
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # 2. 克隆仓库
-git clone https://github.com/terry-ai/terry.git
+git clone https://github.com/tchangtc/haha_terry.git
 cd terry
 
 # 3. 创建虚拟环境
@@ -180,7 +180,7 @@ pkg install python git
 pip install uv
 
 # 4. 克隆仓库
-git clone https://github.com/terry-ai/terry.git
+git clone https://github.com/tchangtc/haha_terry.git
 cd terry
 
 # 5. 创建虚拟环境
@@ -229,7 +229,7 @@ terry
 2. 在 iSH 中:
    ```sh
    apk add python3 git
-   git clone https://github.com/terry-ai/terry.git
+   git clone https://github.com/tchangtc/haha_terry.git
    cd terry
    pip3 install -e .
    ```
@@ -312,7 +312,7 @@ terry --version
 python -c "from terry.core.platform_utils import get_platform; print(get_platform())"
 
 # 运行测试
-python tests/test_terry.py
+python tests/verify_terry.py
 ```
 
 ---

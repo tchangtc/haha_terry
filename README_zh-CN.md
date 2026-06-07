@@ -9,8 +9,8 @@
   <a href="#"><img src="https://img.shields.io/badge/python-3.12+-green.svg" alt="Python"></a>
   <a href="#"><img src="https://img.shields.io/badge/version-0.3.0-orange.svg" alt="Version"></a>
   <a href="#"><img src="https://img.shields.io/badge/tests-710%20passed-brightgreen.svg" alt="Tests"></a>
-  <a href="#"><img src="https://img.shields.io/badge/tools-29-blue.svg" alt="Tools"></a>
-  <a href="#"><img src="https://img.shields.io/badge/modules-50-orange.svg" alt="Modules"></a>
+  <a href="#"><img src="https://img.shields.io/badge/tools-26-blue.svg" alt="Tools"></a>
+  <a href="#"><img src="https://img.shields.io/badge/modules-106-orange.svg" alt="Modules"></a>
   <a href="#"><img src="https://img.shields.io/badge/ruff-0%20issues-green.svg" alt="Ruff"></a>
   <a href="#"><img src="https://img.shields.io/badge/CLI-✅-purple.svg" alt="CLI"></a>
   <a href="#"><img src="https://img.shields.io/badge/WebUI-✅-purple.svg" alt="WebUI"></a>
@@ -93,7 +93,7 @@ terry [ask] ▸ 帮我找到这个项目里用户认证逻辑在哪里实现的
 
 ## 核心能力
 
-### 🛠️ 27 个内置工具
+### 🛠️ 26 个内置工具
 
 - **文件** — 读取、写入、编辑（含 diff 预览）、多点编辑（原子操作）、Jupyter 笔记本编辑
 - **搜索** — 正则搜索、glob 模式匹配、文件查找、目录列表

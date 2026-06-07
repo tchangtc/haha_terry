@@ -5,14 +5,15 @@ from __future__ import annotations
 import random
 import time
 from datetime import datetime
-from pathlib import Path
 from typing import Any
+
+from .platform_utils import get_terry_dir
 
 
 class FirstRunWizard:
     """Detects first run and provides guided onboarding."""
 
-    STATE_FILE = Path.home() / ".terry" / ".onboarding_complete"
+    STATE_FILE = get_terry_dir() / ".onboarding_complete"
 
     WELCOME_MESSAGES = [
         "👋 Welcome! I'm Terry, your AI coding agent. Type anything to get started.",

@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import copy
+import re
+import subprocess
 import time
 from pathlib import Path
 from typing import Any
@@ -239,7 +242,7 @@ class Agent:
         if enable_skills:
             skills_dirs = [
                 self.workdir / "skills",
-                Path.home() / ".terry" / "skills",
+                get_terry_dir("skills"),
             ]
             self.skill_manager = get_skill_manager(skills_dirs)
             self.skill_executor = SkillExecutor(self.skill_manager, self)
@@ -641,7 +644,6 @@ class Agent:
             return
 
         # Simple entity extraction: file paths, function names, error types
-        import re
 
         # File paths
         files = set(re.findall(r"['\"]?([\w./-]+\.(?:py|js|ts|md|yaml|json))['\"]?", user_msg + " " + assistant_msg))
@@ -674,7 +676,6 @@ class Agent:
             enable_planner=False,
         )
         # Clone current messages
-        import copy
         forked.messages = copy.deepcopy(self.messages)
         self.logger.info("Agent forked", message_count=len(forked.messages))
         return forked
@@ -689,7 +690,6 @@ class Agent:
 
         Returns the input text with injected context appended.
         """
-        import re
 
         mentions = re.findall(r"@(file|symbol|git):(\S+)", text)
         if not mentions:
@@ -728,7 +728,6 @@ class Agent:
                     context_parts.append(f"\n*(Could not resolve @symbol:{mvalue})*\n")
 
             elif mtype == "git":
-                import subprocess
                 try:
                     result = subprocess.run(
                         ["git", "log", "--oneline", "-n", "5", mvalue],

@@ -10,6 +10,8 @@ from pathlib import Path
 
 import httpx
 
+from ...core.platform_utils import get_terry_dir
+
 
 class DiscordGateway:
     """Lightweight Discord Bot gateway using HTTP REST API + Gateway.
@@ -30,7 +32,7 @@ class DiscordGateway:
         self.token = token
         self.agent_factory = agent_factory
         self.allowed_channels = allowed_channels or []  # Empty = all channels
-        self.history_dir = history_dir or Path.home() / ".terry" / "discord"
+        self.history_dir = history_dir or get_terry_dir("discord")
         self.history_dir.mkdir(parents=True, exist_ok=True)
         self._headers = {
             "Authorization": f"Bot {token}",

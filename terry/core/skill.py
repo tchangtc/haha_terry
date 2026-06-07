@@ -7,6 +7,8 @@ from pathlib import Path
 
 import yaml
 
+from .platform_utils import get_terry_dir
+
 
 @dataclass
 class Skill:
@@ -215,7 +217,7 @@ def get_skill_manager(skills_dirs: list[Path] | None = None) -> SkillManager:
         if skills_dirs is None:
             # Default skill directories
             skills_dirs = [
-                Path.home() / ".terry" / "skills",
+                get_terry_dir("skills"),
                 Path.cwd() / "skills",
             ]
         _skill_manager = SkillManager(skills_dirs)

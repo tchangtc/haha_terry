@@ -10,6 +10,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from .platform_utils import get_terry_dir
+
 
 class CheckpointManager:
     """Creates and manages file-level snapshots for undo/recovery.
@@ -29,9 +31,7 @@ class CheckpointManager:
         checkpoints_dir: Path | None = None,
     ):
         self.workdir = workdir.resolve()
-        self.checkpoints_dir = checkpoints_dir or (
-            Path.home() / ".terry" / "checkpoints"
-        )
+        self.checkpoints_dir = checkpoints_dir or get_terry_dir("checkpoints")
         self.checkpoints_dir.mkdir(parents=True, exist_ok=True)
         self._index_file = self.checkpoints_dir / "checkpoint_index.json"
         self._index: list[dict[str, Any]] = []

@@ -12,6 +12,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from .platform_utils import get_terry_dir
+
 
 class BenchmarkResult:
     """Result of a single benchmark test case."""
@@ -85,7 +87,7 @@ class BenchmarkRunner:
 
     def __init__(self, agent: Any = None, output_dir: Path | None = None):
         self.agent = agent
-        self.output_dir = output_dir or Path.home() / ".terry" / "benchmarks"
+        self.output_dir = output_dir or get_terry_dir("benchmarks")
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.suites: dict[str, BenchmarkSuite] = {}
 

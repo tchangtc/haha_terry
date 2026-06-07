@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import logging
 import re
 import subprocess
 import time
 from pathlib import Path
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 # Model fallback chain: if primary model fails with 529 (overloaded),
 # automatically try cheaper/faster alternatives.
@@ -280,7 +283,6 @@ def auto_commit_after_edit(
     try:
         # Use conventional commit format with meaningful context
         commit_type = "chore"
-        file_stem = Path(file_path).stem
         if tool_name == "write_file":
             commit_type = "feat" if file_path.endswith(".py") else "chore"
         elif tool_name in ("edit_file", "multi_edit"):
@@ -351,12 +353,12 @@ def wrap_llm_call_with_recovery(
 
                 if recovery["action"] == "retry":
                     delay = recovery.get("delay", 1.0)
-                    print(f"[Recovery] Retry attempt {attempt + 1} after {delay:.1f}s...")
+                    logger.info("Retry attempt %d after %.1fs...", attempt + 1, delay)
                     time.sleep(delay)
                     attempt += 1
 
                 elif recovery["action"] == "compact_context" and compactor:
-                    print("[Recovery] Context too long, compacting...")
+                    logger.info("Context too long, compacting...")
                     messages = error_recovery.handle_context_length_error(messages, compactor)
                     attempt += 1
 

@@ -14,12 +14,15 @@ Resume: interrupted workflows persist state to disk and can resume from checkpoi
 from __future__ import annotations
 
 import json
+import threading
 import uuid
 from collections.abc import Callable
 from datetime import datetime
 from enum import StrEnum
 from pathlib import Path
 from typing import Any
+
+from .platform_utils import get_terry_dir
 
 
 class WorkflowPattern(StrEnum):
@@ -124,7 +127,7 @@ class DynamicWorkflowEngine:
     4. Track token usage and enforce budget
     """
 
-    CHECKPOINT_DIR = Path.home() / ".terry" / "workflows"
+    CHECKPOINT_DIR = get_terry_dir("workflows")
 
     def __init__(self, agent_factory: Callable | None = None):
         self.agent_factory = agent_factory
@@ -316,7 +319,6 @@ class DynamicWorkflowEngine:
         if not self.agent_factory:
             return {"error": "No agent_factory configured"}
 
-        import threading
         results: dict[str, Any] = {}
         threads = []
         lock = threading.Lock()
@@ -449,7 +451,6 @@ class DynamicWorkflowEngine:
         if not self.agent_factory:
             return {"error": "No agent_factory configured"}
 
-        import threading
         results: dict[str, Any] = {}
         lock = threading.Lock()
 

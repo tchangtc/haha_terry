@@ -13,11 +13,13 @@ import sqlite3
 from datetime import datetime
 from pathlib import Path
 
+from .platform_utils import get_terry_dir
+
 
 class TerryStore:
     """Unified SQLite-backed persistent store for all Terry data."""
 
-    DB_PATH = Path.home() / ".terry" / "terry.db"
+    DB_PATH = get_terry_dir() / "terry.db"
     VERSION = 1
 
     def __init__(self, db_path: Path | None = None):

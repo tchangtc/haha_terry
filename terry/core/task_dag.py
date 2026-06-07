@@ -11,6 +11,8 @@ import time
 from datetime import datetime
 from pathlib import Path
 
+from .platform_utils import get_terry_dir
+
 
 class TaskNode:
     """A single task in the DAG."""
@@ -69,7 +71,7 @@ class TaskDAG:
     MAX_TASKS = 200
 
     def __init__(self, path: Path | None = None):
-        self.path = path or Path.home() / ".terry" / "tasks.json"
+        self.path = path or get_terry_dir() / "tasks.json"
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.tasks: dict[str, TaskNode] = {}
         self._load()

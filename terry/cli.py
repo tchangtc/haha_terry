@@ -140,7 +140,7 @@ def run_repl(agent: Agent):
     # Setup readline for command history and Shift+Tab mode cycling
     history_file = None
     if _readline_available:
-        history_dir = Path.home() / ".terry"
+        history_dir = get_terry_dir()
         history_dir.mkdir(parents=True, exist_ok=True)
         history_file = history_dir / ".repl_history"
         try:

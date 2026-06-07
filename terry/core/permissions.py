@@ -17,6 +17,8 @@ from datetime import datetime
 from enum import StrEnum
 from pathlib import Path
 
+from .platform_utils import get_terry_dir
+
 
 class PermissionLevel(StrEnum):
     """Fine-grained sandbox permission levels."""
@@ -119,7 +121,7 @@ class PermissionStore:
     """Persistent permission rule store."""
 
     def __init__(self, path: Path | None = None):
-        self.path = path or Path.home() / ".terry" / "permissions.json"
+        self.path = path or get_terry_dir() / "permissions.json"
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.rules: list[PermissionRule] = []
         self._load()

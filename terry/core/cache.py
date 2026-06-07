@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import time
 from pathlib import Path
 from typing import Any
@@ -12,16 +13,27 @@ from typing import Any
 class Cache:
     """Simple file-based cache with TTL support."""
 
-    def __init__(self, cache_dir: Path | None = None, default_ttl: int = 3600):
+    def __init__(
+        self,
+        config: Any = None,
+        cache_dir: Path | None = None,
+        default_ttl: int | None = None,
+    ):
         """Initialize cache.
 
         Args:
             cache_dir: Directory to store cache files
             default_ttl: Default time-to-live in seconds (1 hour)
         """
-        self.cache_dir = cache_dir or Path.home() / ".terry" / "cache"
+        if config is not None:
+            from .config import TerryConfig
+            if isinstance(config, TerryConfig):
+                if default_ttl is None:
+                    default_ttl = config.cache_default_ttl
+
+        self.cache_dir = cache_dir or get_terry_dir("cache")
         self.cache_dir.mkdir(parents=True, exist_ok=True)
-        self.default_ttl = default_ttl
+        self.default_ttl = default_ttl if default_ttl is not None else 3600
 
         # In-memory cache for fast access
         self.memory_cache: dict[str, tuple[Any, float]] = {}
@@ -76,6 +88,7 @@ class Cache:
                 cache_file.unlink()
                 return None
         except Exception:
+            logger.warning("Failed to read cache entry: %s", key, exc_info=True)
             return None
 
     def set(self, key: str, value: Any, ttl: int | None = None) -> None:
@@ -128,6 +141,7 @@ class Cache:
                 cache_file.unlink()
                 return True
             except Exception:
+                logger.warning("Failed to delete cache file: %s", cache_file.name, exc_info=True)
                 return False
 
         return False
@@ -148,6 +162,7 @@ class Cache:
                 cache_file.unlink()
                 count += 1
             except Exception:
+                logger.warning("Failed to clear cache file: %s", cache_file.name, exc_info=True)
                 pass
 
         return count
@@ -181,10 +196,12 @@ class Cache:
                     removed += 1
             except Exception:
                 # Corrupted file, delete it
+                logger.warning("Corrupted cache file, removing: %s", cache_file.name, exc_info=True)
                 try:
                     cache_file.unlink()
                     removed += 1
                 except Exception:
+                    logger.warning("Failed to remove corrupted cache file: %s", cache_file.name, exc_info=True)
                     pass
 
         return removed

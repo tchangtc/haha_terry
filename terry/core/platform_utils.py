@@ -130,6 +130,22 @@ def get_data_dir() -> Path:
     return base / 'terry'
 
 
+def get_terry_dir(subdir: str = "") -> Path:
+    """Get path to Terry data directory, optionally with a subdirectory.
+
+    Args:
+        subdir: Optional subdirectory name
+
+    Returns:
+        Path to the terry data directory (or subdirectory within it)
+    """
+    base = get_data_dir()
+    if subdir:
+        base = base / subdir
+    base.mkdir(parents=True, exist_ok=True)
+    return base
+
+
 def get_cache_dir() -> Path:
     """Get platform-appropriate cache directory.
 

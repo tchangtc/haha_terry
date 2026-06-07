@@ -11,6 +11,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from .platform_utils import get_terry_dir
+
 
 class FTSSearch:
     """Full-text search over conversation history using SQLite FTS5."""
@@ -18,7 +20,7 @@ class FTSSearch:
     MAX_CONVERSATIONS = 10_000
 
     def __init__(self, db_path: Path | None = None):
-        self.db_path = db_path or Path.home() / ".terry" / "conversations.db"
+        self.db_path = db_path or get_terry_dir() / "conversations.db"
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._init_db()
 

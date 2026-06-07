@@ -16,6 +16,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from .platform_utils import get_terry_dir
+
 
 class AutonomousTask:
     """A self-contained task for the autonomous agent to execute."""
@@ -73,7 +75,7 @@ class AutonomousAgent:
         self.agent_factory = agent_factory
         self.workdir = workdir or Path.cwd()
         self.max_concurrent = max_concurrent
-        self.task_dir = task_dir or Path.home() / ".terry" / "autonomous_tasks"
+        self.task_dir = task_dir or get_terry_dir("autonomous_tasks")
         self.task_dir.mkdir(parents=True, exist_ok=True)
         self.queue: list[AutonomousTask] = []
         self.active: dict[str, AutonomousTask] = {}
@@ -288,7 +290,7 @@ triggers:
     def __init__(
         self, skills_dir: Path | None = None, min_confidence: float = 0.6
     ):
-        self.skills_dir = skills_dir or Path.home() / ".terry" / "skills"
+        self.skills_dir = skills_dir or get_terry_dir("skills")
         self.skills_dir.mkdir(parents=True, exist_ok=True)
         self.min_confidence = min_confidence
         self._patterns: dict[str, int] = {}  # pattern signature → occurrence count

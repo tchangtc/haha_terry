@@ -22,6 +22,8 @@ from typing import Any
 
 import yaml
 
+from .platform_utils import get_terry_dir
+
 
 @dataclass
 class Plugin:
@@ -111,7 +113,7 @@ class PluginManager:
 
     def __init__(self, plugin_dirs: list[Path] | None = None):
         self.plugin_dirs = plugin_dirs or [
-            Path.home() / ".terry" / "plugins",       # User plugins
+            get_terry_dir("plugins"),       # User plugins
             Path.cwd() / ".terry" / "plugins",         # Project plugins
         ]
         self.plugins: dict[str, Plugin] = {}

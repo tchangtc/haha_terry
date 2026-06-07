@@ -8,8 +8,13 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 from pathlib import Path
 from typing import Any
+
+from .platform_utils import get_terry_dir
+
+logger = logging.getLogger(__name__)
 
 
 class SimpleEmbedder:

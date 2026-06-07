@@ -7,6 +7,8 @@ Keeps the main run loop lean by extracting:
 
 from __future__ import annotations
 
+import re
+import time
 from typing import Any
 
 
@@ -67,7 +69,6 @@ def post_process(agent: Any, user_message: str, response_text: str, start_time: 
             agent.skill_auto_creator.create_skill(suggestion, response_text)
 
     # Non-blocking feedback
-    import time
     agent.feedback.maybe_prompt(
         user_message=user_message, assistant_response=response_text,
         session_id=agent.session.session_id if agent.session else "",
@@ -80,7 +81,6 @@ def post_process(agent: Any, user_message: str, response_text: str, start_time: 
 
 def _track_knowledge(agent: Any, user_msg: str, assistant_msg: str) -> None:
     """Extract entities from conversation and add to knowledge graph."""
-    import re
     combined = user_msg + " " + assistant_msg
     files = set(re.findall(r"['\"]?([\\w./-]+\\.(?:py|js|ts|md|yaml|json))['\"]?", combined))
     for f in files:

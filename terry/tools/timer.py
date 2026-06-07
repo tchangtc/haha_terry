@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -200,8 +201,6 @@ class TimerTool(BaseTool):
         Returns:
             Duration in seconds
         """
-        import re
-
         total_seconds = 0
 
         # Match patterns like 1h, 30m, 90s

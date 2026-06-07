@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import re
 import subprocess
 from pathlib import Path
 
@@ -28,7 +27,7 @@ class GitBranchTool(BaseTool):
             },
             "name": {
                 "type": "string",
-                "description": "Branch name (required for create). Use conventional prefix: feat/, fix/, chore/, test/, refactor/.",
+                "description": "Branch name (required for create). Use prefix: feat/, fix/, chore/, test/, refactor/.",
             },
             "switch": {
                 "type": "boolean",

@@ -31,8 +31,10 @@ def _resolve_event(event: str | HookEvent) -> HookEvent:
     """Resolve both string and enum event identifiers."""
     if isinstance(event, HookEvent):
         return event
-    try: return _HOOK_ALIASES.get(event, HookEvent(event))
-    except ValueError: return event
+    try:
+        return _HOOK_ALIASES.get(event, HookEvent(event))
+    except ValueError:
+        return event
 
 
 class HookRegistry:

@@ -11,6 +11,8 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+from .platform_utils import get_terry_dir
+
 
 class SkillsCurator:
     """Autonomous skill library curator.
@@ -21,7 +23,7 @@ class SkillsCurator:
 
     def __init__(self, skills_dir: Path | None = None, data_dir: Path | None = None):
         self.skills_dir = skills_dir or Path.cwd() / "skills"
-        self.data_dir = data_dir or Path.home() / ".terry" / "curator"
+        self.data_dir = data_dir or get_terry_dir("curator")
         self.data_dir.mkdir(parents=True, exist_ok=True)
         self.usage_file = self.data_dir / "skill_usage.json"
         self.usage: dict[str, dict[str, Any]] = {}

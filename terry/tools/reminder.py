@@ -6,6 +6,7 @@ import json
 from datetime import datetime, timedelta
 from pathlib import Path
 
+from ..core.platform_utils import get_terry_dir
 from . import BaseTool, tool_registry
 
 
@@ -44,7 +45,7 @@ class ReminderTool(BaseTool):
 
     def __init__(self, workdir: Path | None = None):
         self.workdir = workdir or Path.cwd()
-        self.reminders_file = Path.home() / ".terry" / "reminders.json"
+        self.reminders_file = get_terry_dir() / "reminders.json"
         self.reminders_file.parent.mkdir(parents=True, exist_ok=True)
 
     def execute(

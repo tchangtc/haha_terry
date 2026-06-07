@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import re
 from datetime import datetime
 from enum import StrEnum
@@ -9,6 +10,10 @@ from pathlib import Path
 from typing import Any
 
 import yaml as _yaml_mod
+
+from .platform_utils import get_terry_dir
+
+logger = logging.getLogger(__name__)
 
 
 class MemoryType(StrEnum):
@@ -29,7 +34,7 @@ class Memory:
     """
 
     def __init__(self, memory_dir: Path | None = None):
-        self.memory_dir = memory_dir or Path.home() / ".terry" / "memory"
+        self.memory_dir = memory_dir or get_terry_dir("memory")
         self.memory_dir.mkdir(parents=True, exist_ok=True)
         self.index_file = self.memory_dir / "MEMORY.md"
         self.memories: dict[str, dict[str, Any]] = {}
@@ -75,6 +80,7 @@ class Memory:
                                     "created": metadata.get("created", ""),
                                 }
         except Exception:
+            logger.warning("Failed to load memories from index", exc_info=True)
             pass
 
         # Rebuild reference graph
@@ -97,6 +103,7 @@ class Memory:
             fm = _yaml_mod.safe_load(parts[1])
             return fm if isinstance(fm, dict) else {}
         except Exception:
+            logger.warning("Failed to parse YAML frontmatter", exc_info=True)
             return {}
 
     def _extract_references(self, content: str) -> set[str]:
@@ -352,11 +359,18 @@ class Memory:
         seen: set[str] = set()
         merged = []
         for name, _ in sorted(scores.items(), key=lambda x: -x[1]):
-            if name in seen: continue
+            if name in seen:
+                continue
             seen.add(name)
             mem = self.memories.get(name)
             if mem:
-                merged.append({"name": name, "description": mem.get("description", ""), "type": mem.get("type", "note"), "file": mem.get("file", ""), "score": round(scores[name], 4)})
+                merged.append({
+                    "name": name,
+                    "description": mem.get("description", ""),
+                    "type": mem.get("type", "note"),
+                    "file": mem.get("file", ""),
+                    "score": round(scores[name], 4),
+                })
         return merged[:top_k]
 
     def get_tags(self) -> list[dict[str, int]]:
@@ -457,7 +471,16 @@ def _vector_search_impl(memories: dict, query: str, top_k: int = 10) -> list[dic
             if sim > 0.1:
                 scores.append((name, sim, mem))
         scores.sort(key=lambda x: -x[1])
-        return [{"name": n, "description": m.get("description", ""), "type": m.get("type", "note"), "file": m.get("file", ""), "score": round(s, 4)} for n, s, m in scores[:top_k]]
+        return [
+            {
+                "name": n,
+                "description": m.get("description", ""),
+                "type": m.get("type", "note"),
+                "file": m.get("file", ""),
+                "score": round(s, 4),
+            }
+            for n, s, m in scores[:top_k]
+        ]
     except (ImportError, OSError, RuntimeError):
         return []
 

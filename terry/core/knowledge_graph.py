@@ -11,6 +11,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from .platform_utils import get_terry_dir
+
 
 class KnowledgeGraph:
     """Lightweight in-memory knowledge graph with JSON persistence.
@@ -23,7 +25,7 @@ class KnowledgeGraph:
     MAX_EDGES = 5000
 
     def __init__(self, path: Path | None = None):
-        self.path = path or Path.home() / ".terry" / "knowledge_graph.json"
+        self.path = path or get_terry_dir() / "knowledge_graph.json"
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.nodes: dict[str, dict[str, Any]] = {}
         self.edges: list[dict[str, str]] = []

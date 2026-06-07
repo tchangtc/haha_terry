@@ -6,6 +6,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 
+from ..core.platform_utils import get_terry_dir
 from . import BaseTool, tool_registry
 
 
@@ -49,7 +50,7 @@ class NotesTool(BaseTool):
 
     def __init__(self, workdir: Path | None = None):
         self.workdir = workdir or Path.cwd()
-        self.notes_file = Path.home() / ".terry" / "notes.json"
+        self.notes_file = get_terry_dir() / "notes.json"
         self.notes_file.parent.mkdir(parents=True, exist_ok=True)
 
     def execute(

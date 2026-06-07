@@ -17,6 +17,8 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from .platform_utils import get_terry_dir
+
 
 class AsyncHarnessPattern(StrEnum):
     """Orchestration patterns supported by the Async Harness."""
@@ -73,7 +75,7 @@ class AsyncHarnessEngine:
     - Better error handling
     """
 
-    CHECKPOINT_DIR = Path.home() / ".terry" / "async_harness"
+    CHECKPOINT_DIR = get_terry_dir("async_harness")
 
     def __init__(
         self,

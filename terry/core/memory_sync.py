@@ -11,6 +11,8 @@ import json
 from datetime import datetime
 from pathlib import Path
 
+from .platform_utils import get_terry_dir
+
 
 class MemorySync:
     """Cross-platform memory synchronization engine.
@@ -25,7 +27,7 @@ class MemorySync:
     SYNC_FILE = "memory_sync_state.json"
 
     def __init__(self, memory_dir: Path | None = None):
-        self.memory_dir = memory_dir or Path.home() / ".terry" / "memory"
+        self.memory_dir = memory_dir or get_terry_dir("memory")
         self.memory_dir.mkdir(parents=True, exist_ok=True)
         self.sync_file = self.memory_dir / self.SYNC_FILE
         self.state = self._load_state()

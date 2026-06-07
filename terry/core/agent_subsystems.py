@@ -6,6 +6,7 @@ into a single holder class that Agent delegates to.
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -29,6 +30,8 @@ from .suggester import ProactiveSuggester
 from .task_dag import TaskDAG
 from .thinking import ExtendedThinking
 from .workflow import WorkflowEngine
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -175,11 +178,13 @@ class AgentSubsystems:
                 agent_factory=agent_factory
             )
         except Exception:
+            logger.warning("dynamic_workflow init failed", exc_info=True)
             pass
 
         try:
             subsystems.memory_sync = MemorySync()
         except Exception:
+            logger.warning("memory_sync init failed", exc_info=True)
             pass
 
         # Agent-of-agents (needs agent_factory + fresh minimal Agent per task)
@@ -198,10 +203,12 @@ class AgentSubsystems:
                     agent_factory=_make_minimal_agent, workdir=workdir
                 )
             except Exception:
+                logger.warning("autonomous_agent init failed", exc_info=True)
                 pass
             try:
                 subsystems.skill_auto_creator = SkillAutoCreator()
             except Exception:
+                logger.warning("skill_auto_creator init failed", exc_info=True)
                 pass
 
         return subsystems

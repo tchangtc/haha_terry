@@ -10,6 +10,8 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Any
 
+from .platform_utils import get_terry_dir
+
 
 class JSONFormatter(logging.Formatter):
     """Format log records as JSON."""
@@ -237,7 +239,7 @@ def get_logger(
     global _logger_instance
     if _logger_instance is None:
         if log_dir is None:
-            log_dir = Path.home() / ".terry" / "logs"
+            log_dir = get_terry_dir("logs")
         _logger_instance = Logger(
             name=name,
             log_dir=log_dir,

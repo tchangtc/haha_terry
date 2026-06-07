@@ -7,6 +7,7 @@ import re
 from datetime import datetime, timedelta
 from pathlib import Path
 
+from ..core.platform_utils import get_terry_dir
 from . import BaseTool, tool_registry
 
 
@@ -41,7 +42,7 @@ class TimerTool(BaseTool):
 
     def __init__(self, workdir: Path | None = None):
         self.workdir = workdir or Path.cwd()
-        self.timers_file = Path.home() / ".terry" / "timers.json"
+        self.timers_file = get_terry_dir() / "timers.json"
         self.timers_file.parent.mkdir(parents=True, exist_ok=True)
 
     def execute(

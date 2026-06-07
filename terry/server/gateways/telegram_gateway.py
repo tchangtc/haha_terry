@@ -10,6 +10,8 @@ from pathlib import Path
 
 import httpx
 
+from ...core.platform_utils import get_terry_dir
+
 
 class TelegramGateway:
     """Lightweight Telegram Bot gateway using HTTP long-polling.
@@ -30,7 +32,7 @@ class TelegramGateway:
         self.token = token
         self.agent_factory = agent_factory
         self.allowed_users = allowed_users or []  # Empty = allow all
-        self.history_dir = history_dir or Path.home() / ".terry" / "telegram"
+        self.history_dir = history_dir or get_terry_dir("telegram")
         self.history_dir.mkdir(parents=True, exist_ok=True)
         self._offset = 0
         self._running = False

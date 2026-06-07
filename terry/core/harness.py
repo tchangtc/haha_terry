@@ -32,6 +32,8 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from .platform_utils import get_terry_dir
+
 
 class HarnessPattern(StrEnum):
     """Orchestration patterns supported by the Harness."""
@@ -93,7 +95,7 @@ class HarnessEngine:
         └── CheckpointManager (save/resume)
     """
 
-    CHECKPOINT_DIR = Path.home() / ".terry" / "harness"
+    CHECKPOINT_DIR = get_terry_dir("harness")
 
     def __init__(
         self,

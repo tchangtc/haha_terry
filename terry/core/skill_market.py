@@ -11,6 +11,8 @@ from typing import Any
 
 import httpx
 
+from .platform_utils import get_terry_dir
+
 
 class SkillMarket:
     """Online skill marketplace client.
@@ -27,7 +29,7 @@ class SkillMarket:
         install_dir: Path | None = None,
     ):
         self.registry_url = registry_url or self.DEFAULT_REGISTRY
-        self.install_dir = install_dir or Path.home() / ".terry" / "skills"
+        self.install_dir = install_dir or get_terry_dir("skills")
         self.install_dir.mkdir(parents=True, exist_ok=True)
         self._registry: list[dict[str, str]] = []
         self._loaded = False

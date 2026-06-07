@@ -14,6 +14,8 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+from .platform_utils import get_terry_dir
+
 
 class CronScheduler:
     """Lightweight cron scheduler with persistence.
@@ -25,7 +27,7 @@ class CronScheduler:
     MAX_TASKS = 100
 
     def __init__(self, db_path: Path | None = None):
-        self.db_path = db_path or Path.home() / ".terry" / "scheduled_tasks.json"
+        self.db_path = db_path or get_terry_dir() / "scheduled_tasks.json"
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self.tasks: dict[int, dict[str, Any]] = {}
         self._counter = 0

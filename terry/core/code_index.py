@@ -11,6 +11,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from .platform_utils import get_terry_dir
+
 
 class CodeSemanticIndex:
     """Symbol table and reference graph for code intelligence.
@@ -29,7 +31,7 @@ class CodeSemanticIndex:
 
     def __init__(self, workdir: Path | None = None, cache_dir: Path | None = None):
         self.workdir = workdir or Path.cwd()
-        self.cache_dir = cache_dir or Path.home() / ".terry" / "index"
+        self.cache_dir = cache_dir or get_terry_dir("index")
         self.cache_dir.mkdir(parents=True, exist_ok=True)
 
         self.symbols: dict[str, list[dict[str, Any]]] = {}

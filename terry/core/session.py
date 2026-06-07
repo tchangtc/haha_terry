@@ -3,16 +3,21 @@
 from __future__ import annotations
 
 import json
+import logging
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+
+from .platform_utils import get_terry_dir
+
+logger = logging.getLogger(__name__)
 
 
 class Session:
     """Manages conversation sessions with persistence."""
 
     def __init__(self, session_dir: Path | None = None):
-        self.session_dir = session_dir or Path.home() / ".terry" / "sessions"
+        self.session_dir = session_dir or get_terry_dir("sessions")
         self.session_dir.mkdir(parents=True, exist_ok=True)
 
         self.session_id: str | None = None
@@ -70,6 +75,7 @@ class Session:
             self.metadata = data.get("metadata", {})
             return True
         except Exception:
+            logger.warning("Failed to load session: %s", session_id, exc_info=True)
             return False
 
     def save(self) -> bool:
@@ -103,6 +109,7 @@ class Session:
             )
             return True
         except Exception:
+            logger.warning("Failed to save session: %s", self.session_id, exc_info=True)
             return False
 
     def add_message(self, role: str, content: Any) -> None:
@@ -158,7 +165,7 @@ class Session:
             List of session metadata
         """
         if session_dir is None:
-            session_dir = Path.home() / ".terry" / "sessions"
+            session_dir = get_terry_dir("sessions")
 
         if not session_dir.exists():
             return []
@@ -175,6 +182,7 @@ class Session:
                     "tool_calls": data.get("metadata", {}).get("tool_calls", 0),
                 })
             except Exception:
+                logger.warning("Failed to list session files: %s", session_file.name, exc_info=True)
                 continue
 
         # Sort by updated_at descending
@@ -200,6 +208,7 @@ class Session:
             self.metadata = {}
             return True
         except Exception:
+            logger.warning("Failed to delete session: %s", self.session_id, exc_info=True)
             return False
 
 

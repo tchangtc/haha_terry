@@ -8,6 +8,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from .platform_utils import get_terry_dir
+
 
 class Metrics:
     """Collects and stores usage metrics."""
@@ -18,7 +20,7 @@ class Metrics:
         Args:
             metrics_dir: Directory to store metrics files
         """
-        self.metrics_dir = metrics_dir or Path.home() / ".terry" / "metrics"
+        self.metrics_dir = metrics_dir or get_terry_dir("metrics")
         self.metrics_dir.mkdir(parents=True, exist_ok=True)
 
         # In-memory counters

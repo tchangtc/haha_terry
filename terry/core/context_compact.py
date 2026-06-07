@@ -13,10 +13,14 @@ If layer N brings context below threshold, skip layers N+1..4.
 from __future__ import annotations
 
 import hashlib
+import logging
 from pathlib import Path
 from typing import Any
 
+from .platform_utils import get_terry_dir
 from .text_utils import extract_text
+
+logger = logging.getLogger(__name__)
 
 # ── tiktoken integration (optional) ─────────────────────────────
 

@@ -41,6 +41,7 @@ class TerryServer:
 
         # Security middleware
         self.security = SecurityMiddleware(
+            config=config,
             rate_limit=rate_limit,
             rate_window=rate_window,
             api_key=api_key,

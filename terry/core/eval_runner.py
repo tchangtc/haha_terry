@@ -86,7 +86,7 @@ GOLDEN_DATASET: list[GoldenTestCase] = [
 class EvalRunner:
     """Automated evaluation runner with regression detection."""
 
-    RESULTS_DIR = Path.home() / ".terry" / "eval_results"
+    RESULTS_DIR = get_terry_dir("eval_results")
 
     def __init__(self, agent_factory=None):
         self.agent_factory = agent_factory

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import sys
 from collections.abc import Callable
 from enum import StrEnum
 from typing import Any
@@ -119,7 +120,6 @@ def _builtin_commit_review(msg: str, file_path: str) -> str | None:
 
     Returns None to allow the commit, or a string to block it.
     """
-    import sys
     print(f"\n📝 Auto-commit review:\n   message: {msg}\n   file:    {file_path}", file=sys.stderr)
     return None  # Allow by default — override by registering a blocking callback
 

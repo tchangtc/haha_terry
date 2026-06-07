@@ -63,14 +63,39 @@ class ProjectRAG:
 
     def __init__(
         self,
+        config: Any = None,
         workdir: Path | None = None,
         index_dir: Path | None = None,
     ):
         self.workdir = workdir or Path.cwd()
-        self.index_dir = index_dir or Path.home() / ".terry" / "rag"
+        self.index_dir = index_dir or get_terry_dir("rag")
         self.index_dir.mkdir(parents=True, exist_ok=True)
         self.embedder = SimpleEmbedder()
         self.chunks: list[dict[str, Any]] = []
+
+        # Default config values (overridden by config if provided)
+        self.CHUNK_SIZE = 500
+        self.CHUNK_OVERLAP = 100
+        self.MAX_DOCUMENTS = 200
+        self.MIN_SCORE = 0.05
+        self.TOP_K = 5
+        self.MAX_FILES = 100
+        self.EXCLUDE_DIRS = {".git", "__pycache__", "node_modules", ".venv"}
+        self.INCLUDE_EXTENSIONS = {".py", ".md", ".yaml", ".json", ".toml", ".txt"}
+
+        if config is not None:
+            from .config import TerryConfig
+            if isinstance(config, TerryConfig):
+                self.CHUNK_SIZE = config.rag_chunk_size
+                self.CHUNK_OVERLAP = config.rag_chunk_overlap
+                self.MAX_DOCUMENTS = config.rag_max_documents
+                self.MIN_SCORE = config.rag_min_score
+                self.TOP_K = config.rag_top_k
+                self.MAX_FILES = config.rag_max_files
+                if config.rag_exclude_dirs:
+                    self.EXCLUDE_DIRS = config.rag_exclude_dirs
+                if config.rag_include_extensions:
+                    self.INCLUDE_EXTENSIONS = config.rag_include_extensions
 
     def add_document(self, path: str, content: str) -> int:
         """Chunk and index a document. Returns number of chunks."""
@@ -106,12 +131,12 @@ class ProjectRAG:
             start += self.CHUNK_SIZE - self.CHUNK_OVERLAP
         return chunks
 
-    def query(self, question: str, top_k: int = 5) -> list[dict[str, Any]]:
+    def query(self, question: str, top_k: int | None = None) -> list[dict[str, Any]]:
         """Semantic search for chunks relevant to a question.
 
         Args:
             question: Search query
-            top_k: Number of results to return
+            top_k: Number of results to return (defaults to self.TOP_K)
 
         Returns:
             List of relevant chunks with scores
@@ -119,10 +144,11 @@ class ProjectRAG:
         if not self.chunks:
             return []
 
+        top_k = top_k or self.TOP_K
         scored = []
         for chunk in self.chunks:
             score = self.embedder.similarity(question, chunk["content"])
-            if score > 0.05:  # Minimum relevance threshold
+            if score > self.MIN_SCORE:  # Minimum relevance threshold
                 scored.append({**chunk, "score": round(score, 3)})
 
         scored.sort(key=lambda x: x["score"], reverse=True)
@@ -137,10 +163,12 @@ class ProjectRAG:
             content = full_path.read_text(encoding="utf-8", errors="replace")
             return self.add_document(file_path, content)
         except Exception:
+            logger.warning("Failed to index file: %s", file_path, exc_info=True)
             return 0
 
-    def index_project(self, max_files: int = 100) -> int:
+    def index_project(self, max_files: int | None = None) -> int:
         """Index all project files. Returns total chunks."""
+        max_files = max_files or self.MAX_FILES
         total_chunks = 0
         file_count = 0
         for path in self.workdir.rglob("*"):
@@ -150,10 +178,10 @@ class ProjectRAG:
                 continue
             if any(
                 d in path.relative_to(self.workdir).parts
-                for d in {".git", "__pycache__", "node_modules", ".venv"}
+                for d in self.EXCLUDE_DIRS
             ):
                 continue
-            if path.suffix in {".py", ".md", ".yaml", ".json", ".toml", ".txt"}:
+            if path.suffix in self.INCLUDE_EXTENSIONS:
                 n = self.index_file(
                     str(path.relative_to(self.workdir))
                 )
@@ -201,4 +229,5 @@ class ProjectRAG:
             ]
             return len(self.chunks)
         except Exception:
+            logger.warning("Failed to load RAG index from disk", exc_info=True)
             return 0

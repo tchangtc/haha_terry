@@ -9,6 +9,10 @@ import time
 from pathlib import Path
 from typing import Any
 
+from .platform_utils import get_terry_dir
+
+logger = logging.getLogger(__name__)
+
 
 class Cache:
     """Simple file-based cache with TTL support."""
@@ -22,6 +26,7 @@ class Cache:
         """Initialize cache.
 
         Args:
+            config: Optional TerryConfig for cache_default_ttl
             cache_dir: Directory to store cache files
             default_ttl: Default time-to-live in seconds (1 hour)
         """
@@ -223,6 +228,7 @@ class Cache:
                 if current_time >= data.get("expiry", 0):
                     expired_count += 1
             except Exception:
+                logger.warning("Failed to read cache file for stats: %s", cache_file.name, exc_info=True)
                 expired_count += 1
 
         return {
@@ -237,13 +243,26 @@ class Cache:
 class LLMCache:
     """Specialized cache for LLM API calls."""
 
-    def __init__(self, cache: Cache | None = None):
+    def __init__(self, cache: Cache | None = None, config: Any = None):
         """Initialize LLM cache.
 
         Args:
             cache: Cache instance to use
+            config: Optional TerryConfig for cache_llm_ttl
         """
-        self.cache = cache or Cache()
+        if config is not None:
+            from .config import TerryConfig
+            if isinstance(config, TerryConfig):
+                self._default_ttl = config.cache_llm_ttl
+            else:
+                self._default_ttl = 3600
+        else:
+            self._default_ttl = 3600
+
+        if cache is None:
+            self.cache = Cache(config=config)
+        else:
+            self.cache = cache
 
     def get_response(
         self,
@@ -281,7 +300,7 @@ class LLMCache:
         system: str | None = None,
         tools: list[dict[str, Any]] | None = None,
         model: str = "default",
-        ttl: int = 3600,
+        ttl: int | None = None,
     ) -> None:
         """Cache LLM response.
 
@@ -291,7 +310,7 @@ class LLMCache:
             system: System prompt
             tools: Tool definitions
             model: Model name
-            ttl: Time-to-live in seconds
+            ttl: Time-to-live in seconds (defaults to cache_llm_ttl from config)
         """
         cache_key_data = {
             "type": "llm_response",
@@ -302,19 +321,32 @@ class LLMCache:
         }
 
         key = self.cache._generate_key(cache_key_data)
-        self.cache.set(key, response, ttl=ttl)
+        self.cache.set(key, response, ttl=ttl if ttl is not None else self._default_ttl)
 
 
 class ToolCache:
     """Specialized cache for tool execution results."""
 
-    def __init__(self, cache: Cache | None = None):
+    def __init__(self, cache: Cache | None = None, config: Any = None):
         """Initialize tool cache.
 
         Args:
             cache: Cache instance to use
+            config: Optional TerryConfig for cache_tool_ttl
         """
-        self.cache = cache or Cache()
+        if config is not None:
+            from .config import TerryConfig
+            if isinstance(config, TerryConfig):
+                self._default_ttl = config.cache_tool_ttl
+            else:
+                self._default_ttl = 300
+        else:
+            self._default_ttl = 300
+
+        if cache is None:
+            self.cache = Cache(config=config)
+        else:
+            self.cache = cache
 
     def get_result(
         self,
@@ -344,7 +376,7 @@ class ToolCache:
         tool_name: str,
         arguments: dict[str, Any],
         result: Any,
-        ttl: int = 300,  # 5 minutes default for tools
+        ttl: int | None = None,
     ) -> None:
         """Cache tool result.
 
@@ -352,7 +384,7 @@ class ToolCache:
             tool_name: Tool name
             arguments: Tool arguments
             result: Tool result to cache
-            ttl: Time-to-live in seconds
+            ttl: Time-to-live in seconds (defaults to cache_tool_ttl from config)
         """
         cache_key_data = {
             "type": "tool_result",
@@ -361,7 +393,7 @@ class ToolCache:
         }
 
         key = self.cache._generate_key(cache_key_data)
-        self.cache.set(key, result, ttl=ttl)
+        self.cache.set(key, result, ttl=ttl if ttl is not None else self._default_ttl)
 
 
 # Global cache instances

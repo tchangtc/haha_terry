@@ -13,6 +13,7 @@ from ..checkpoint import (
     reset_checkpoint_manager,
     set_checkpoint_manager,
 )
+from ..config import TerryConfig
 from ..permissions import (
     PermissionLevel,
     PermissionRule,
@@ -73,6 +74,18 @@ class RequestValidator:
         "| bash",
         "| sh",
     ]
+
+    @classmethod
+    def configure(
+        cls,
+        max_body_size: int | None = None,
+        max_prompt_length: int | None = None,
+    ):
+        """Update class defaults from configuration (idempotent)."""
+        if max_body_size is not None:
+            cls.MAX_BODY_SIZE = max_body_size
+        if max_prompt_length is not None:
+            cls.MAX_PROMPT_LENGTH = max_prompt_length
 
     @classmethod
     def validate_body_size(cls, content_length: int) -> tuple[bool, str]:
@@ -154,16 +167,26 @@ class SecurityMiddleware:
 
     def __init__(
         self,
-        rate_limit: int = 100,
-        rate_window: int = 60,
+        config: TerryConfig | None = None,
+        rate_limit: int | None = None,
+        rate_window: int | None = None,
         api_key: str | None = None,
         cors_origins: list[str] | None = None,
-        max_body_size: int = 10 * 1024 * 1024,
+        max_body_size: int | None = None,
     ):
-        self.rate_limiter = RateLimiter(rate_limit, rate_window)
+        if config:
+            rate_limit = rate_limit or config.rate_limit_max_requests
+            rate_window = rate_window or config.rate_limit_window_seconds
+            max_body_size = max_body_size or config.max_body_size
+            RequestValidator.configure(
+                max_body_size=config.max_body_size,
+                max_prompt_length=config.max_prompt_length,
+            )
+
+        self.rate_limiter = RateLimiter(rate_limit or 100, rate_window or 60)
         self.api_auth = APIKeyAuth(api_key)
         self.cors = CORSPolicy(cors_origins)
-        self.max_body_size = max_body_size
+        self.max_body_size = max_body_size or 10 * 1024 * 1024
 
     def check_request(
         self,

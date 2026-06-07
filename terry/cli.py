@@ -51,7 +51,10 @@ def main_callback(
     ctx: typer.Context,
     config: str = typer.Option(None, "--config", "-c", help="Config file path"),
     model: str = typer.Option(None, "--model", "-m", help="Model name override"),
-    api_key: str = typer.Option(None, "--api-key", "-k", help="API key override"),
+    api_key: str = typer.Option(
+        None, "--api-key", "-k",
+        help="API key override (⚠️  prefer env var: keys in CLI args are visible to other users via ps)",
+    ),
     language: str = typer.Option(None, "--language", "-l", help="Language (en, zh)"),
     debug: bool = typer.Option(False, "--debug", "-d", help="Enable debug logging"),
     version: bool = typer.Option(
@@ -219,7 +222,10 @@ def handle_command(cmd: str, agent: Agent) -> bool:
 def run_cmd(
     config: str = typer.Option(None, "--config", "-c", help="Config file path"),
     model: str = typer.Option(None, "--model", "-m", help="Model name override"),
-    api_key: str = typer.Option(None, "--api-key", "-k", help="API key override"),
+    api_key: str = typer.Option(
+        None, "--api-key", "-k",
+        help="API key override (⚠️  prefer env var: keys in CLI args are visible to other users via ps)",
+    ),
     language: str = typer.Option(None, "--language", "-l", help="Language (en, zh)"),
     debug: bool = typer.Option(False, "--debug", "-d", help="Enable debug logging"),
 ):

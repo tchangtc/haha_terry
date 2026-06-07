@@ -3,7 +3,7 @@
 > **Agency comes from the model. Terry is the harness.**
 >
 > Terry is an AI coding agent supporting Terminal · Web · Desktop · Mobile interfaces.  
-> Version: **v0.2.0** | Python 3.12+ | MIT License | 102 modules | 27 tools | ~20,600 LOC
+> Version: **v0.3.0** | Python 3.11+ | MIT License | 106 modules | 26 tools | ~21,200 LOC
 
 ---
 
@@ -26,7 +26,7 @@ When making design decisions, ask: *"Does this make the harness better, or is it
 ```
 haha_terry/
 ├── terry/                          # Main package
-│   ├── __init__.py                  # v0.2.0
+│   ├── __init__.py                  # v0.3.0
 │   ├── cli.py                       # CLI entry point (332 lines, refactored from 884)
 │   ├── cli_commands.py              # CLI command handlers (317 lines, 23 commands in 6 categories)
 │   ├── desktop.py                   # Desktop tray app (136 lines)
@@ -92,7 +92,7 @@ haha_terry/
 │   │   ├── scheduling/              # Scheduling subsystem
 │   │   └── storage/                 # Storage subsystem
 │   │
-│   ├── tools/                       # 🔧 27 built-in tools
+│   ├── tools/                       # 🔧 26 built-in tools
 │   │   ├── bash.py, read_file.py, write_file.py, edit_file.py
 │   │   ├── grep_tool.py, glob_tool.py, find_tool.py, ls_tool.py
 │   │   ├── web_search.py, web_fetch.py
@@ -103,13 +103,13 @@ haha_terry/
 │   │   └── templates/               # Tool templates
 │   │
 │   ├── server/                      # 🌐 Server infrastructure
-│   │   ├── async_server.py          # Async HTTP server (382 lines)
+│   │   ├── async_server.py          # Async HTTP server (439 lines)
 │   │   └── gateways/                # External platform gateways
 │   │       ├── telegram_gateway.py  # Telegram Bot gateway (257 lines)
 │   │       └── discord_gateway.py   # Discord Bot gateway (210 lines)
 │   │
 │   ├── webui/                       # 🖥️ Web interface
-│   │   ├── server.py                # WebUI HTTP server (360 lines, SSE streaming)
+│   │   ├── server.py                # WebUI HTTP server (428 lines, SSE streaming)
 │   │   └── static/                  # Frontend assets
 │   │
 │   ├── hooks/                       # 🪝 Hook system
@@ -122,7 +122,7 @@ haha_terry/
 │   └── locale/                      # i18n resources
 │
 ├── skills/                          # 📦 Bundled skills (marketplace)
-├── tests/                           # 🧪 18 test files, 634+ passing
+├── tests/                           # 🧪 22 test files, 634+ passing
 ├── vscode-extension/                # VS Code extension (TypeScript)
 ├── mobile/                          # Mobile app (TWA + iOS WKWebView)
 ├── deploy/                          # Deployment guides (containerd, K8s)
@@ -254,7 +254,7 @@ pip install hatchling && python -m hatchling build  # Build wheel
 ## Testing Strategy
 
 ### Test Structure
-- **18 test files** under `tests/`, targeting 80%+ coverage
+- **22 test files** under `tests/`, targeting 80%+ coverage
 - `test_core_full.py` — Core agent functionality (44 tests)
 - `test_comprehensive.py` — Broad integration tests (67 tests)
 - `test_coverage.py` — Targeted coverage tests (78 tests)
@@ -310,19 +310,17 @@ python -m pytest tests/ -k "not e2e"
 
 ### Integrating Security Middleware
 1. `SecurityMiddleware` is in `terry/core/security/__init__.py`
-2. Currently NOT mounted on server request chains — needs integration
-3. Mount points: `webui/server.py` request handler, `server/async_server.py` middleware stack
+2. Mounted on all three server request chains (webui/server.py, server/__init__.py, server/async_server.py)
 
 ---
 
-## Known Issues & Current Focus
+## Current Focus (v0.3.0)
 
-- **25 failing tests** in `test_core_low_coverage.py` (SubAgent-related TypeError)
-- **Coverage at ~60%** — target is 80%+
-- **Security middleware not integrated** into webui/async server
-- **VSCode extension** has basic skeleton, needs Webview Panel and streaming
-- **Mobile** has build guide but lacks Service Worker and PWA manifest
+- **Test coverage: 710 tests passing, target 80%+ line coverage
 - **SWE-bench** framework exists but has no real problem set or execution logic
+- **Mobile APK/IPA** — build guides exist but no compiled artifacts in repo
+- **Agent class** (933 lines) should be further decomposed into smaller components
+- **Security middleware** is mounted on all server request chains
 
 ---
 

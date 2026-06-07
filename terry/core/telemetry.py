@@ -15,6 +15,8 @@ import time
 from contextlib import contextmanager
 from typing import Any
 
+from terry import __version__
+
 
 class Span:
     """Minimal span implementation — OTel-compatible when SDK available."""
@@ -111,7 +113,7 @@ class Telemetry:
 
             resource = Resource.create({
                 ResourceAttributes.SERVICE_NAME: self.service_name,
-                ResourceAttributes.SERVICE_VERSION: "0.2.0",
+                ResourceAttributes.SERVICE_VERSION: __version__,
             })
             provider = TracerProvider(resource=resource)
             trace.set_tracer_provider(provider)

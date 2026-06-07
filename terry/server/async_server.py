@@ -22,6 +22,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
+from terry import __version__
 
 # ── Request/Response Models ─────────────────────────────────────────
 
@@ -120,7 +121,7 @@ class AsyncTerryServer:
         else:
             self.security = None
 
-        self.app = FastAPI(title="Terry API", version="0.2.0")
+        self.app = FastAPI(title="Terry API", version=__version__)
         self._setup_security_middleware()
         self._setup_cors()
         self._setup_routes()
@@ -190,7 +191,7 @@ class AsyncTerryServer:
                 status="running",
                 uptime_seconds=round(time.time() - self._start_time, 2),
                 sessions=len(self._sessions),
-                version="0.2.0",
+                version=__version__,
             )
 
         @self.app.post("/chat", response_model=ChatResponse)

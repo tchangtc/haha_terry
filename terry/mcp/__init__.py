@@ -8,6 +8,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from terry import __version__
+
 from ..tools import BaseTool
 
 
@@ -80,7 +82,7 @@ class MCPClient:
                 "params": {
                     "protocolVersion": "2024-11-05",
                     "capabilities": {},
-                    "clientInfo": {"name": "terry", "version": "0.2.0"},
+                    "clientInfo": {"name": "terry", "version": __version__},
                 },
             })
 

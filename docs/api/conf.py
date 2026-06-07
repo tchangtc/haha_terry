@@ -1,6 +1,6 @@
 """Sphinx configuration for Terry API documentation."""
 project = 'Terry'
-version = '0.2.0'
+version = '0.3.0'
 author = 'Terry Contributors'
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'sphinx.ext.viewcode']
 html_theme = 'furo'

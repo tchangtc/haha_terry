@@ -26,6 +26,8 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 
+from terry import __version__
+
 
 class ChatSession:
     """Manages a single WebUI chat session."""
@@ -136,7 +138,7 @@ class WebUIServer:
 
                 # API: Health check
                 if path == "/api/health":
-                    self._json_response({"status": "ok", "version": "0.2.0"})
+                    self._json_response({"status": "ok", "version": __version__})
                     return
 
                 # API: Get sessions

@@ -16,6 +16,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from .platform_utils import get_terry_dir
+
 
 class SWEBenchProblem:
     """A single SWE-bench style problem."""
@@ -226,7 +228,7 @@ class SWEBenchRunner:
         output_dir: Path | None = None,
     ):
         self.agent_factory = agent_factory
-        self.output_dir = output_dir or Path.home() / ".terry" / "swe_bench"
+        self.output_dir = output_dir or get_terry_dir("swe_bench")
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.results: list[SWEBenchResult] = []
 
@@ -447,7 +449,7 @@ class SWEBenchRunner:
             },
             {
                 "rank": "—",
-                "agent": "**Terry v0.2.0**",
+                "agent": "**Terry v0.3.0**",
                 "swe_bench_verified": self.generate_report()["pass_rate"],
                 "source": "This run",
             },

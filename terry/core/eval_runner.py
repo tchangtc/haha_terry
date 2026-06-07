@@ -11,6 +11,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from terry import __version__
+
+from .platform_utils import get_terry_dir
+
 
 class GoldenTestCase:
     """A test case with known-good expected output patterns."""
@@ -151,7 +155,7 @@ class EvalRunner:
 
         report = {
             "date": datetime.now().isoformat(),
-            "version": "0.2.0",
+            "version": __version__,
             "total": len(results),
             "passed": passed,
             "failed": len(results) - passed,

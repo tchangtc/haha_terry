@@ -1,4 +1,4 @@
-"""Tests for v0.2.0 new modules — CLI, Harness, Feedback, Server, DynamicWorkflow, AutonomousAgent, MemorySync."""
+"""Tests for v0.3.0 new modules — CLI, Harness, Feedback, Server, DynamicWorkflow, AutonomousAgent, MemorySync."""
 
 import tempfile
 from pathlib import Path
@@ -153,7 +153,7 @@ class TestCLIIntegration:
 
     def test_version(self):
         from terry import __version__
-        assert __version__ == "0.2.0"
+        assert __version__ == "0.3.0"
 
 
 class TestHarnessToolRegistration:

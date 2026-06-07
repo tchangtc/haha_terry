@@ -114,6 +114,7 @@ class AsyncTerryServer:
         if enable_security:
             from terry.core.security import SecurityMiddleware
             self.security = SecurityMiddleware(
+                config=config,
                 rate_limit=rate_limit,
                 rate_window=rate_window,
                 api_key=api_key,

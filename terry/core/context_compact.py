@@ -108,6 +108,7 @@ def _get_encoding(model: str) -> Any | None:
     try:
         enc = tiktoken.get_encoding(encoding_name)
     except Exception:
+        logger.warning("Failed to get tiktoken encoding: %s", encoding_name, exc_info=True)
         enc = tiktoken.get_encoding("cl100k_base")
 
     _encoding_cache[model] = enc
@@ -129,6 +130,7 @@ def get_token_count(text: str, model: str = "claude-sonnet-4-20250514") -> int:
         try:
             return len(enc.encode(text))
         except Exception:
+            logger.warning("Failed to encode text with tiktoken", exc_info=True)
             pass
     return len(text) // 4
 
@@ -158,17 +160,23 @@ class ContextCompactor:
 
     def __init__(
         self,
-        max_tokens: int = 200000,
-        compression_threshold: float = 0.75,
+        config: Any = None,
+        max_tokens: int | None = None,
+        compression_threshold: float | None = None,
         keep_recent: int = 10,
         budget_dir: Path | None = None,
         model: str = "claude-sonnet-4-20250514",
     ):
-        self.max_tokens = max_tokens
-        self.compression_threshold = compression_threshold
+        if config is not None:
+            from .config import TerryConfig
+            if isinstance(config, TerryConfig):
+                max_tokens = max_tokens or config.max_input_tokens
+                compression_threshold = compression_threshold or config.compression_threshold
+        self.max_tokens = max_tokens or 200000
+        self.compression_threshold = compression_threshold or 0.75
         self.keep_recent = keep_recent
         self.model = model
-        self.budget_dir = budget_dir or Path.home() / ".terry" / "budget"
+        self.budget_dir = budget_dir or get_terry_dir("budget")
         self.budget_dir.mkdir(parents=True, exist_ok=True)
 
         # Configurable limits
@@ -211,6 +219,7 @@ class ContextCompactor:
                     )
                     return get_token_count(full_text, self.model)
             except Exception:
+                logger.warning("Failed to estimate tokens via tiktoken sample", exc_info=True)
                 pass
 
         # Fallback: 1 token ≈ 4 characters
@@ -386,6 +395,7 @@ class ContextCompactor:
                 summary = extract_text(response["content"])
                 return summary if summary else "(summary unavailable)"
             except Exception:
+                logger.warning("Failed to summarize conversation with LLM", exc_info=True)
                 pass
 
         if len(conversation) > 2000:

@@ -80,10 +80,11 @@ class WebUIServer:
         host: str = "127.0.0.1",
         port: int = 8670,
         api_key: str | None = None,
-        rate_limit: int = 100,
-        rate_window: int = 60,
+        rate_limit: int | None = None,
+        rate_window: int | None = None,
         cors_origins: list[str] | None = None,
         enable_security: bool = True,
+        config: Any = None,
     ):
         self.agent_factory = agent_factory
         self.host = host
@@ -97,6 +98,7 @@ class WebUIServer:
         if enable_security:
             from terry.core.security import SecurityMiddleware
             self.security = SecurityMiddleware(
+                config=config,
                 rate_limit=rate_limit,
                 rate_window=rate_window,
                 api_key=api_key,
@@ -406,7 +408,7 @@ class WebUIServer:
 
 
 def start_webui(agent_factory=None, host="127.0.0.1", port=8670,
-                api_key=None, enable_security=True):
+                api_key=None, enable_security=True, config=None):
     """Convenience function to start the WebUI.
 
     Args:
@@ -415,6 +417,7 @@ def start_webui(agent_factory=None, host="127.0.0.1", port=8670,
         port: Bind port
         api_key: Optional API key for authentication
         enable_security: Enable runtime security middleware (rate limiting, CORS, auth)
+        config: Optional TerryConfig for config-driven settings
     """
     import webbrowser
     server = WebUIServer(
@@ -423,6 +426,7 @@ def start_webui(agent_factory=None, host="127.0.0.1", port=8670,
         port=port,
         api_key=api_key,
         enable_security=enable_security,
+        config=config,
     )
     server.start()
     # Auto-open browser

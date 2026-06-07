@@ -22,6 +22,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from .platform_utils import get_terry_dir
+
 
 class FeedbackEntry:
     """A single feedback record."""
@@ -77,17 +79,29 @@ class FeedbackCollector:
 
     def __init__(
         self,
+        config: Any = None,
         storage_path: Path | None = None,
-        sample_rate: float = 0.15,     # 15% chance per response
-        min_interval_seconds: int = 30, # Don't prompt more than once per 30s
-        auto_dismiss_seconds: int = 6,  # Auto-dismiss after 6s of no response
+        sample_rate: float | None = None,
+        min_interval_seconds: int | None = None,
+        auto_dismiss_seconds: int | None = None,
         input_fn: Any = None,           # Custom input function (for testing)
     ):
-        self.storage_path = storage_path or Path.home() / ".terry" / "feedback.jsonl"
+        # Resolve values from config, then kwargs, then defaults
+        if config is not None:
+            from .config import TerryConfig
+            if isinstance(config, TerryConfig):
+                if sample_rate is None:
+                    sample_rate = config.feedback_sample_rate
+                if min_interval_seconds is None:
+                    min_interval_seconds = config.feedback_min_interval
+                if auto_dismiss_seconds is None:
+                    auto_dismiss_seconds = config.feedback_auto_dismiss
+
+        self.storage_path = storage_path or get_terry_dir() / "feedback.jsonl"
         self.storage_path.parent.mkdir(parents=True, exist_ok=True)
-        self.sample_rate = sample_rate
-        self.min_interval_seconds = min_interval_seconds
-        self.auto_dismiss_seconds = auto_dismiss_seconds
+        self.sample_rate = sample_rate if sample_rate is not None else 0.15
+        self.min_interval_seconds = min_interval_seconds if min_interval_seconds is not None else 30
+        self.auto_dismiss_seconds = auto_dismiss_seconds if auto_dismiss_seconds is not None else 6
         self._input_fn = input_fn or input
         self._last_prompt_time: float = 0
         self._stats = {"total_responses": 0, "prompts_shown": 0, "responses": 0,

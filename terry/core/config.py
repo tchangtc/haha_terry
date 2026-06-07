@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import stat
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -76,6 +77,47 @@ class TerryConfig:
     memory_path: str = str(get_data_dir() / "memory")
     auto_commit_enabled: bool = False  # OFF by default — auto-commit after file edits
 
+    # Timeouts (seconds)
+    llm_timeout: float = 60.0
+    web_fetch_timeout: float = 30.0
+    web_search_timeout: float = 30.0
+    weather_timeout: float = 10.0
+
+    # Rate limiting
+    rate_limit_max_requests: int = 100
+    rate_limit_window_seconds: int = 60
+
+    # Security
+    max_body_size: int = 10 * 1024 * 1024  # 10 MB
+    max_prompt_length: int = 100_000
+
+    # Auto-healer
+    auto_healer_max_attempts: int = 2
+
+    # Feedback
+    feedback_sample_rate: float = 0.15
+    feedback_min_interval: int = 30
+    feedback_auto_dismiss: int = 6
+
+    # RAG
+    rag_chunk_size: int = 500
+    rag_chunk_overlap: int = 100
+    rag_max_documents: int = 200
+    rag_min_score: float = 0.05
+    rag_top_k: int = 5
+    rag_max_files: int = 100
+    rag_exclude_dirs: set[str] = field(
+        default_factory=lambda: {".git", "__pycache__", "node_modules", ".venv"}
+    )
+    rag_include_extensions: set[str] = field(
+        default_factory=lambda: {".py", ".md", ".yaml", ".json", ".toml", ".txt"}
+    )
+
+    # Cache
+    cache_default_ttl: int = 3600
+    cache_llm_ttl: int = 3600
+    cache_tool_ttl: int = 300
+
     def validate(self) -> list[str]:
         """Validate configuration and return a list of warnings/errors.
 
@@ -129,7 +171,6 @@ class TerryConfig:
 
     def save(self, config_path: str):
         """Save config to file (api_key excluded from output)."""
-        import stat
         with open(config_path, "w") as f:
             json.dump(self._to_dict(), f, indent=2)
         # Set file permissions to 600 (owner read/write only) to protect config
@@ -156,6 +197,36 @@ class TerryConfig:
             "skills_paths": self.skills_paths,
             "memory_enabled": self.memory_enabled,
             "memory_path": self.memory_path,
+            # Timeouts
+            "llm_timeout": self.llm_timeout,
+            "web_fetch_timeout": self.web_fetch_timeout,
+            "web_search_timeout": self.web_search_timeout,
+            "weather_timeout": self.weather_timeout,
+            # Rate limiting
+            "rate_limit_max_requests": self.rate_limit_max_requests,
+            "rate_limit_window_seconds": self.rate_limit_window_seconds,
+            # Security
+            "max_body_size": self.max_body_size,
+            "max_prompt_length": self.max_prompt_length,
+            # Auto-healer
+            "auto_healer_max_attempts": self.auto_healer_max_attempts,
+            # Feedback
+            "feedback_sample_rate": self.feedback_sample_rate,
+            "feedback_min_interval": self.feedback_min_interval,
+            "feedback_auto_dismiss": self.feedback_auto_dismiss,
+            # RAG
+            "rag_chunk_size": self.rag_chunk_size,
+            "rag_chunk_overlap": self.rag_chunk_overlap,
+            "rag_max_documents": self.rag_max_documents,
+            "rag_min_score": self.rag_min_score,
+            "rag_top_k": self.rag_top_k,
+            "rag_max_files": self.rag_max_files,
+            "rag_exclude_dirs": list(self.rag_exclude_dirs),
+            "rag_include_extensions": list(self.rag_include_extensions),
+            # Cache
+            "cache_default_ttl": self.cache_default_ttl,
+            "cache_llm_ttl": self.cache_llm_ttl,
+            "cache_tool_ttl": self.cache_tool_ttl,
         }
 
     @classmethod
@@ -182,6 +253,40 @@ class TerryConfig:
             ]),
             memory_enabled=data.get("memory_enabled", True),
             memory_path=data.get("memory_path", str(get_data_dir() / "memory")),
+            # Timeouts
+            llm_timeout=data.get("llm_timeout", 60.0),
+            web_fetch_timeout=data.get("web_fetch_timeout", 30.0),
+            web_search_timeout=data.get("web_search_timeout", 30.0),
+            weather_timeout=data.get("weather_timeout", 10.0),
+            # Rate limiting
+            rate_limit_max_requests=data.get("rate_limit_max_requests", 100),
+            rate_limit_window_seconds=data.get("rate_limit_window_seconds", 60),
+            # Security
+            max_body_size=data.get("max_body_size", 10 * 1024 * 1024),
+            max_prompt_length=data.get("max_prompt_length", 100_000),
+            # Auto-healer
+            auto_healer_max_attempts=data.get("auto_healer_max_attempts", 2),
+            # Feedback
+            feedback_sample_rate=data.get("feedback_sample_rate", 0.15),
+            feedback_min_interval=data.get("feedback_min_interval", 30),
+            feedback_auto_dismiss=data.get("feedback_auto_dismiss", 6),
+            # RAG
+            rag_chunk_size=data.get("rag_chunk_size", 500),
+            rag_chunk_overlap=data.get("rag_chunk_overlap", 100),
+            rag_max_documents=data.get("rag_max_documents", 200),
+            rag_min_score=data.get("rag_min_score", 0.05),
+            rag_top_k=data.get("rag_top_k", 5),
+            rag_max_files=data.get("rag_max_files", 100),
+            rag_exclude_dirs=set(
+                data.get("rag_exclude_dirs", [".git", "__pycache__", "node_modules", ".venv"])
+            ),
+            rag_include_extensions=set(
+                data.get("rag_include_extensions", [".py", ".md", ".yaml", ".json", ".toml", ".txt"])
+            ),
+            # Cache
+            cache_default_ttl=data.get("cache_default_ttl", 3600),
+            cache_llm_ttl=data.get("cache_llm_ttl", 3600),
+            cache_tool_ttl=data.get("cache_tool_ttl", 300),
         )
 
     @staticmethod

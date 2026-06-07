@@ -6,6 +6,7 @@ and wrapping their tools as Terry BaseTool instances.
 
 from __future__ import annotations
 
+import subprocess
 from typing import Any
 
 from terry import __version__
@@ -63,7 +64,6 @@ class MCPClient:
         """
         try:
             import json
-            import subprocess
 
             full_args = [command] + (args or [])
             process = subprocess.Popen(

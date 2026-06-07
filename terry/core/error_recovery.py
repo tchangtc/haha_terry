@@ -318,9 +318,7 @@ def auto_commit_after_edit(
         )
 
         if result.returncode == 0:
-            # User-visible notification
-            import sys
-            print(f"\U0001f4dd Auto-committed: {msg}", file=sys.stderr)
+            logger.info("Auto-committed: %s", msg)
             return f"Committed: {msg}"
         return None
     except Exception:

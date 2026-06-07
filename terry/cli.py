@@ -15,6 +15,7 @@ from rich.panel import Panel
 from . import __version__
 from .core.agent import Agent
 from .core.config import TerryConfig
+from .core.platform_utils import get_terry_dir
 from .core.ux import FirstRunWizard, TipsEngine
 from .i18n import get_i18n, t
 

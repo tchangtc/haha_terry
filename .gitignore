@@ -23,6 +23,7 @@ ENV/
 
 # Environment
 .env
+.env.*
 .env.local
 
 # OS
@@ -48,6 +49,20 @@ checkpoint_index.json
 # Config (keep examples)
 terry.json
 !terry.json.example
+
+# Credentials / secrets
+*.cred
+*.credentials
+*.key
+*.p12
+*.pfx
+*.jks
+.secrets/
+
+# Certificates
+*.pem
+*.crt
+*.csr
 
 # Testing
 .coverage

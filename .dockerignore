@@ -5,7 +5,11 @@ tc_terry/
 .git/
 .pytest_cache/
 .mypy_cache/
-.env
-.env.local
+.env*
 .terry/
 *.log
+*.cred
+*.credentials
+*.key
+*.pem
+terry.json

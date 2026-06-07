@@ -108,7 +108,7 @@ class AsyncTerryServer:
         self.workdir = workdir or Path.cwd()
         self.host = host
         self.port = port
-        self.cors_origins = cors_origins or ["*"]
+        self.cors_origins = cors_origins or ["http://127.0.0.1:8670", "http://localhost:8670"]
 
         # Security middleware
         if enable_security:

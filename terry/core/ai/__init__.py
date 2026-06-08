@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """AI sub-package — planning, thinking, skills, and model intelligence."""
 
 from ..curator import SkillsCurator

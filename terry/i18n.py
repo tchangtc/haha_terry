@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 国际化支持模块 (Internationalization Support Module)
 

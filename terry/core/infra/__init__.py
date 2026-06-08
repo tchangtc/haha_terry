@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """Infrastructure sub-package — storage, telemetry, logging, and utilities."""
 
 from ..adapter import ProviderAdapter, get_provider, list_providers, register_provider

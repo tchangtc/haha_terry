@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """Message platform gateways for Terry Agent OS.
 
 Supported platforms:

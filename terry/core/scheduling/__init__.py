@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """Scheduling sub-package — cron, task DAG, and autonomous execution."""
 
 from ..autonomous_agent import AutonomousAgent, AutonomousTask, SkillAutoCreator

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """Security sub-package — permissions, checkpoints, and access control."""
 
 # Runtime security middleware

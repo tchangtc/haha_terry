@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """Terry - A personal AI coding agent.
 
 Built on principles from Claude Code, merco, and learn-claude-code.

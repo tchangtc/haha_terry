@@ -22,7 +22,6 @@ from .context_compact import ContextCompactor
 from .error_recovery import (
     AutoHealer,
     ErrorRecovery,
-    auto_commit_after_edit,
     wrap_llm_call_with_recovery,
 )
 from .harness import HarnessEngine
@@ -36,10 +35,12 @@ from .platform_utils import get_terry_dir
 from .security import RequestValidator
 from .session import Session, get_session
 from .skill import SkillExecutor, SkillManager, get_skill_manager
+from .response_handler import ResponseHandler
 from .store import TerryStore
 from .subagent import SubAgentManager
 from .telemetry import Telemetry
 from .text_utils import extract_text
+from .tool_executor import ToolExecutor
 
 
 class Agent:
@@ -249,6 +250,26 @@ class Agent:
             skill_count = len(self.skill_manager.list_skills())
             self.logger.info(f"Skill system enabled ({skill_count} skills loaded)")
 
+        # ── Extracted subsystems (composition over inheritance) ──
+        self._tool_executor = ToolExecutor(
+            config=self.config,
+            tools=self.tools,
+            hooks=self.hooks,
+            tool_cache=self.tool_cache,
+            checkpoint_manager=self.checkpoint_manager,
+            spec_exec=self.spec_exec,
+            metrics=self.metrics,
+            auto_healer=self.auto_healer,
+            session=self.session,
+            workdir=self.workdir,
+        )
+        self._response_handler = ResponseHandler(
+            hooks=self.hooks,
+            session=self.session,
+            metrics=self.metrics,
+            parent_logger=self.logger,
+        )
+
         # Conversation history
         self.messages: list[dict[str, Any]] = []
         self.tool_call_count = 0
@@ -432,175 +453,24 @@ class Agent:
             return None
 
     def _handle_final_response(self, user_message: str, response: Any, start_time: float) -> str:
-        """Handle the final assistant response (no more tool calls)."""
-        self.hooks.trigger("Stop", self.messages)
-        response_text = extract_text(response["content"])
-
-        if self.session:
-            self.session.add_message("assistant", response_text)
-            self.session.save()
-
-        response_text = agent_hooks.post_process(self, user_message, response_text, start_time)
-
-        duration = time.time() - start_time
-        self.logger.info(
-            "Agent loop completed",
-            duration=duration,
-            tool_calls=self.tool_call_count,
-            message_count=len(self.messages),
+        """Handle the final assistant response — delegates to ResponseHandler."""
+        return self._response_handler.handle_final_response(
+            agent=self,
+            user_message=user_message,
+            response=response,
+            start_time=start_time,
+            messages=self.messages,
         )
 
-        if self.metrics:
-            self.metrics.timer_stop("agent_loop", start_time)
-            self.metrics.increment("completed_turns")
-
-        return response_text
-
     def _execute_tools(self, content: Any) -> list[dict[str, Any]]:
-        """Execute tool calls from LLM response.
-
-        Args:
-            content: Response content with tool calls
-
-        Returns:
-            List of tool results
-        """
-        results = []
-
-        for block in content:
-            if not hasattr(block, "type") or block.type != "tool_use":
-                continue
-
-            tool_name = block.name
-            tool_input = block.input
-            tool_id = block.id
-
-            self.logger.info("Tool call", tool=tool_name, arguments=tool_input)
-
-            # Trigger PreToolUse hook
-            blocked = self.hooks.trigger("PreToolUse", block)
-            if blocked:
-                self.logger.warning("Tool blocked by hook", tool=tool_name, reason=blocked)
-                results.append({
-                    "type": "tool_result",
-                    "tool_use_id": tool_id,
-                    "content": str(blocked),
-                })
-                continue
-
-            # Check cache for tool result
-            if self.tool_cache:
-                cached_result = self.tool_cache.get_result(tool_name, tool_input)
-                if cached_result is not None:
-                    self.logger.info("Cache hit for tool", tool=tool_name)
-                    if self.metrics:
-                        self.metrics.increment("tool_cache_hits")
-                    output = cached_result
-                else:
-                    output = self._execute_tool(tool_name, tool_input)
-                    # Cache read-only tools
-                    if tool_name in ["read_file", "ls", "find", "grep"]:
-                        self.tool_cache.set_result(tool_name, tool_input, output, ttl=300)
-            else:
-                output = self._execute_tool(tool_name, tool_input)
-
-            # Trigger PostToolUse hook
-            self.hooks.trigger("PostToolUse", block, output)
-
-            results.append({
-                "type": "tool_result",
-                "tool_use_id": tool_id,
-                "content": output,
-            })
-
-            self.tool_call_count += 1
-
-            if self.metrics:
-                self.metrics.increment(f"tool_calls_{tool_name}")
-                self.metrics.increment("total_tool_calls")
-
-            if self.session:
-                self.session.increment_tool_calls()
-
+        """Execute tool calls — delegates to ToolExecutor (extracted module)."""
+        results, count = self._tool_executor.execute_tools(content)
+        self.tool_call_count += count
         return results
 
     def _execute_tool(self, tool_name: str, tool_input: dict[str, Any]) -> str:
-        """Execute a single tool with timing and auto-checkpoint.
-
-        Args:
-            tool_name: Tool name
-            tool_input: Tool arguments
-
-        Returns:
-            Tool output
-        """
-        # Maximum output size per tool (prevents context overflow from large files)
-        max_tool_output = 100_000  # ~25K tokens
-
-        start_time = time.time()
-
-        # Auto-create checkpoint before destructive operations
-        if self.checkpoint_manager:
-            self.checkpoint_manager.create_pre_tool_snapshot(tool_name, tool_input)
-
-        try:
-            output = self.tools.execute(tool_name, **tool_input)
-            duration = time.time() - start_time
-
-            # Truncate large outputs to prevent context overflow
-            output_str = str(output)
-            if len(output_str) > max_tool_output:
-                omitted = len(output_str) - max_tool_output
-                output_str = (
-                    output_str[:max_tool_output]
-                    + f"\n\n... (output truncated, {omitted} "
-                    f"chars omitted. Use read_file with limit= to read specific portions.)"
-                )
-
-            self.logger.debug(
-                "Tool executed",
-                tool=tool_name,
-                duration=duration,
-                output_length=len(output_str),
-            )
-
-            # Speculative prefetch for likely next reads
-            if self.spec_exec:
-                predicted = self.spec_exec.analyze_tool_call(
-                    tool_name, tool_input, output_str
-                )
-                if predicted:
-                    self.spec_exec.prefetch_files(self.workdir, predicted)
-
-            if self.metrics:
-                self.metrics.timer_stop(f"tool_{tool_name}", start_time)
-
-            # Auto-commit after successful file edits (disabled by default)
-            if self.config.auto_commit_enabled:
-                commit_msg = auto_commit_after_edit(
-                    self.workdir, tool_name, tool_input, output_str
-                )
-                if commit_msg:
-                    self.logger.info("Auto-committed change", path=tool_input.get("path", ""))
-
-            return output_str
-        except Exception as e:
-            self.logger.error("Tool execution failed", tool=tool_name, error=str(e), exc_info=True)
-            if self.metrics:
-                self.metrics.increment("tool_errors")
-            error_str = str(e)
-
-            # Attempt auto-healing
-            healed = self.auto_healer.attempt_heal(
-                tool_name, tool_input, error_str
-            )
-            if healed:
-                self.logger.info("AutoHealer applied fix", tool=tool_name)
-                if self.metrics:
-                    self.metrics.increment("auto_heals")
-                return healed
-
-            return f"Error executing {tool_name}: {e}"
+        """Execute a single tool — delegates to ToolExecutor (extracted module)."""
+        return self._tool_executor._execute_one(tool_name, tool_input)
 
     def _wrap_up(self) -> str:
         """Force the agent to stop using tools and provide a final response.

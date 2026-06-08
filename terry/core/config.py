@@ -44,7 +44,7 @@ PROVIDER_REGISTRY: dict[str, ProviderInfo] = {
 class ModelConfig:
     """Model configuration."""
     provider: str = "anthropic"
-    model: str = "claude-sonnet-4-20250514"
+    model: str = "claude-sonnet-4-6-20250922"
     api_key: str | None = None
     base_url: str | None = None
     temperature: float = 0.7

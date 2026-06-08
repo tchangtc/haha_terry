@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import sys
 from collections.abc import Callable
 from enum import StrEnum
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 
 class HookEvent(StrEnum):
@@ -116,11 +119,11 @@ async_hook_registry = AsyncHookRegistry()
 # ── Built-in BeforeGitCommit review callback ──────────────────
 
 def _builtin_commit_review(msg: str, file_path: str) -> str | None:
-    """Built-in callback: prints commit info so user can review auto-commits.
+    """Built-in callback: logs commit info so user can review auto-commits.
 
     Returns None to allow the commit, or a string to block it.
     """
-    print(f"\n📝 Auto-commit review:\n   message: {msg}\n   file:    {file_path}", file=sys.stderr)
+    logger.info("Auto-commit review: message=%s file=%s", msg, file_path)
     return None  # Allow by default — override by registering a blocking callback
 
 

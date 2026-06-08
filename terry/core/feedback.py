@@ -15,7 +15,9 @@ Key design:
 from __future__ import annotations
 
 import json
+import logging
 import random
+import sys
 import threading
 import time
 from datetime import datetime
@@ -23,6 +25,8 @@ from pathlib import Path
 from typing import Any
 
 from .platform_utils import get_terry_dir
+
+logger = logging.getLogger(__name__)
 
 
 class FeedbackEntry:
@@ -209,18 +213,18 @@ class FeedbackCollector:
         self._stats["responses"] += 1
 
         # Clear the prompt line
-        print("\r\033[K", end="")
+        sys.stderr.write("\r\033[K")
 
         # Save to storage
         self._save(entry)
 
     def _show_prompt(self, entry: FeedbackEntry) -> None:
-        """Display a subtle feedback prompt."""
+        """Display a subtle feedback prompt to stderr (TUI element)."""
         preview = entry.assistant_response_preview[:80].replace("\n", " ")
-        print("\n\033[90m┌─ Feedback ─────────────────────────────\033[0m")
-        print(f"\033[90m│ Q: {entry.user_message[:60]}\033[0m")
-        print(f"\033[90m│ A: {preview}...\033[0m")
-        print("\033[90m└────────────────────────────────────────\033[0m")
+        sys.stderr.write(f"\n\033[90m┌─ Feedback ─────────────────────────────\033[0m\n")
+        sys.stderr.write(f"\033[90m│ Q: {entry.user_message[:60]}\033[0m\n")
+        sys.stderr.write(f"\033[90m│ A: {preview}...\033[0m\n")
+        sys.stderr.write("\033[90m└────────────────────────────────────────\033[0m\n")
 
     def _save(self, entry: FeedbackEntry) -> None:
         """Append feedback entry to JSONL storage."""

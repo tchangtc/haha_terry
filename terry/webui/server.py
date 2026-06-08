@@ -28,6 +28,10 @@ from urllib.parse import parse_qs, urlparse
 
 from terry import __version__
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class ChatSession:
     """Manages a single WebUI chat session."""
@@ -391,8 +395,8 @@ class WebUIServer:
         thread = threading.Thread(target=self._server.serve_forever, daemon=True)
         thread.start()
 
-        print(f"\n🌐 Terry WebUI started at http://{self.host}:{self.port}")
-        print("   Open in browser to start chatting!\n")
+        logger.info("Terry WebUI started at http://%s:%s", self.host, self.port)
+        logger.info("Open in browser to start chatting!")
 
     def stop(self) -> None:
         self._running = False

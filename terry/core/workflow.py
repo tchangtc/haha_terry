@@ -11,6 +11,8 @@ from typing import Any
 
 import yaml
 
+from .typing_protocols import AgentLike
+
 
 class WorkflowStep:
     """A single step in a workflow."""
@@ -95,7 +97,7 @@ class WorkflowEngine:
     with retry logic and result propagation.
     """
 
-    def __init__(self, agent: Any = None):
+    def __init__(self, agent: AgentLike | None = None):
         self.agent = agent
         self.results: dict[str, Any] = {}
 

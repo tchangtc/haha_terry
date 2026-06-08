@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from rich.console import Console
+
+from .core.typing_protocols import AgentLike
 from rich.markdown import Markdown
 from rich.panel import Panel
 
@@ -26,12 +26,12 @@ def register_cli_command(name: str, handler, description: str = "",
 
 # ── Basic Commands ─────────────────────────────────────────────────
 
-def _cmd_exit(cmd: str, args: str | None, agent: Any) -> bool:
+def _cmd_exit(cmd: str, args: str | None, agent: AgentLike) -> bool:
     console.print(f"[dim]{t('cli.goodbye')}[/dim]")
     return False
 
 
-def _cmd_help(cmd: str, args: str | None, agent: Any) -> bool:
+def _cmd_help(cmd: str, args: str | None, agent: AgentLike) -> bool:
     console.print(Panel(
         f"[bold]{t('commands.help.description')}[/bold]\n\n"
         f"/help       - {t('commands.help.description')}\n"
@@ -58,18 +58,18 @@ def _cmd_help(cmd: str, args: str | None, agent: Any) -> bool:
     return True
 
 
-def _cmd_new(cmd: str, args: str | None, agent: Any) -> bool:
+def _cmd_new(cmd: str, args: str | None, agent: AgentLike) -> bool:
     agent.reset()
     console.print(f"[dim]{t('status.conversation_reset')}[/dim]")
     return True
 
 
-def _cmd_model(cmd: str, args: str | None, agent: Any) -> bool:
+def _cmd_model(cmd: str, args: str | None, agent: AgentLike) -> bool:
     console.print(f"Current model: {agent.config.model.provider}/{agent.config.model.model}")
     return True
 
 
-def _cmd_tools(cmd: str, args: str | None, agent: Any) -> bool:
+def _cmd_tools(cmd: str, args: str | None, agent: AgentLike) -> bool:
     tools = agent.tools.list_tools()
     if tools:
         console.print("[bold]Available Tools:[/bold]")
@@ -78,14 +78,14 @@ def _cmd_tools(cmd: str, args: str | None, agent: Any) -> bool:
     return True
 
 
-def _cmd_context(cmd: str, args: str | None, agent: Any) -> bool:
+def _cmd_context(cmd: str, args: str | None, agent: AgentLike) -> bool:
     console.print(f"Messages: {len(agent.messages)}, Tool calls: {agent.tool_call_count}/{agent.config.max_tool_calls}")
     return True
 
 
 # ── Safety Commands ────────────────────────────────────────────────
 
-def _cmd_mode(cmd: str, args: str | None, agent: Any) -> bool:
+def _cmd_mode(cmd: str, args: str | None, agent: AgentLike) -> bool:
     if args:
         new_mode = args.strip().lower()
         if agent.set_mode(new_mode):
@@ -100,7 +100,7 @@ def _cmd_mode(cmd: str, args: str | None, agent: Any) -> bool:
     return True
 
 
-def _cmd_permissions(cmd: str, args: str | None, agent: Any) -> bool:
+def _cmd_permissions(cmd: str, args: str | None, agent: AgentLike) -> bool:
     rules = agent.permission_store.list_rules()
     if rules:
         console.print("[bold]Permission Rules:[/bold]")
@@ -112,7 +112,7 @@ def _cmd_permissions(cmd: str, args: str | None, agent: Any) -> bool:
     return True
 
 
-def _cmd_undo(cmd: str, args: str | None, agent: Any) -> bool:
+def _cmd_undo(cmd: str, args: str | None, agent: AgentLike) -> bool:
     if agent.checkpoint_manager:
         last = agent.checkpoint_manager.get_last_checkpoint()
         if last:
@@ -125,7 +125,7 @@ def _cmd_undo(cmd: str, args: str | None, agent: Any) -> bool:
     return True
 
 
-def _cmd_checkpoints(cmd: str, args: str | None, agent: Any) -> bool:
+def _cmd_checkpoints(cmd: str, args: str | None, agent: AgentLike) -> bool:
     if agent.checkpoint_manager:
         cps = agent.checkpoint_manager.list_checkpoints()
         if cps:
@@ -137,7 +137,7 @@ def _cmd_checkpoints(cmd: str, args: str | None, agent: Any) -> bool:
 
 # ── Plan & Config ──────────────────────────────────────────────────
 
-def _cmd_plan(cmd: str, args: str | None, agent: Any) -> bool:
+def _cmd_plan(cmd: str, args: str | None, agent: AgentLike) -> bool:
     if not args:
         console.print("[yellow]Usage: /plan <request>[/yellow]")
         return True
@@ -148,7 +148,7 @@ def _cmd_plan(cmd: str, args: str | None, agent: Any) -> bool:
     return True
 
 
-def _cmd_config(cmd: str, args: str | None, agent: Any) -> bool:
+def _cmd_config(cmd: str, args: str | None, agent: AgentLike) -> bool:
     if args:
         kv = args.split("=", 1)
         if len(kv) == 2:
@@ -162,7 +162,7 @@ def _cmd_config(cmd: str, args: str | None, agent: Any) -> bool:
 
 # ── Search & History ───────────────────────────────────────────────
 
-def _cmd_search(cmd: str, args: str | None, agent: Any) -> bool:
+def _cmd_search(cmd: str, args: str | None, agent: AgentLike) -> bool:
     if args and agent.fts_search:
         results = agent.fts_search.search(args, limit=15)
         if results:
@@ -173,7 +173,7 @@ def _cmd_search(cmd: str, args: str | None, agent: Any) -> bool:
     return True
 
 
-def _cmd_replay(cmd: str, args: str | None, agent: Any) -> bool:
+def _cmd_replay(cmd: str, args: str | None, agent: AgentLike) -> bool:
     if agent.fts_search:
         sessions = agent.fts_search.list_sessions(limit=10)
         for s in sessions:
@@ -181,13 +181,13 @@ def _cmd_replay(cmd: str, args: str | None, agent: Any) -> bool:
     return True
 
 
-def _cmd_fork(cmd: str, args: str | None, agent: Any) -> bool:
+def _cmd_fork(cmd: str, args: str | None, agent: AgentLike) -> bool:
     agent.fork()
     console.print("[green]Conversation forked[/green]")
     return True
 
 
-def _cmd_stream(cmd: str, args: str | None, agent: Any) -> bool:
+def _cmd_stream(cmd: str, args: str | None, agent: AgentLike) -> bool:
     if not args:
         console.print("[yellow]Usage: /stream <message>[/yellow]")
         return True
@@ -199,7 +199,7 @@ def _cmd_stream(cmd: str, args: str | None, agent: Any) -> bool:
 
 # ── Workflow ───────────────────────────────────────────────────────
 
-def _cmd_wfd(cmd: str, args: str | None, agent: Any) -> bool:
+def _cmd_wfd(cmd: str, args: str | None, agent: AgentLike) -> bool:
     if not args:
         console.print("[yellow]Usage: /wfd <goal> [pattern][/yellow]")
         return True
@@ -223,7 +223,7 @@ def _cmd_wfd(cmd: str, args: str | None, agent: Any) -> bool:
     return True
 
 
-def _cmd_workflows(cmd: str, args: str | None, agent: Any) -> bool:
+def _cmd_workflows(cmd: str, args: str | None, agent: AgentLike) -> bool:
     cps = agent.dynamic_workflow.list_checkpoints()
     if cps:
         for cp in cps:
@@ -231,7 +231,7 @@ def _cmd_workflows(cmd: str, args: str | None, agent: Any) -> bool:
     return True
 
 
-def _cmd_auto(cmd: str, args: str | None, agent: Any) -> bool:
+def _cmd_auto(cmd: str, args: str | None, agent: AgentLike) -> bool:
     if args:
         tid = agent.autonomous_agent.submit_task(args)
         console.print(f"[green]Task: {tid}[/green]")
@@ -243,7 +243,7 @@ def _cmd_auto(cmd: str, args: str | None, agent: Any) -> bool:
 
 # ── Skills & Memory ────────────────────────────────────────────────
 
-def _cmd_auto_skills(cmd: str, args: str | None, agent: Any) -> bool:
+def _cmd_auto_skills(cmd: str, args: str | None, agent: AgentLike) -> bool:
     skills = agent.skill_auto_creator.list_suggested_skills()
     if skills:
         for s in skills:
@@ -251,13 +251,13 @@ def _cmd_auto_skills(cmd: str, args: str | None, agent: Any) -> bool:
     return True
 
 
-def _cmd_curator(cmd: str, args: str | None, agent: Any) -> bool:
+def _cmd_curator(cmd: str, args: str | None, agent: AgentLike) -> bool:
     s = agent.skills_curator.get_cycle_summary()
     console.print(f"Tracked: {s['skills_tracked']}, Uses: {s['total_uses']}, Avg: {s['average_effectiveness']}")
     return True
 
 
-def _cmd_tasks(cmd: str, args: str | None, agent: Any) -> bool:
+def _cmd_tasks(cmd: str, args: str | None, agent: AgentLike) -> bool:
     summary = agent.task_dag.get_summary()
     ready = agent.task_dag.get_next_ready(limit=5)
     console.print(f"Tasks: {summary}")
@@ -266,7 +266,7 @@ def _cmd_tasks(cmd: str, args: str | None, agent: Any) -> bool:
     return True
 
 
-def _cmd_benchmark(cmd: str, args: str | None, agent: Any) -> bool:
+def _cmd_benchmark(cmd: str, args: str | None, agent: AgentLike) -> bool:
     from .core.benchmark import BenchmarkRunner
     runner = BenchmarkRunner(agent=agent)
     if args and args in runner.DEFAULT_SUITES:
@@ -284,6 +284,11 @@ def _cmd_benchmark(cmd: str, args: str | None, agent: Any) -> bool:
 # ── Register all commands ──────────────────────────────────────────
 
 def register_all_commands():
+    """Register all 23 built-in CLI commands in the global CommandRegistry.
+
+    Categories: basic, skills, safety, workflow, search, config.
+    Called once at CLI startup by terry.cli.
+    """
     register_cli_command("/exit", _cmd_exit, "Exit Terry", "basic", ["/quit", "/q"])
     register_cli_command("/help", _cmd_help, "Show help", "basic")
     register_cli_command("/new", _cmd_new, "New conversation", "basic")

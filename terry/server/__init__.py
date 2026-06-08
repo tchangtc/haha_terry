@@ -215,10 +215,13 @@ class TerryServer:
                 content_length=content_length,
             )
 
-            # Build response headers with CORS
+            # Build response headers with security + CORS
+            from terry.core.security_headers import SECURITY_HEADERS
             headers = [
                 ("Content-Type", "application/json"),
             ]
+            for key, value in SECURITY_HEADERS.items():
+                headers.append((key, value))
             for key, value in cors_headers.items():
                 headers.append((key, value))
 

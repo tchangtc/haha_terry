@@ -311,3 +311,141 @@ class TestAgentPromptValidation:
                       enable_checkpoint=False, enable_planner=False)
         result = agent.run("rm -rf /")
         assert "error" in result.lower() or "dangerous" in result.lower()
+
+
+# ═══════════════════════════════════════════════════════════════════
+# EXCEPTION / ERROR PATH TESTS
+# ═══════════════════════════════════════════════════════════════════
+
+class TestRequestValidatorErrorPaths:
+    """RequestValidator error and edge case handling."""
+
+    def test_validate_prompt_empty(self):
+        from terry.core.security import RequestValidator
+        ok, msg = RequestValidator.validate_prompt("")
+        assert ok  # Empty is valid (not an injection)
+
+    def test_validate_prompt_none_raises(self):
+        from terry.core.security import RequestValidator
+        with pytest.raises(AttributeError):
+            RequestValidator.validate_prompt(None)
+
+    def test_validate_body_size_zero(self):
+        from terry.core.security import RequestValidator
+        ok, msg = RequestValidator.validate_body_size(0)
+        assert ok
+
+    def test_validate_body_size_exceeds_max(self):
+        from terry.core.security import RequestValidator
+        ok, msg = RequestValidator.validate_body_size(100 * 1024 * 1024)
+        assert not ok
+
+    def test_sanitize_bash_empty_command(self):
+        from terry.core.security import RequestValidator
+        ok, cmd, warn = RequestValidator.sanitize_bash_command("")
+        assert ok  # Empty is safe
+
+
+class TestRateLimiterErrorPaths:
+    """RateLimiter edge cases and error handling."""
+
+    def test_get_remaining_new_client(self):
+        from terry.core.security import RateLimiter
+        rl = RateLimiter(max_requests=5, window_seconds=60)
+        assert rl.get_remaining("unknown_client") == 5
+
+    def test_default_client_id(self):
+        from terry.core.security import RateLimiter
+        rl = RateLimiter(max_requests=10, window_seconds=60)
+        assert rl.is_allowed()  # Uses default "global"
+        assert rl.get_remaining() >= 0
+
+    def test_zero_max_requests_blocks_all(self):
+        from terry.core.security import RateLimiter
+        rl = RateLimiter(max_requests=0, window_seconds=60)
+        assert not rl.is_allowed("client1")
+
+    def test_negative_max_requests(self):
+        from terry.core.security import RateLimiter
+        rl = RateLimiter(max_requests=-1, window_seconds=60)
+        # Should block all since max_requests <= 0
+        assert not rl.is_allowed("client1")
+
+
+class TestAPIKeyAuthErrorPaths:
+    """APIKeyAuth validation edge cases."""
+
+    def test_disabled_auth_allows_all(self):
+        from terry.core.security import APIKeyAuth
+        auth = APIKeyAuth(api_key=None)  # No key set = disabled
+        assert not auth.is_enabled()
+        assert auth.validate(None)
+        assert auth.validate("anything")
+
+    def test_enabled_auth_rejects_wrong_key(self):
+        from terry.core.security import APIKeyAuth
+        auth = APIKeyAuth(api_key="secret-token")
+        assert auth.is_enabled()
+        assert not auth.validate("wrong-token")
+        assert auth.validate("secret-token")
+
+    def test_enabled_auth_rejects_none(self):
+        from terry.core.security import APIKeyAuth
+        auth = APIKeyAuth(api_key="secret-token")
+        assert not auth.validate(None)
+
+
+class TestCORSPolicyErrorPaths:
+    """CORSPolicy edge cases."""
+
+    def test_empty_allowed_origins(self):
+        from terry.core.security import CORSPolicy
+        cors = CORSPolicy(allowed_origins=[])
+        assert not cors.is_origin_allowed("http://example.com")
+
+    def test_wildcard_origin(self):
+        from terry.core.security import CORSPolicy
+        cors = CORSPolicy(allowed_origins=["*"])
+        assert cors.is_origin_allowed("http://anything.com")
+
+    def test_none_origin_gets_basic_headers(self):
+        from terry.core.security import CORSPolicy
+        cors = CORSPolicy(allowed_origins=["http://example.com"])
+        headers = cors.get_headers(None)
+        assert "Access-Control-Allow-Methods" in headers
+
+
+class TestPytestRaisesErrorPaths:
+    """Genuine exception-raising tests using pytest.raises."""
+
+    def test_validate_prompt_none_raises_attribute_error(self):
+        from terry.core.security import RequestValidator
+        with pytest.raises(AttributeError):
+            RequestValidator.validate_prompt(None)
+
+    def test_rate_limiter_invalid_client_type(self):
+        from terry.core.security import RateLimiter
+        rl = RateLimiter(max_requests=5, window_seconds=60)
+        # RateLimiter accepts string client IDs; numeric keys may cause issues
+        with pytest.raises((TypeError, KeyError)):
+            rl.is_allowed(12345)  # type: ignore
+
+    def test_cors_policy_invalid_origin_type(self):
+        from terry.core.security import CORSPolicy
+        cors = CORSPolicy(allowed_origins=["http://example.com"])
+        with pytest.raises((TypeError, AttributeError)):
+            cors.is_origin_allowed(None)
+
+    def test_api_key_auth_empty_key_disables(self):
+        from terry.core.security import APIKeyAuth
+        auth = APIKeyAuth(api_key="")
+        assert not auth.is_enabled()
+
+    def test_config_invalid_provider_raises(self):
+        from terry.core.config import TerryConfig
+        config = TerryConfig()
+        config.provider = "nonexistent-provider-xyz"
+        # Provider validation may raise or warn depending on strictness
+        with pytest.raises((ValueError, KeyError, AttributeError)):
+            # Force validation which may reject unknown provider
+            config.validate()

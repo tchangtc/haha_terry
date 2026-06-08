@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 from .platform_utils import get_terry_dir
+from .typing_protocols import AgentLike
 
 
 class BenchmarkResult:
@@ -85,7 +86,7 @@ class BenchmarkRunner:
         "tool_usage": "Tool calling accuracy and efficiency",
     }
 
-    def __init__(self, agent: Any = None, output_dir: Path | None = None):
+    def __init__(self, agent: AgentLike | None = None, output_dir: Path | None = None):
         self.agent = agent
         self.output_dir = output_dir or get_terry_dir("benchmarks")
         self.output_dir.mkdir(parents=True, exist_ok=True)

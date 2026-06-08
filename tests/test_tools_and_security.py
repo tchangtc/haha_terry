@@ -200,3 +200,167 @@ class TestAgentTools:
         agent = Agent(config, enable_subagents=False, enable_skills=False)
         assert hasattr(agent, 'error_recovery')
         assert isinstance(agent.error_recovery, ErrorRecovery)
+
+
+# ═══════════════════════════════════════════════════════════════════
+# EXCEPTION / ERROR PATH TESTS
+# ═══════════════════════════════════════════════════════════════════
+
+class TestErrorRecoveryExceptions:
+    """ErrorRecovery retry logic and error handling."""
+
+    def test_should_retry_network_error(self):
+        from terry.core.error_recovery import ErrorRecovery
+        er = ErrorRecovery()
+        assert er.should_retry(ConnectionError("timeout"), attempt=0)
+
+    def test_should_retry_timeout_error(self):
+        from terry.core.error_recovery import ErrorRecovery
+        er = ErrorRecovery()
+        assert er.should_retry(TimeoutError("timeout"), attempt=0)
+
+    def test_should_not_retry_value_error(self):
+        from terry.core.error_recovery import ErrorRecovery
+        er = ErrorRecovery()
+        assert not er.should_retry(ValueError("bad value"), attempt=0)
+
+    def test_should_not_retry_max_attempts(self):
+        from terry.core.error_recovery import ErrorRecovery
+        er = ErrorRecovery(max_retries=3)
+        assert not er.should_retry(ConnectionError("timeout"), attempt=3)
+
+    def test_should_not_retry_type_error(self):
+        from terry.core.error_recovery import ErrorRecovery
+        er = ErrorRecovery()
+        assert not er.should_retry(TypeError("type mismatch"), attempt=0)
+
+    def test_get_delay_exponential_backoff(self):
+        from terry.core.error_recovery import ErrorRecovery
+        er = ErrorRecovery()
+        d0 = er.get_delay(attempt=0)
+        d1 = er.get_delay(attempt=1)
+        d2 = er.get_delay(attempt=2)
+        assert d1 > d0  # Exponential backoff
+        assert d2 > d1
+
+    def test_should_fallback_model_unknown_provider(self):
+        from terry.core.error_recovery import ErrorRecovery
+        er = ErrorRecovery()
+        result = er.should_fallback_model("unknown-provider", "unknown-model")
+        assert result is None  # No fallback for unknown
+
+    def test_handle_api_error_returns_structured(self):
+        from terry.core.error_recovery import ErrorRecovery
+        er = ErrorRecovery()
+        result = er.handle_api_error(ConnectionError("timeout"), attempt=0)
+        assert isinstance(result, dict)
+        assert "retry" in result
+
+
+class TestSkillExceptions:
+    """Skill loading error handling."""
+
+    def test_from_file_nonexistent_returns_none(self):
+        from terry.core.skill import Skill
+        result = Skill.from_file(Path("/nonexistent/path/SKILL.md"))
+        assert result is None
+
+    def test_from_file_directory_instead_of_file(self):
+        from terry.core.skill import Skill
+        result = Skill.from_file(Path("/tmp"))
+        assert result is None
+
+    def test_from_file_empty_file_returns_none(self):
+        from terry.core.skill import Skill
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f:
+            f.write("no frontmatter here")
+            tmp_path = f.name
+        try:
+            result = Skill.from_file(Path(tmp_path))
+            assert result is None
+        finally:
+            Path(tmp_path).unlink()
+
+
+class TestPermissionExceptions:
+    """Permission check edge cases and error handling."""
+
+    def test_check_deny_list_safe_command(self):
+        result = check_deny_list("echo hello")
+        assert result is None  # Safe commands pass
+
+    def test_check_deny_list_empty(self):
+        result = check_deny_list("")
+        assert result is None
+
+    def test_check_destructive_safe_command(self):
+        result = check_destructive("echo hello")
+        assert result is None
+
+    def test_check_path_escape_safe_path(self):
+        result = check_path_escape("read_file", {"path": "README.md"}, Path("/home/user/project"))
+        assert result is None
+
+    def test_check_path_escape_absolute_outside_workspace(self):
+        workdir = Path("/home/user/project")
+        result = check_path_escape("read_file", {"path": "/etc/passwd"}, workdir)
+        assert result is not None  # Should detect escape attempt
+
+    def test_check_path_escape_non_file_tool(self):
+        workdir = Path("/home/user/project")
+        result = check_path_escape("bash", {"command": "cat /etc/passwd"}, workdir)
+        assert result is None  # Only checks file tools
+
+    def test_format_mode_all_values(self):
+        from terry.hooks.permission import SandboxMode, format_mode
+        for mode in SandboxMode:
+            formatted = format_mode(mode)
+            assert mode.value in formatted  # Mode name appears in output
+
+
+class TestWebFetchExceptions:
+    """WebFetch tool error and edge cases."""
+
+    def test_is_private_hostname_localhost(self):
+        assert _is_private_hostname("localhost")
+
+    def test_is_private_hostname_127(self):
+        assert _is_private_hostname("127.0.0.1")
+
+    def test_is_private_hostname_public(self):
+        assert not _is_private_hostname("example.com")
+
+    def test_is_private_hostname_empty(self):
+        assert not _is_private_hostname("")
+
+
+class TestPytestRaisesErrorPaths:
+    """Exception-raising tests using pytest.raises for tool/security modules."""
+
+    def test_error_recovery_invalid_attempt_type(self):
+        from terry.core.error_recovery import ErrorRecovery
+        er = ErrorRecovery()
+        with pytest.raises(TypeError):
+            er.should_retry(ConnectionError("test"), "not_an_int")  # type: ignore
+
+    def test_context_compactor_invalid_max_tokens(self):
+        from terry.core.context_compact import ContextCompactor
+        with pytest.raises((TypeError, ValueError)):
+            ContextCompactor(max_tokens="not_a_number", compression_threshold=0.5)  # type: ignore
+
+    def test_bash_tool_empty_command_returns_safely(self):
+        from terry.tools.bash import BashTool
+        tool = BashTool()
+        result = tool.execute("")
+        assert isinstance(result, str)  # Returns error message, doesn't crash
+
+    def test_bash_tool_none_command(self):
+        from terry.tools.bash import BashTool
+        tool = BashTool()
+        with pytest.raises((TypeError, AttributeError)):
+            tool.execute(None)  # type: ignore
+
+    def test_skill_manager_empty_dirs(self):
+        from terry.core.skill import SkillManager
+        sm = SkillManager([])
+        assert len(sm.list_skills()) == 0

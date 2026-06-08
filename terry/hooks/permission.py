@@ -13,10 +13,13 @@ Architecture:
 
 from __future__ import annotations
 
+import logging
 import re
 from collections.abc import Callable
 from enum import StrEnum
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 
 class SandboxMode(StrEnum):
@@ -201,7 +204,7 @@ def permission_hook(
             tool_name, command_or_path, permission_level
         )
         if rule_result is not None and "Denied" in rule_result:
-            print(f"\033[31m⛔ {rule_result}\033[0m")
+            logger.warning("Permission denied by rule: %s", rule_result)
             return rule_result
         # Explicit allow from rules
         if rule_result is None and permission_store.get_applicable(tool_name, command_or_path):
@@ -213,7 +216,7 @@ def permission_hook(
         command = args.get("command", "")
         reason = check_deny_list(command)
         if reason:
-            print(f"\033[31m⛔ {reason}\033[0m")
+            logger.warning("Permission denied by deny list: %s", reason)
             return "Permission denied by deny list"
 
     # ── Gate 2: Destructive (level-dependent) ────────────────────
@@ -222,7 +225,7 @@ def permission_hook(
         reason = check_destructive(command)
         if reason:
             if permission_level in (PermissionLevel.HIGH, PermissionLevel.CRITICAL):
-                print(f"\033[31m⛔ [{permission_level.value}] {reason}\033[0m")
+                logger.warning("[%s] %s", permission_level.value, reason)
                 return f"Permission denied: {reason}"
 
             elif permission_level == PermissionLevel.MEDIUM:
@@ -245,13 +248,13 @@ def permission_hook(
                 return "Permission denied (invalid response)"
 
             elif permission_level == PermissionLevel.LOW:
-                print(f"\033[33m⚡ [{permission_level.value}] {reason} — auto-approved\033[0m")
+                logger.info("[%s] %s — auto-approved", permission_level.value, reason)
 
     # ── Gate 3: Path escape (level-dependent) ────────────────────
     reason = check_path_escape(tool_name, args, workdir)
     if reason:
         if permission_level in (PermissionLevel.HIGH, PermissionLevel.CRITICAL):
-            print(f"\033[31m⛔ [{permission_level.value}] {reason}\033[0m")
+            logger.warning("[%s] %s", permission_level.value, reason)
             return f"Permission denied: {reason}"
 
         elif permission_level == PermissionLevel.MEDIUM:
@@ -264,12 +267,12 @@ def permission_hook(
 
         elif permission_level == PermissionLevel.LOW:
             # Path escape blocked even in low (too dangerous)
-            print(f"\033[31m⛔ [{permission_level.value}] {reason} — blocked\033[0m")
+            logger.warning("[%s] %s — blocked", permission_level.value, reason)
             return f"Permission denied: {reason}"
 
     # ── Critical level: deny everything else ─────────────────────
     if permission_level == PermissionLevel.CRITICAL:
-        print("\033[31m⛔ [critical] All operations blocked\033[0m")
+        logger.warning("[critical] All operations blocked")
         return "Permission denied: critical mode"
 
     return None

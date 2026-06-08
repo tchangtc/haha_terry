@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from pathlib import Path
 
 import yaml
 
 from .platform_utils import get_terry_dir
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -62,7 +65,7 @@ class Skill:
                 metadata=frontmatter,
             )
         except Exception as e:
-            print(f"Error loading skill from {skill_path}: {e}")
+            logger.error("Error loading skill from %s: %s", skill_path, e)
             return None
 
 

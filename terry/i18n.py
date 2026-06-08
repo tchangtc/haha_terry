@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 """
 国际化支持模块 (Internationalization Support Module)
 
@@ -7,6 +5,8 @@ from __future__ import annotations
 - 英语 (en)
 - 中文 (zh)
 """
+
+from __future__ import annotations
 
 import json
 import os

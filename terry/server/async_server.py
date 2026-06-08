@@ -126,6 +126,7 @@ class AsyncTerryServer:
         self.app = FastAPI(title="Terry API", version=__version__)
         self._setup_security_middleware()
         self._setup_cors()
+        self._setup_security_headers()
         self._setup_routes()
 
         self._start_time = time.time()
@@ -181,6 +182,21 @@ class AsyncTerryServer:
             allow_methods=["*"],
             allow_headers=["*"],
         )
+
+    def _setup_security_headers(self) -> None:
+        """Add standard security headers to every response."""
+        from starlette.middleware.base import BaseHTTPMiddleware
+        from terry.core.security_headers import SECURITY_HEADERS
+
+        class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+            async def dispatch(self, request, call_next):
+                response = await call_next(request)
+                for key, value in SECURITY_HEADERS.items():
+                    if key not in response.headers:
+                        response.headers[key] = value
+                return response
+
+        self.app.add_middleware(SecurityHeadersMiddleware)
 
     def _setup_routes(self) -> None:
         """Setup all API routes."""

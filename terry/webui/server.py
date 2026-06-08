@@ -23,10 +23,13 @@ import time
 import uuid
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from urllib.parse import parse_qs, urlparse
 
 from terry import __version__
+
+if TYPE_CHECKING:
+    from terry.core.typing_protocols import AgentLike
 
 import logging
 
@@ -80,7 +83,7 @@ class WebUIServer:
 
     def __init__(
         self,
-        agent_factory: Any = None,
+        agent_factory: AgentLike | None = None,
         host: str = "127.0.0.1",
         port: int = 8670,
         api_key: str | None = None,
@@ -317,8 +320,15 @@ class WebUIServer:
 
             def do_OPTIONS(self):
                 self.send_response(204)
+                self._security_headers()
                 self._cors_headers()
                 self.end_headers()
+
+            def _security_headers(self):
+                """Send standard security headers on every response."""
+                from terry.core.security_headers import SECURITY_HEADERS
+                for key, value in SECURITY_HEADERS.items():
+                    self.send_header(key, value)
 
             def _cors_headers(self):
                 if server_instance.security:
@@ -351,6 +361,7 @@ class WebUIServer:
 
             def _json_response(self, data: dict, status: int = 200):
                 self.send_response(status)
+                self._security_headers()
                 self._cors_headers()
                 self.send_header("Content-Type", "application/json")
                 self.end_headers()
@@ -361,6 +372,7 @@ class WebUIServer:
                 self.send_header("Content-Type", "text/event-stream")
                 self.send_header("Cache-Control", "no-cache")
                 self.send_header("Connection", "keep-alive")
+                self._security_headers()
                 self._cors_headers()
                 self.end_headers()
 
@@ -407,7 +419,8 @@ class WebUIServer:
         for conn in list(self.sse_connections.values()):
             try:
                 conn.send(event, data)
-            except Exception:
+            except (BrokenPipeError, ConnectionResetError, OSError):
+                # Client disconnected — normal, remove silently
                 pass
 
 

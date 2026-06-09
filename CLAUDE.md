@@ -3,7 +3,9 @@
 > **Agency comes from the model. Terry is the harness.**
 >
 > Terry is an AI coding agent supporting Terminal · Web · Desktop · Mobile interfaces.  
-> Version: **v0.3.0** | Python 3.11+ | MIT License | 106 modules | 26 tools | ~21,200 LOC
+> Version: **v0.4.0** | Python 3.11+ | MIT License | 108 modules | 26 tools | ~22,000 LOC
+>
+> **v0.4.0**: Self-evolving agent (SkillAutoCreator), typed tool errors (ToolError hierarchy), composable prompt chunks (PromptComposer), MiniMax provider, CJK-aware token estimation, dynamic provider registration.
 
 ---
 
@@ -314,13 +316,15 @@ python -m pytest tests/ -k "not e2e"
 
 ---
 
-## Current Focus (v0.3.0)
+## Current Focus (v0.4.0)
 
-- **Test coverage: 710 tests passing, target 80%+ line coverage
-- **SWE-bench** framework exists but has no real problem set or execution logic
-- **Mobile APK/IPA** — build guides exist but no compiled artifacts in repo
-- **Agent class** (933 lines) should be further decomposed into smaller components
-- **Security middleware** is mounted on all server request chains
+- **Self-evolving agent**: SkillAutoCreator analyzes trajectories → auto-creates SKILL.md
+- **Typed tool errors**: ToolError hierarchy helps LLMs self-correct on failure
+- **Prompt Composer**: 7 composable PromptChunk classes, chain-of-use API
+- **Provider expansion**: MiniMax support + dynamic registration via config.json
+- **CJK token estimation**: Correction factor for Chinese/Japanese/Korean text
+- **Agent decomposition**: ToolExecutor + ResponseHandler extracted from agent.py
+- ~22,000 LOC across 108 modules, 26 tools, 1,089 test assertions
 
 ---
 

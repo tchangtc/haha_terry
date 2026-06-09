@@ -210,6 +210,8 @@ class Agent:
         self.memory_sync = self.subsystems.memory_sync
         self.autonomous_agent = self.subsystems.autonomous_agent
         self.skill_auto_creator = self.subsystems.skill_auto_creator
+        if self.skill_auto_creator is not None:
+            self.skill_auto_creator.llm_client = self.llm
         self.logger.info("Advanced subsystems initialized via AgentSubsystems")
 
         # Feedback + Store + Telemetry (small, keep inline)
@@ -374,7 +376,21 @@ class Agent:
 
             # Check if we're done (no tool calls)
             if response["stop_reason"] != "tool_use":
-                return self._handle_final_response(user_message, response, start_time)
+                result = self._handle_final_response(user_message, response, start_time)
+                # ── Skill auto-creation: learn from complex tasks ──
+                if self.skill_auto_creator is not None:
+                    try:
+                        self.skill_auto_creator.maybe_create(
+                            user_message=user_message,
+                            messages=self.messages,
+                            tool_call_count=self.tool_call_count,
+                            agent_response=result,
+                        )
+                    except Exception:
+                        self.logger.debug(
+                            "Skill auto-creation skipped", exc_info=True
+                        )
+                return result
 
             # Execute tool calls
             results = self._execute_tools(response["content"])

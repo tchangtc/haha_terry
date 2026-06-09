@@ -11,7 +11,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from .autonomous_agent import AutonomousAgent, SkillAutoCreator
+from .autonomous_agent import AutonomousAgent
+from .skill_auto_create import SkillAutoCreator
 from .code_index import CodeSemanticIndex
 from .curator import SkillsCurator
 from .docker_sandbox import DockerSandbox

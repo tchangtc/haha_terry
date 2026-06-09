@@ -5,17 +5,30 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any
 
+from ..core.tool_error import ToolError
+
 
 class BaseTool(ABC):
-    """Base class for all tools."""
+    """Base class for all tools.
+
+    Tools may either return a string result or raise a :class:`ToolError`
+    subclass.  The registry catches ``ToolError`` exceptions and converts
+    them to model-facing messages that help the LLM self-correct.
+    """
 
     name: str = ""
     description: str = ""
     input_schema: dict = {}
+    category: str = "general"       # general | file | shell | web | git | task
+    risk_level: str = "safe"        # safe | read_only | destructive
+    requires_approval: bool = False  # Override for tools needing user consent
 
     @abstractmethod
     def execute(self, **kwargs) -> str:
-        """Execute the tool and return the result as a string."""
+        """Execute the tool and return the result as a string.
+
+        May raise :class:`ToolError` subclasses for typed error reporting.
+        """
         pass
 
 
@@ -49,14 +62,27 @@ class ToolRegistry:
         ]
 
     def execute(self, tool_name: str, **kwargs) -> str:
-        """Execute a tool by name."""
+        """Execute a tool by name.
+
+        Catches :class:`ToolError` subclasses and converts them to
+        model-facing prose that helps the LLM understand the failure
+        and self-correct on the next turn.
+        """
         tool = self.get(tool_name)
         if not tool:
             return f"Error: Unknown tool '{tool_name}'"
         try:
             return tool.execute(**kwargs)
+        except ToolError as e:
+            # Typed error — auto-generates LLM-friendly message
+            return e.to_llm_message()
         except Exception as e:
-            return f"Error: {e}"
+            # Untyped / unexpected error — wrap generically
+            return (
+                f"Tool '{tool_name}' encountered an unexpected error: {e}\n"
+                "This error was not expected. Consider using a different "
+                "approach or checking the tool implementation."
+            )
 
 
 # Global registry instance

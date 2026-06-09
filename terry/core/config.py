@@ -155,13 +155,17 @@ class TerryConfig:
 
     @classmethod
     def load(cls, config_path: str | None = None) -> TerryConfig:
-        """Load config from file or defaults."""
+        """Load config from file or defaults, registering custom providers."""
         if config_path is None:
             config_path = cls._find_config()
 
         if config_path and Path(config_path).exists():
             with open(config_path) as f:
                 data = json.load(f)
+            # Load custom providers before creating config so they are
+            # available when the LLM client resolves its adapter.
+            from .adapter import load_providers_from_config
+            load_providers_from_config(data)
             cfg = cls._from_dict(data)
         else:
             cfg = cls()

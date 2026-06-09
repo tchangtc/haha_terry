@@ -93,6 +93,16 @@ PROVIDERS: dict[str, ProviderAdapter] = {
         key_help="https://ollama.com/download",
         description="Local LLMs via Ollama — fully offline, zero cost",
     ),
+    "minimax": ProviderAdapter(
+        name="MiniMax",
+        base_url="https://api.minimax.chat/v1",
+        default_model="abab7-chat",
+        models=["abab7-chat", "abab6.5s-chat", "MiniMax-M2.5"],
+        key_env="MINIMAX_API_KEY",
+        protocol="openai-compatible",
+        key_help="https://platform.minimax.io/user-center/basic-information/interface-key",
+        description="MiniMax models — SWE-bench #1, strong coding performance",
+    ),
 }
 
 # ── Custom provider support ────────────────────────────────────────
@@ -114,6 +124,55 @@ def get_provider(name: str) -> ProviderAdapter | None:
 def list_providers() -> list[ProviderAdapter]:
     """List all available providers."""
     return list(PROVIDERS.values()) + list(_custom_providers.values())
+
+
+def load_providers_from_config(config_data: dict) -> int:
+    """Register custom providers from a config dictionary.
+
+    Supports user-defined providers in ``~/.terry/config.json``::
+
+        {
+          "providers": {
+            "my_provider": {
+              "name": "My Provider",
+              "base_url": "https://api.example.com/v1",
+              "default_model": "model-name",
+              "models": ["model-name"],
+              "key_env": "MY_API_KEY",
+              "protocol": "openai-compatible",
+              "key_help": "https://example.com/keys",
+              "description": "Custom provider"
+            }
+          }
+        }
+
+    Returns:
+        Number of providers loaded.
+    """
+    provider_configs = config_data.get("providers", {})
+    if not isinstance(provider_configs, dict):
+        return 0
+
+    count = 0
+    for key, cfg in provider_configs.items():
+        if not isinstance(cfg, dict):
+            continue
+        try:
+            adapter = ProviderAdapter(
+                name=cfg.get("name", key),
+                base_url=cfg.get("base_url", ""),
+                default_model=cfg.get("default_model", ""),
+                models=cfg.get("models", []),
+                key_env=cfg.get("key_env", ""),
+                protocol=cfg.get("protocol", "openai-compatible"),
+                key_help=cfg.get("key_help", ""),
+                description=cfg.get("description", ""),
+            )
+            register_provider(adapter)
+            count += 1
+        except Exception:
+            pass  # Skip malformed provider entries
+    return count
 
 
 def resolve_api_key(provider: ProviderAdapter) -> str:

@@ -5,6 +5,41 @@ All notable changes to Terry will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-06-09
+
+### Added
+
+#### Self-Evolving Agent (inspired by hermes-agent)
+- **SkillAutoCreator**: Analyzes complex conversation trajectories and auto-generates reusable `SKILL.md` files with YAML frontmatter. Triggers when tool calls exceed threshold (default: 5). Includes LLM-powered extraction with heuristic fallback.
+- **Prompt Composer**: Refactored monolithic `build_system_prompt()` into 7 composable `PromptChunk` classes with chain-of-use API. Supports runtime enable/disable via `composer.disable("MemoryChunk")`.
+- **Nudge mechanism**: System prompt reminds agent to persist useful knowledge to memory across sessions.
+
+#### Tool System Upgrade (inspired by opencode)
+- **Typed tool errors**: New `ToolError` hierarchy (`InvalidArgumentsError`, `ExecutionError`, `PermissionDeniedError`, `RateLimitError`, `TimeoutError`) that auto-generates LLM-friendly messages for self-correction.
+- **Tool metadata**: `BaseTool` now has `category`, `risk_level`, and `requires_approval` attributes for permission auto-decision.
+
+#### Provider Flexibility (inspired by merco)
+- **MiniMax provider**: Added built-in support for MiniMax models (SWE-bench #1).
+- **Dynamic provider registration**: `~/.terry/config.json` now supports user-defined providers via `load_providers_from_config()`. Existing `register_provider()` API for runtime registration.
+- **CJK-aware token estimation**: `get_token_count()` applies correction factor (up to 1.5×) for Chinese/Japanese/Korean text.
+
+#### Code Quality
+- **Annotation coverage**: 106/106 files now have `from __future__ import annotations` (100%).
+- **Print→logging migration**: 6 non-CLI modules converted from `print()` to proper `logging.getLogger(__name__)`.
+- **Agent decomposition**: `ToolExecutor` (212 lines) and `ResponseHandler` (89 lines) extracted from `agent.py` (928→798 lines).
+
+### Changed
+- Default model: `claude-sonnet-4-20250514` → `claude-sonnet-4-6-20250922`
+- `core/__init__.py`: populated from 0 bytes with package documentation
+- `git_branch` + `git_merge`: registered in `tools/git/__init__.py` (were dead code)
+- Agent loop: `SkillAutoCreator.maybe_create()` fires after task completion
+
+### Fixed
+- `anthropic` SDK installed (v0.107.1) — was missing in development environment
+- 2 git tools (branch/merge) were unregistered despite having implementation files
+- Empty `core/__init__.py` (0 bytes) now properly documents the core package
+- Memory nudge: agent now periodically reminded to persist knowledge
+
 ## [0.3.0] - 2026-06-07
 
 ### Fixed

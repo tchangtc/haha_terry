@@ -116,7 +116,11 @@ def _get_encoding(model: str) -> Any | None:
 
 
 def get_token_count(text: str, model: str = "claude-sonnet-4-20250514") -> int:
-    """Get precise token count for text using tiktoken.
+    """Get precise token count for text, with CJK-aware correction.
+
+    Uses tiktoken for accurate counting, then applies a correction factor
+    for CJK text (Chinese/Japanese/Korean) which tiktoken's English-centric
+    encodings may underestimate by 30-50%.
 
     Args:
         text: Text to count tokens for
@@ -128,11 +132,31 @@ def get_token_count(text: str, model: str = "claude-sonnet-4-20250514") -> int:
     enc = _get_encoding(model)
     if enc is not None:
         try:
-            return len(enc.encode(text))
+            base = len(enc.encode(text))
+            # CJK-aware correction: if >30% of characters are CJK,
+            # apply a proportional correction factor (up to 1.5x).
+            text_len = len(text)
+            if text_len > 0:
+                cjk_count = sum(
+                    1 for c in text
+                    if '一' <= c <= '鿿'      # CJK Unified
+                    or '㐀' <= c <= '䶿'      # CJK Extension A
+                    or '豈' <= c <= '﫿'      # CJK Compatibility
+                    or '぀' <= c <= 'ゟ'      # Hiragana
+                    or '゠' <= c <= 'ヿ'      # Katakana
+                    or '가' <= c <= '힯'      # Hangul
+                )
+                cjk_ratio = cjk_count / text_len
+                if cjk_ratio > 0.3:
+                    # merco-inspired: cjk × 1.5 correction, proportional to ratio
+                    base = int(base * (1.0 + cjk_ratio * 0.5))
+            return base
         except Exception:
             logger.warning("Failed to encode text with tiktoken", exc_info=True)
             pass
-    return len(text) // 4
+    # Fallback: rough estimate with CJK correction
+    cjk_count = sum(1 for c in text if '一' <= c <= '鿿')
+    return (len(text) - cjk_count) // 4 + int(cjk_count * 1.5)
 
 
 def get_model_context_window(provider: str, model: str) -> int:

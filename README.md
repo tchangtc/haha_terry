@@ -7,7 +7,7 @@
   <a href="https://github.com/tchangtc/haha_terry/actions"><img src="https://img.shields.io/badge/CI-passing-brightgreen.svg" alt="CI"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
   <a href="#"><img src="https://img.shields.io/badge/python-3.12+-green.svg" alt="Python"></a>
-  <a href="#"><img src="https://img.shields.io/badge/version-0.3.0-orange.svg" alt="Version"></a>
+  <a href="#"><img src="https://img.shields.io/badge/version-0.4.0-orange.svg" alt="Version"></a>
   <a href="#"><img src="https://img.shields.io/badge/tests-710%20passed-brightgreen.svg" alt="Tests"></a>
   <a href="#"><img src="https://img.shields.io/badge/tools-26-blue.svg" alt="Tools"></a>
   <a href="#"><img src="https://img.shields.io/badge/modules-106-orange.svg" alt="Modules"></a>
@@ -29,6 +29,17 @@
 ---
 
 > **TL;DR** — `pip install -r requirements.txt && export ANTHROPIC_API_KEY=sk-ant-... && terry` — then type what you need. Terry reads your code, runs commands, edits files. Use `/help` for all commands, `/undo` to revert mistakes, `/plan` before big tasks.
+
+---
+
+## 📰 News
+
+**2026-06**
+
+- **v0.4.0** — **Self-evolving agent** auto-creates skills from your workflows. **MiniMax** and dynamic provider support. **CJK-aware token estimation**. **Typed tool errors** for better self-correction.
+- **v0.3.0** — **Git workflow tools**, **vector memory**, **4-layer context compaction**, **AutoHealer** self-healing, and **security middleware**.
+- **v0.2.0** — **Multi-agent harness** (6 patterns), **WebUI**, **Desktop tray**, **PWA mobile**, and **VS Code extension**.
+- **v0.1.0** — **Initial release.** ReAct agent, multi-provider LLM, skills system, 3-gate permissions, 16 tools.
 
 ---
 

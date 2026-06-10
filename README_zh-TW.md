@@ -7,7 +7,7 @@
   <a href="https://github.com/tchangtc/haha_terry/actions"><img src="https://img.shields.io/badge/CI-passing-brightgreen.svg" alt="CI"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
   <a href="#"><img src="https://img.shields.io/badge/python-3.12+-green.svg" alt="Python"></a>
-  <a href="#"><img src="https://img.shields.io/badge/version-0.3.0-orange.svg" alt="Version"></a>
+  <a href="#"><img src="https://img.shields.io/badge/version-0.4.0-orange.svg" alt="Version"></a>
   <a href="#"><img src="https://img.shields.io/badge/tests-710%20passed-brightgreen.svg" alt="Tests"></a>
   <a href="#"><img src="https://img.shields.io/badge/tools-26-blue.svg" alt="Tools"></a>
   <a href="#"><img src="https://img.shields.io/badge/modules-106-orange.svg" alt="Modules"></a>
@@ -25,6 +25,17 @@
   <a href="./README_zh-CN.md">简体中文</a> |
   <a href="./README_zh-TW.md">繁體中文</a>
 </p>
+
+---
+
+## 📰 新聞
+
+**2026-06**
+
+- **v0.4.0** — **自進化 Agent** 自動從工作流程中學習並建立技能。**MiniMax** 及動態供應商支援。**CJK 分詞估算**。**型別化工具錯誤** 提升自修正能力。
+- **v0.3.0** — **Git 工作流程工具**、**向量記憶**、**4 層上下文壓縮**、**AutoHealer** 自癒、**安全中介層**。
+- **v0.2.0** — **多 Agent 編排**（6 種模式）、**WebUI**、**桌面系統匣**、**PWA 行動端**、**VS Code 擴充**。
+- **v0.1.0** — **初始發布。** ReAct 智慧體、多供應商 LLM、技能系統、3 門權限、16 工具。
 
 ---
 

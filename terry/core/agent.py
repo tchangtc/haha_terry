@@ -6,6 +6,7 @@ import copy
 import re
 import subprocess
 import time
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -41,6 +42,43 @@ from .subagent import SubAgentManager
 from .telemetry import Telemetry
 from .text_utils import extract_text
 from .tool_executor import ToolExecutor
+
+
+def _format_tool_detail(name: str, inp: dict) -> str:
+    """Build a concise, human-readable description of a tool call.
+
+    Examples:
+        bash ls -la /tmp
+        read_file src/main.py
+        grep "def run" terry/core/
+        write_file terry/core/new.py
+    """
+    if name == "bash":
+        cmd = str(inp.get("command", ""))
+        # Truncate long commands
+        return f"$ {cmd}" if len(cmd) <= 60 else f"$ {cmd[:57]}..."
+    if name in ("read_file", "write_file", "edit_file"):
+        path = str(inp.get("file_path", inp.get("path", "")))
+        return f"{name} {path}" if len(path) <= 50 else f"{name} ...{path[-47:]}"
+    if name == "grep":
+        pattern = str(inp.get("pattern", ""))
+        path = str(inp.get("path", "."))
+        return f'grep "{pattern}" {path}' if len(pattern) <= 30 else f'grep "{pattern[:27]}..." {path}'
+    if name in ("glob", "find_tool", "ls_tool", "ls"):
+        path = str(inp.get("path", inp.get("directory", ".")))
+        return f"{name} {path}"
+    if name == "web_search":
+        query = str(inp.get("query", ""))
+        return f"web_search {query}" if len(query) <= 40 else f"web_search {query[:37]}..."
+    if name == "web_fetch":
+        url = str(inp.get("url", ""))
+        return f"web_fetch {url}" if len(url) <= 50 else f"web_fetch {url[:47]}..."
+    if name == "todo_write":
+        return "update task list"
+    if name == "notebook":
+        return "edit notebook"
+    # Generic fallback
+    return f"{name}"
 
 
 class Agent:
@@ -311,12 +349,16 @@ class Agent:
             session=self.session,
         )
 
-    def run(self, user_message: str, use_cache: bool = True) -> str:
+    def run(self, user_message: str, use_cache: bool = True,
+            on_progress: Callable[[str, dict], None] | None = None) -> str:
         """Run the agent loop with full feature integration.
 
         Args:
             user_message: User's input message
             use_cache: Whether to use caching
+            on_progress: Optional callback for real-time progress updates.
+                Called with (event_name, data_dict) where event_name is one of:
+                "llm_call", "llm_done", "tool_executed", "done".
 
         Returns:
             Agent's response
@@ -327,6 +369,24 @@ class Agent:
             return f"Error: {error_msg}"
 
         start_time = time.time()
+        total_input_tokens = 0
+        total_output_tokens = 0
+        total_cost = 0.0
+        llm_calls = 0
+
+        # Helper to build progress data snapshot
+        def _progress(event: str, **extra) -> None:
+            if on_progress is None:
+                return
+            on_progress(event, {
+                "elapsed": time.time() - start_time,
+                "tool_calls": self.tool_call_count,
+                "input_tokens": total_input_tokens,
+                "output_tokens": total_output_tokens,
+                "cost": total_cost,
+                "llm_calls": llm_calls,
+                **extra,
+            })
 
         # Log user message
         self.logger.info("User message", length=len(user_message))
@@ -353,10 +413,13 @@ class Agent:
             self.metrics.increment("user_messages")
 
         # Agent loop
+        iteration = 0
         while True:
+            iteration += 1
             # Check tool call budget
             if self.tool_call_count >= self.config.max_tool_calls:
                 self.logger.warning("Tool call budget exceeded", count=self.tool_call_count)
+                _progress("done")
                 return self._wrap_up()
 
             # Check if context needs compaction
@@ -366,17 +429,32 @@ class Agent:
                     self.metrics.increment("context_compactions")
                 self.messages = self.compactor.compact(self.messages, self.llm)
 
-            # LLM call with caching and metrics (extracted)
+            # LLM call — clear tool context so display shows "thinking" phase
+            _progress("llm_call", iteration=iteration, tool_name="", tool_detail="")
             response = self._get_llm_response(system, tools_def, use_cache)
             if not response:
+                _progress("done")
                 return "Error: Failed to get LLM response"
 
+            llm_calls += 1
             self.messages.append({"role": "assistant", "content": response["content"]})
             self._track_llm_metrics(response)
 
+            # Update accumulated counters for progress display
+            usage = response.get("usage", {})
+            total_input_tokens += usage.get("input_tokens", 0)
+            total_output_tokens += usage.get("output_tokens", 0)
+            total_cost += estimate_cost(
+                self.config.model.model,
+                usage.get("input_tokens", 0),
+                usage.get("output_tokens", 0),
+            )
+
             # Check if we're done (no tool calls)
             if response["stop_reason"] != "tool_use":
+                _progress("almost_done", iteration=iteration)
                 result = self._handle_final_response(user_message, response, start_time)
+                _progress("done")
                 # ── Skill auto-creation: learn from complex tasks ──
                 if self.skill_auto_creator is not None:
                     try:
@@ -391,6 +469,11 @@ class Agent:
                             "Skill auto-creation skipped", exc_info=True
                         )
                 return result
+
+            # Extract tool details for progress display
+            tool_details = self._extract_tool_details(response["content"])
+            for td in tool_details:
+                _progress("tool_executed", tool_name=td["name"], tool_detail=td["detail"])
 
             # Execute tool calls
             results = self._execute_tools(response["content"])
@@ -483,6 +566,37 @@ class Agent:
         results, count = self._tool_executor.execute_tools(content)
         self.tool_call_count += count
         return results
+
+    def _extract_tool_details(self, content: Any) -> list[dict[str, str]]:
+        """Extract tool calls with human-readable detail for progress display.
+
+        Returns list of {name, detail} where detail is e.g. "bash ls -la" or
+        "read_file src/main.py".
+        """
+        details = []
+        if isinstance(content, list):
+            for block in content:
+                if not isinstance(block, dict):
+                    continue
+                name, inp = "", {}
+                if block.get("type") == "tool_use":
+                    name = block.get("name", "unknown")
+                    inp = block.get("input", {})
+                elif block.get("type") == "tool_calls":
+                    for tc in block.get("tool_calls", []):
+                        if isinstance(tc, dict):
+                            name = tc.get("function", {}).get("name", "unknown")
+                            try:
+                                import json
+                                inp = json.loads(tc.get("function", {}).get("arguments", "{}"))
+                            except Exception:
+                                inp = {}
+                if not name:
+                    continue
+                # Build human-readable detail based on tool type
+                detail = _format_tool_detail(name, inp)
+                details.append({"name": name, "detail": detail})
+        return details or [{"name": "unknown", "detail": "processing"}]
 
     def _execute_tool(self, tool_name: str, tool_input: dict[str, Any]) -> str:
         """Execute a single tool — delegates to ToolExecutor (extracted module)."""

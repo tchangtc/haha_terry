@@ -4,6 +4,9 @@ from __future__ import annotations
 
 import atexit
 import os
+import sys
+import threading
+import time
 from pathlib import Path
 
 import typer
@@ -37,6 +40,316 @@ app = typer.Typer(
     add_completion=False,
 )
 console = Console()
+
+# ═══════════════════════════════════════════════════════════════════
+# Real-time Progress Display — dynamic, varied, Claude Code-style
+# ═══════════════════════════════════════════════════════════════════
+
+# ── Marker pools per phase category (cycled for animation) ──────
+_MARKERS = {
+    "thinking":   ["✶", "✧", "✩", "✪", "✫", "✬", "✭", "✮", "✯", "✰"],
+    "searching":  ["●", "◉", "◎", "◌", "○"],
+    "reading":    ["◉", "◎", "◌", "○"],
+    "writing":    ["✎", "✐", "✑", "✒", "✏"],
+    "running":    ["⚙", "⚡", "⚛", "⚒"],
+    "finishing":  ["✻", "✼", "✽", "✾", "✿", "❀"],
+    "done":       [""],
+}
+
+# ── Verb pools — varied language rotated every ~3s ──────────────
+_VERBS = {
+    "thinking": [
+        "Thinking", "Pondering", "Considering", "Analyzing", "Processing",
+        "Reasoning", "Deliberating", "Ruminating", "Contemplating",
+        "Perambulating", "Cogitating", "Mulling over",
+    ],
+    "deep": [
+        "Deep thinking", "Reasoning in depth", "Working through", "Thinking carefully",
+        "Deliberating", "Weighing options",
+    ],
+    "searching": [
+        "Searching", "Looking for", "Scanning for", "Hunting for",
+        "Exploring", "Probing", "Investigating",
+    ],
+    "reading": [
+        "Reading", "Examining", "Inspecting", "Reviewing",
+    ],
+    "writing": [
+        "Writing", "Editing", "Composing", "Crafting",
+    ],
+    "running": [
+        "Running", "Executing", "Computing",
+    ],
+    "finishing": [
+        "Finishing up", "Wrapping up", "Polishing", "Synthesizing",
+        "Finalizing", "Leavening",
+    ],
+}
+
+# ── Tips shown in sub-line after completion ─────────────────────
+_TIPS = [
+    "Tip: Use /clear to start fresh when switching topics and free up context",
+    "Tip: Use /undo to revert the last file change",
+    "Tip: Use /plan before big refactors to review the approach first",
+    "Tip: Use @file:path to give Terry direct context about a specific file",
+    "Tip: Run 'terry webui' for a visual chat interface in your browser",
+    "Tip: Use /stream for real-time token-by-token responses",
+    "Tip: Use /fork to explore alternative approaches",
+    "Tip: Press Tab to autocomplete commands",
+    "Tip: Use /search to find anything in your conversation history",
+    "Tip: Use /checkpoints to browse all undo snapshots",
+]
+
+
+def _format_duration(seconds: float) -> str:
+    """Format seconds as 'Xm Ys' or 'Ys' for short durations."""
+    m = int(seconds // 60)
+    s = int(seconds % 60)
+    if m > 0:
+        return f"{m}m {s}s"
+    return f"{s}s"
+
+
+def _format_tokens(n: int) -> str:
+    """Format token count for display."""
+    if n >= 1000:
+        return f"{n / 1000:.1f}k"
+    return str(n)
+
+
+def _pick(items: list[str], idx: int) -> str:
+    """Pick from list, cycling with index."""
+    return items[idx % len(items)]
+
+
+def _tool_verb(name: str) -> str:
+    """Map tool name to a past-tense action verb for summaries."""
+    _map = {
+        "grep": "searched", "glob": "matched", "find_tool": "found",
+        "ls": "listed", "ls_tool": "listed", "read_file": "read",
+        "write_file": "wrote", "edit_file": "edited", "bash": "ran",
+        "web_search": "searched web for", "web_fetch": "fetched",
+        "todo_write": "updated tasks", "notes": "noted", "notebook": "edited notebook",
+    }
+    return _map.get(name, f"used {name}")
+
+
+def _activity_summary(history: list[dict]) -> str:
+    """Build a human-readable activity summary from tool call history.
+
+    Example: "searched 2 patterns, read 1 file, ran 1 command"
+    """
+    if not history:
+        return ""
+    counts: dict[str, int] = {}
+    for h in history:
+        name = h.get("name", "unknown")
+        counts[name] = counts.get(name, 0) + 1
+
+    parts = []
+    for name, n in sorted(counts.items(), key=lambda x: -x[1]):
+        verb = _tool_verb(name)
+        if n == 1:
+            parts.append(f"{verb} 1 {_tool_noun(name)}")
+        else:
+            parts.append(f"{verb} {n} {_tool_noun_plural(name)}")
+    return ", ".join(parts)
+
+
+def _tool_noun(name: str) -> str:
+    """Singular noun for a tool type."""
+    return {
+        "grep": "pattern", "glob": "pattern", "find_tool": "file",
+        "ls": "directory", "ls_tool": "directory", "read_file": "file",
+        "write_file": "file", "edit_file": "file", "bash": "command",
+        "web_search": "query", "web_fetch": "page",
+    }.get(name, "thing")
+
+
+def _tool_noun_plural(name: str) -> str:
+    """Plural noun for a tool type."""
+    return {
+        "grep": "patterns", "glob": "patterns", "find_tool": "files",
+        "ls": "directories", "ls_tool": "directories", "read_file": "files",
+        "write_file": "files", "edit_file": "files", "bash": "commands",
+        "web_search": "queries", "web_fetch": "pages",
+    }.get(name, "things")
+
+
+class ProgressDisplay:
+    """Dynamic, varied progress display with Unicode markers, playful verbs,
+    activity summaries, tool sub-lines, and contextual tips.
+
+    Writes to stderr to coexist with Rich console output on stdout.
+    """
+
+    def __init__(self) -> None:
+        self.start_time = time.time()
+        self.state: dict = {
+            "iteration": 0,
+            "tool_calls": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "cost": 0.0,
+            "tool_name": "",
+            "tool_detail": "",
+        }
+        self._running = False
+        self._thread: threading.Thread | None = None
+        self._lock = threading.Lock()
+        self._tool_history: list[dict] = []       # accumulated tool calls
+        self._main_frame_idx = 0                   # increments each render
+        self._verb_idx = 0                         # for cycling through verb pool
+        self._last_verb_switch = 0.0               # timestamp of last verb change
+        self._final_tip: str = ""                  # tip shown when done
+
+    # ── Public API ─────────────────────────────────────────────────
+
+    def start(self) -> None:
+        """Start the background spinner thread."""
+        self._running = True
+        self.start_time = time.time()
+        self._thread = threading.Thread(target=self._spin, daemon=True)
+        self._thread.start()
+
+    def update(self, event: str, data: dict) -> None:
+        """Update display state from agent progress callback."""
+        with self._lock:
+            self.state.update(data)
+            # Set finishing flag for rendering
+            if event in ("almost_done", "done"):
+                self.state["_finishing"] = True
+            # Track tool calls for activity summary
+            if event == "tool_executed":
+                self._tool_history.append({
+                    "name": str(data.get("tool_name", "")),
+                    "detail": str(data.get("tool_detail", "")),
+                })
+            # Pick a random tip when finishing
+            if event == "almost_done" and not self._final_tip:
+                import random
+                self._final_tip = random.choice(_TIPS)
+
+    def stop(self) -> None:
+        """Stop spinner and clear all progress lines, leaving stderr clean."""
+        self._running = False
+        if self._thread:
+            self._thread.join(timeout=0.6)
+        # Always clear: main line + potential sub-line, then return cursor
+        sys.stderr.write("\r\033[K")      # clear current line (main)
+        sys.stderr.write("\n\r\033[K")    # down + clear (sub-line position)
+        sys.stderr.write("\033[F")        # back to original line
+        sys.stderr.flush()
+        self._final_tip = ""
+
+    # ── Internal rendering ─────────────────────────────────────────
+
+    def _spin(self) -> None:
+        """Spinner loop — redraws ~10 times/sec."""
+        while self._running:
+            with self._lock:
+                self._render()
+            self._main_frame_idx += 1
+            time.sleep(0.1)
+
+    def _render(self) -> None:
+        """Render the current frame: a main status line + optional sub-line."""
+        s = self.state
+        elapsed = time.time() - self.start_time
+        iteration = int(s.get("iteration", 0))
+
+        # Rotate verb every ~3 seconds
+        if elapsed - self._last_verb_switch > 3.0:
+            self._verb_idx += 1
+            self._last_verb_switch = elapsed
+
+        # Determine phase category
+        category = self._resolve_category(s)
+        marker = _pick(_MARKERS.get(category, ["●"]), self._main_frame_idx)
+        verb = self._build_verb(category, s, iteration, elapsed)
+
+        # ── Main line ──────────────────────────────────────────────
+        # Format: ✶ Thinking for 4m 30s, searching for 2 patterns, listing 1 directory… (↓ 7.7k tokens · thinking)
+        elapsed_str = _format_duration(elapsed)
+
+        # Build activity context suffix
+        activity = _activity_summary(self._tool_history)
+        if activity:
+            label = f"{verb} for {elapsed_str}, {activity}…"
+        else:
+            label = f"{verb} for {elapsed_str}…"
+
+        # Build stats
+        stats = []
+        out_tok = int(s.get("output_tokens", 0))
+        if out_tok:
+            stats.append(f"↓ {_format_tokens(out_tok)} tokens")
+        cost = float(s.get("cost", 0))
+        if cost > 0:
+            stats.append(f"${cost:.4f}")
+
+        # Status suffix
+        if category == "finishing":
+            suffix = "almost done thinking"
+        elif category == "thinking" and iteration > 2:
+            suffix = "thinking more"
+        elif category == "thinking":
+            suffix = "thinking"
+        else:
+            suffix = ""
+
+        if suffix:
+            if stats:
+                label += f" ({' · '.join(stats)} · {suffix})"
+            else:
+                label += f" ({suffix})"
+        elif stats:
+            label += f" ({' · '.join(stats)})"
+
+        main = f"  {marker} {label}"
+        sys.stderr.write(f"\r\033[K{main}")
+
+        # ── Sub-line ───────────────────────────────────────────────
+        tool_detail = str(s.get("tool_detail", ""))
+        if tool_detail and category not in ("done", "finishing"):
+            sys.stderr.write(f"\n\r\033[K    ⎿  {tool_detail}\033[F")
+        else:
+            # Clear any leftover sub-line from a previous frame
+            sys.stderr.write("\n\r\033[K\033[F")
+
+        sys.stderr.flush()
+
+    # ── Helpers ────────────────────────────────────────────────────
+
+    def _resolve_category(self, s: dict) -> str:
+        """Determine the current phase category from state.
+
+        Priority: finishing/done > active tool > default thinking.
+        """
+        # Finishing state takes precedence over everything
+        if s.get("_finishing"):
+            return "finishing"
+        tool_name = str(s.get("tool_name", ""))
+        if tool_name in ("grep", "glob", "find_tool", "web_search", "web_fetch"):
+            return "searching"
+        if tool_name in ("read_file", "ls", "ls_tool"):
+            return "reading"
+        if tool_name in ("write_file", "edit_file", "notebook", "todo_write", "notes"):
+            return "writing"
+        if tool_name == "bash":
+            return "running"
+        return "thinking"
+
+    def _build_verb(self, category: str, s: dict, iteration: int, elapsed: float) -> str:
+        """Pick a verb appropriate to the current context."""
+        if category == "finishing":
+            return _pick(_VERBS["finishing"], self._verb_idx)
+        if category == "thinking":
+            if iteration > 1:
+                return _pick(_VERBS["deep"], self._verb_idx)
+            return _pick(_VERBS["thinking"], self._verb_idx)
+        pool = _VERBS.get(category, _VERBS["thinking"])
+        return _pick(pool, self._verb_idx)
 
 
 def version_callback(value: bool):
@@ -197,15 +510,18 @@ def run_repl(agent: Agent):
 
         # Run agent
         console.rule("[bold]Agent[/bold]", style="dim")
+        progress = ProgressDisplay()
         try:
-            console.print(f"[dim]{t('cli.thinking')}[/dim]")
-            response = agent.run(user_input)
+            progress.start()
+            response = agent.run(user_input, on_progress=progress.update)
             console.print(Panel(Markdown(response), border_style="dim"))
             console.rule(style="dim")
         except KeyboardInterrupt:
             console.print("\n[dim]Interrupted[/dim]")
         except Exception as e:
             console.print(f"[red]{t('cli.error')}: {e}[/red]")
+        finally:
+            progress.stop()
 
 
 def handle_command(cmd: str, agent: Agent) -> bool:

@@ -5,6 +5,44 @@ All notable changes to Terry will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-06-11
+
+### Added
+
+#### Interactive Rewind UI (对标 Claude Code v2.0.0 Checkpoints)
+- **Checkpoint browser**: `/checkpoints` renders a rich table with colored method indicators (git=green, tar=yellow)
+- **Selective restore**: `/undo [<id>]` restores specific checkpoints with diff preview + confirmation prompt
+- **New CheckpointManager methods**: `get_checkpoint()`, `delete_checkpoint()`, `diff_preview()` (git `--stat` dry-run)
+- **Subcommands**: `/checkpoints diff <id>`, `/checkpoints delete <id>`
+
+#### Settings Hot-Reload (对标 Claude Code v1.0.90)
+- **ConfigWatcher**: Polling-based file monitor (2s interval, zero dependencies), detects mtime changes
+- **TerryConfig.reload()**: Reads config from disk, deep-compares fields, validates before applying, returns changed field list
+- **Agent.reconfigure()**: Pushes config changes to subsystems — LLMClient (model/temperature), ContextCompactor (thresholds), sandbox mode — via per-class `reconfigure()` methods
+- **`/config reload` CLI**: Shows diff table (Setting | Status), flags fields needing restart
+- **evaluator_model field**: New config field for GoalLoop evaluator model (empty = reuse main model)
+
+#### Background Task Management (对标 Claude Code v1.0.71 + v2.1.139 Agent View)
+- **BackgroundTaskRegistry**: Thread-safe singleton (RLock) tracking all parallel execution across SubAgentManager, AsyncSubAgentManager, HarnessEngine, DynamicWorkflowEngine
+- **Integrated registration**: `background_registry.register()` called automatically in `SubAgentManager.spawn()` and `AsyncSubAgentManager.spawn()`
+- **`/bg <description>`**: Fire-and-forget a background task via AutonomousAgent
+- **`/tasks list [status]`**: Rich table showing ID, description, system, status (color-coded), creation time
+- **`/tasks peek <id>`**: Panel display of task result/error for running tasks
+- **`/tasks cancel <id>`**: Mark task as cancelled
+- **`/tasks dag`**: Legacy TaskDAG view preserved
+- **WebUI endpoint**: `GET /api/tasks[?status=running]` returns JSON array via `BackgroundTask.to_dict()`
+
+#### /goal — Goal-Driven Autonomous Loop (对标 Claude Code v2.1.139)
+- **GoalLoop class**: Dual-model architecture — main agent generates/refines, configurable evaluator model scores progress
+- **Loop pattern**: parse_criteria → generate → evaluate → refine → repeat until score ≥ 0.85 or max 10 iterations
+- **Evaluator prompt**: Structured JSON output (`{met, score, feedback, missing}`) with detailed scoring guide
+- **Agent.run_goal()**: Creates GoalLoop with optional evaluator model from `config.evaluator_model`
+- **`/goal <description>`**: CLI entry point with usage examples, status spinner, result Panel (iterations/score/feedback)
+
+### Changed
+- CLI commands: 23 → 26 (added `/bg`, `/goal`; upgraded `/undo`, `/checkpoints`, `/tasks`, `/config reload`)
+- `_cmd_tasks` redirected to BackgroundTaskRegistry; old TaskDAG preserved under `/tasks dag`
+
 ## [0.4.0] - 2026-06-09
 
 ### Added

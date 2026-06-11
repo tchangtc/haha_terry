@@ -824,6 +824,91 @@ class Agent:
             return self.metrics.get_summary()
         return None
 
+    def reconfigure(self, new_config: Any, changed_fields: list[str]) -> list[str]:
+        """Push config changes to subsystems that support hot-reconfigure.
+
+        Some subsystems can accept config changes at runtime (model settings,
+        compression thresholds, sandbox mode). Others require a restart
+        (SubAgentManager, cache, RAG) — these produce warnings.
+
+        Args:
+            new_config: The reloaded TerryConfig with updated values.
+            changed_fields: List of field names that changed (from TerryConfig.reload).
+
+        Returns:
+            List of field names that were successfully applied.
+        """
+        applied: list[str] = []
+        for field in changed_fields:
+            if field.startswith("model."):
+                try:
+                    self.llm.reconfigure(new_config.model)
+                    applied.append(field)
+                except Exception:
+                    self.logger.warning("Failed to reconfigure LLM for %s", field)
+            elif field in ("compression_threshold", "max_input_tokens"):
+                try:
+                    threshold = new_config.compression_threshold if field == "compression_threshold" else None
+                    max_tok = new_config.max_input_tokens if field == "max_input_tokens" else None
+                    if self.compactor:
+                        self.compactor.reconfigure(threshold=threshold, max_tokens=max_tok)
+                    applied.append(field)
+                except Exception:
+                    self.logger.warning("Failed to reconfigure compactor for %s", field)
+            elif field == "sandbox_mode":
+                self.set_mode(new_config.sandbox_mode)
+                applied.append(field)
+            elif field == "auto_healer_max_attempts":
+                from .error_recovery import AutoHealer
+                self.auto_healer = AutoHealer(workdir=self.workdir, max_attempts=new_config.auto_healer_max_attempts)
+                applied.append(field)
+            elif field in ("llm_timeout",):
+                applied.append(field)
+            else:
+                self.logger.info("Config change requires restart: %s", field)
+
+        self.config = new_config
+        return applied
+
+    def run_goal(self, goal: str) -> dict:
+        """Execute a goal-driven autonomous loop that iterates until the goal is met.
+
+        Uses a dual-model architecture: the main agent generates/refines,
+        a configurable evaluator model scores progress. The loop continues
+        until the quality threshold is reached or max iterations (10) expire.
+
+        Args:
+            goal: Natural language description of the goal.
+                  Examples: "all tests pass", "implement login module".
+
+        Returns:
+            GoalResult dict with keys: met, iterations, final_score, feedback,
+            final_output, history.
+        """
+        from .goal_loop import GoalLoop, GoalResult
+        from .llm import LLMClient
+        from .config import ModelConfig
+
+        evaluator = None
+        if self.config.evaluator_model:
+            eval_config = ModelConfig(
+                provider=self.config.model.provider,
+                model=self.config.evaluator_model,
+                api_key=self.config.model.api_key,
+                base_url=self.config.model.base_url,
+            )
+            eval_config.resolve()
+            evaluator = LLMClient(eval_config)
+
+        loop = GoalLoop(
+            agent=self,
+            evaluator_model=evaluator,
+            max_iterations=GoalLoop.DEFAULT_MAX_ITERATIONS,
+            quality_threshold=GoalLoop.DEFAULT_QUALITY_THRESHOLD,
+        )
+        result = loop.run(goal)
+        return result.to_dict()
+
     def clear_cache(self) -> int:
         """Clear all caches.
 

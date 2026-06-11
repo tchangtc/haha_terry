@@ -3,8 +3,9 @@
 > **Agency comes from the model. Terry is the harness.**
 >
 > Terry is an AI coding agent supporting Terminal · Web · Desktop · Mobile interfaces.  
-> Version: **v0.4.0** | Python 3.11+ | MIT License | 108 modules | 26 tools | ~22,000 LOC
+> Version: **v0.5.0** | Python 3.11+ | MIT License | 115 modules | 26 tools | ~24,500 LOC
 >
+> **v0.5.0**: Interactive Rewind UI, settings hot-reload, background task management, `/goal` autonomous loop.
 > **v0.4.0**: Self-evolving agent (SkillAutoCreator), typed tool errors (ToolError hierarchy), composable prompt chunks (PromptComposer), MiniMax provider, CJK-aware token estimation, dynamic provider registration.
 
 ---
@@ -316,15 +317,15 @@ python -m pytest tests/ -k "not e2e"
 
 ---
 
-## Current Focus (v0.4.0)
+## Current Focus (v0.5.0)
 
-- **Self-evolving agent**: SkillAutoCreator analyzes trajectories → auto-creates SKILL.md
-- **Typed tool errors**: ToolError hierarchy helps LLMs self-correct on failure
-- **Prompt Composer**: 7 composable PromptChunk classes, chain-of-use API
-- **Provider expansion**: MiniMax support + dynamic registration via config.json
-- **CJK token estimation**: Correction factor for Chinese/Japanese/Korean text
-- **Agent decomposition**: ToolExecutor + ResponseHandler extracted from agent.py
-- ~22,000 LOC across 108 modules, 26 tools, 1,089 test assertions
+- **Interactive Rewind UI**: Rich-powered checkpoint browser with diff preview, selective restore, delete. CheckpointManager backend extended with `get_checkpoint()`, `delete_checkpoint()`, `diff_preview()`.
+- **Settings hot-reload**: `ConfigWatcher` polling-based file monitor (2s interval) + `TerryConfig.reload()` with field diff + `Agent.reconfigure()` pushing changes to LLMClient, ContextCompactor, sandbox mode. `/config reload` CLI command.
+- **Background task management**: `BackgroundTaskRegistry` — unified tracking across all 4 parallel execution systems (SubAgentManager, AsyncSubAgentManager, HarnessEngine, DynamicWorkflowEngine). `/bg` fire-and-forget + `/tasks list|peek|cancel` commands + `GET /api/tasks` WebUI endpoint.
+- **`/goal` goal-driven loop**: `GoalLoop` dual-model architecture — main agent generates/refines, evaluator model (cheaper) scores progress. Loop exits when score ≥ 0.85 threshold or 10 iterations max.
+- **New modules**: `config_watcher.py` (83 lines), `background_registry.py` (164 lines), `goal_loop.py` (304 lines)
+- **CLI expansion**: 25 commands (was 23) — added `/bg`, `/goal`, upgraded `/undo`, `/checkpoints`, `/tasks`, `/config reload`
+- ~24,500 LOC across 115 modules, 26 tools, 1,089 test assertions
 
 ---
 

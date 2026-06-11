@@ -247,6 +247,102 @@ class CheckpointManager:
         checkpoints = self.list_checkpoints()
         return checkpoints[0] if checkpoints else None
 
+    def get_checkpoint(self, checkpoint_id: str) -> dict[str, Any] | None:
+        """Look up a single checkpoint by ID.
+
+        Args:
+            checkpoint_id: The checkpoint ID to look up.
+
+        Returns:
+            Checkpoint metadata dict or None if not found.
+        """
+        for cp in self._index:
+            if cp.get("id") == checkpoint_id:
+                return cp
+        return None
+
+    def delete_checkpoint(self, checkpoint_id: str) -> bool:
+        """Remove a checkpoint from the index and disk.
+
+        Args:
+            checkpoint_id: The checkpoint ID to delete.
+
+        Returns:
+            True if the checkpoint was found and deleted, False otherwise.
+        """
+        cp = self.get_checkpoint(checkpoint_id)
+        if not cp:
+            return False
+
+        # Remove from disk
+        checkpoint_dir = self._checkpoints_dir / checkpoint_id
+        if checkpoint_dir.exists():
+            import shutil
+            shutil.rmtree(checkpoint_dir, ignore_errors=True)
+
+        # Remove from index
+        self._index = [c for c in self._index if c.get("id") != checkpoint_id]
+        self._save_index()
+        return True
+
+    def diff_preview(self, checkpoint_id: str) -> str | None:
+        """Show a preview of what would change if this checkpoint were restored.
+
+        For git-based checkpoints, runs git apply --reverse --check for a
+        dry-run simulation. For tar-based checkpoints, lists the files that
+        would be restored.
+
+        Args:
+            checkpoint_id: The checkpoint ID to preview.
+
+        Returns:
+            Formatted diff string or None if preview is unavailable.
+        """
+        cp = self.get_checkpoint(checkpoint_id)
+        if not cp:
+            return None
+
+        checkpoint_dir = self._checkpoints_dir / checkpoint_id
+        if not checkpoint_dir.exists():
+            return None
+
+        method = cp.get("method", "tar")
+        if method == "git" and self._is_git_repo():
+            patch_file = checkpoint_dir / "working_diff.patch"
+            if patch_file.exists():
+                try:
+                    result = subprocess.run(
+                        ["git", "apply", "--reverse", "--check", "--stat", str(patch_file)],
+                        cwd=self._workdir,
+                        capture_output=True,
+                        text=True,
+                        timeout=30,
+                    )
+                    if result.returncode == 0:
+                        return f"Files that would be restored:\n{result.stdout.strip()}"
+                    else:
+                        # --check failed means the patch won't apply cleanly
+                        return f"Warning: patch may not apply cleanly.\n{result.stderr.strip()[:1000]}"
+                except Exception:
+                    return "Unable to generate diff preview"
+        elif method == "tar":
+            # For tar checkpoints, list what's inside
+            tar_file = checkpoint_dir / "snapshot.tar.gz"
+            if tar_file.exists():
+                try:
+                    result = subprocess.run(
+                        ["tar", "tzf", str(tar_file)],
+                        capture_output=True,
+                        text=True,
+                        timeout=30,
+                    )
+                    if result.returncode == 0:
+                        files = result.stdout.strip().split("\n")
+                        return f"Files in checkpoint ({len(files)} total):\n" + "\n".join(files[:20])
+                except Exception:
+                    return "Unable to list tar contents"
+        return None
+
     def create_pre_tool_snapshot(self, tool_name: str, args: dict) -> str | None:
         """Auto-create snapshot before destructive file operations.
 

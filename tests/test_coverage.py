@@ -55,7 +55,7 @@ class TestTerryStore:
         with tempfile.TemporaryDirectory() as d:
             from terry.core.store import TerryStore
             store = TerryStore(db_path=Path(d) / "test.db")
-            store.event_log("agent_start", {"version": "0.3.0"})
+            store.event_log("agent_start", {"version": "0.5.0"})
             events = store.event_query("agent_start", limit=10)
             assert len(events) == 1
 

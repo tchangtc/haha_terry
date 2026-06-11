@@ -7,7 +7,7 @@ explicit user request), the ``SkillAutoCreator`` analyzes the conversation
 trajectory and extracts a reusable skill template — a ``SKILL.md`` file
 with YAML frontmatter — that can be activated by future Agent sessions.
 
-This is the core differentiator for Terry v0.4.0: the Agent that learns
+This is the core differentiator for Terry since v0.4.0: the Agent that learns
 from experience.
 """
 

@@ -218,6 +218,18 @@ def permission_hook(
         if reason:
             logger.warning("Permission denied by deny list: %s", reason)
             return "Permission denied by deny list"
+    # Auto-mode classifier (between Gate 1 and Gate 2)
+    if permission_level == PermissionLevel.LOW:
+        try:
+            from ..core.auto_classifier import AutoModeClassifier, TrustLevel
+            classifier = AutoModeClassifier(threshold=0.6)
+            trust = classifier.get_trust_level(tool_name, args, workdir)
+            if trust == TrustLevel.HIGH_TRUST: return None
+            elif trust == TrustLevel.NO_TRUST:
+                logger.warning("[auto-classifier] Denied risky operation")
+                return "Permission denied by auto classifier"
+        except ImportError: pass
+
 
     # ── Gate 2: Destructive (level-dependent) ────────────────────
     if tool_name == "bash":

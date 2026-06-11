@@ -167,7 +167,7 @@ def get_model_context_window(provider: str, model: str) -> int:
         model: Model name
 
     Returns:
-        Context window in tokens (default 200000 if unknown)
+        Context window in tokens (default 1_000_000 if unknown)
     """
     # Exact match
     if model in _MODEL_CONTEXT_WINDOWS:
@@ -176,7 +176,7 @@ def get_model_context_window(provider: str, model: str) -> int:
     for prefix, window in sorted(_MODEL_CONTEXT_WINDOWS.items(), key=lambda x: -len(x[0])):
         if model.startswith(prefix) or prefix in model:
             return window
-    return 200_000  # Conservative default
+    return 1_000_000  # Default to 1M for modern models
 
 
 class ContextCompactor:
@@ -196,8 +196,8 @@ class ContextCompactor:
             if isinstance(config, TerryConfig):
                 max_tokens = max_tokens or config.max_input_tokens
                 compression_threshold = compression_threshold or config.compression_threshold
-        self.max_tokens = max_tokens or 200000
-        self.compression_threshold = compression_threshold or 0.75
+        self.max_tokens = max_tokens or 1_000_000
+        self.compression_threshold = compression_threshold or 0.85
         self.keep_recent = keep_recent
         self.model = model
         self.budget_dir = budget_dir or get_terry_dir("budget")

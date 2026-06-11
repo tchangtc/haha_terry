@@ -9,20 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-#### Interactive Rewind UI (对标 Claude Code v2.0.0 Checkpoints)
+#### Interactive Rewind UI (inspired by Claude Code v2.0.0 Checkpoints)
 - **Checkpoint browser**: `/checkpoints` renders a rich table with colored method indicators (git=green, tar=yellow)
 - **Selective restore**: `/undo [<id>]` restores specific checkpoints with diff preview + confirmation prompt
 - **New CheckpointManager methods**: `get_checkpoint()`, `delete_checkpoint()`, `diff_preview()` (git `--stat` dry-run)
 - **Subcommands**: `/checkpoints diff <id>`, `/checkpoints delete <id>`
 
-#### Settings Hot-Reload (对标 Claude Code v1.0.90)
+#### Settings Hot-Reload (inspired by Claude Code v1.0.90)
 - **ConfigWatcher**: Polling-based file monitor (2s interval, zero dependencies), detects mtime changes
 - **TerryConfig.reload()**: Reads config from disk, deep-compares fields, validates before applying, returns changed field list
 - **Agent.reconfigure()**: Pushes config changes to subsystems — LLMClient (model/temperature), ContextCompactor (thresholds), sandbox mode — via per-class `reconfigure()` methods
 - **`/config reload` CLI**: Shows diff table (Setting | Status), flags fields needing restart
 - **evaluator_model field**: New config field for GoalLoop evaluator model (empty = reuse main model)
 
-#### Background Task Management (对标 Claude Code v1.0.71 + v2.1.139 Agent View)
+#### Background Task Management (inspired by Claude Code v1.0.71 + v2.1.139)
 - **BackgroundTaskRegistry**: Thread-safe singleton (RLock) tracking all parallel execution across SubAgentManager, AsyncSubAgentManager, HarnessEngine, DynamicWorkflowEngine
 - **Integrated registration**: `background_registry.register()` called automatically in `SubAgentManager.spawn()` and `AsyncSubAgentManager.spawn()`
 - **`/bg <description>`**: Fire-and-forget a background task via AutonomousAgent
@@ -32,7 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`/tasks dag`**: Legacy TaskDAG view preserved
 - **WebUI endpoint**: `GET /api/tasks[?status=running]` returns JSON array via `BackgroundTask.to_dict()`
 
-#### /goal — Goal-Driven Autonomous Loop (对标 Claude Code v2.1.139)
+#### /goal — Goal-Driven Autonomous Loop (inspired by Claude Code v2.1.139)
 - **GoalLoop class**: Dual-model architecture — main agent generates/refines, configurable evaluator model scores progress
 - **Loop pattern**: parse_criteria → generate → evaluate → refine → repeat until score ≥ 0.85 or max 10 iterations
 - **Evaluator prompt**: Structured JSON output (`{met, score, feedback, missing}`) with detailed scoring guide
@@ -69,7 +69,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Default model: `claude-sonnet-4-20250514` → `claude-sonnet-4-6-20250922`
 - `core/__init__.py`: populated from 0 bytes with package documentation
-- `git_branch` + `git_merge`: registered in `tools/git/__init__.py` (were dead code)
+- `git_branch` + `git_merge`: registered in `tools/git/__init__.py`
 - Agent loop: `SkillAutoCreator.maybe_create()` fires after task completion
 
 ### Fixed

@@ -49,7 +49,7 @@ class ExtendedThinking:
         ):
             if model.startswith(prefix):
                 return window
-        return 200_000
+        return 1_000_000
 
     def allocate(self) -> dict[str, int]:
         """Calculate token budgets for each context zone.

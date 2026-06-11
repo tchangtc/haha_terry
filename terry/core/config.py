@@ -11,6 +11,14 @@ from pathlib import Path
 from .adapter import PROVIDERS as _ADAPTER_PROVIDERS
 from .platform_utils import get_config_dir, get_data_dir
 
+# Effort level -> (model, thinking_budget, max_tokens) mapping
+EFFORT_CONFIG: dict[str, dict] = {
+    "low": {"model": "claude-haiku-3-5-20241022", "thinking_budget": 0, "max_tokens": 4000},
+    "medium": {"model": None, "thinking_budget": 8000, "max_tokens": 8000},
+    "high": {"model": None, "thinking_budget": 16000, "max_tokens": 16000},
+    "xhigh": {"model": "claude-sonnet-4-6-20250922", "thinking_budget": 32000, "max_tokens": 32000},
+}
+
 
 @dataclass
 class ProviderInfo:
@@ -48,7 +56,7 @@ class ModelConfig:
     api_key: str | None = None
     base_url: str | None = None
     temperature: float = 0.7
-    max_tokens: int = 8000
+    max_tokens: int = 64000
 
     def resolve(self):
         """Fill in missing fields from provider registry."""
@@ -65,8 +73,8 @@ class TerryConfig:
     """Main configuration."""
     model: ModelConfig = field(default_factory=ModelConfig)
     max_tool_calls: int = 50
-    max_input_tokens: int = 200000
-    compression_threshold: float = 0.75
+    max_input_tokens: int = 1000000
+    compression_threshold: float = 0.85
     sandbox_mode: str = "ask"  # ask | auto | deny
     permission_level: str = "medium"  # low | medium | high | critical
     skills_paths: list[str] = field(default_factory=lambda: [
@@ -120,6 +128,9 @@ class TerryConfig:
 
     # Goal loop
     evaluator_model: str = ""  # empty = use same model as agent for evaluation
+
+    # Effort level
+    effort_level: str = "medium"  # low | medium | high | xhigh
 
     def validate(self) -> list[str]:
         """Validate configuration and return a list of warnings/errors.
@@ -236,6 +247,7 @@ class TerryConfig:
             "cache_tool_ttl": self.cache_tool_ttl,
             # Goal loop
             "evaluator_model": self.evaluator_model,
+            "effort_level": self.effort_level,
         }
 
     @classmethod
@@ -252,8 +264,8 @@ class TerryConfig:
         return cls(
             model=model,
             max_tool_calls=data.get("max_tool_calls", 50),
-            max_input_tokens=data.get("max_input_tokens", 200000),
-            compression_threshold=data.get("compression_threshold", 0.75),
+            max_input_tokens=data.get("max_input_tokens", 1_000_000),
+            compression_threshold=data.get("compression_threshold", 0.85),
             sandbox_mode=data.get("sandbox_mode", "ask"),
             permission_level=data.get("permission_level", "medium"),
             skills_paths=data.get("skills_paths", [
@@ -298,6 +310,7 @@ class TerryConfig:
             cache_tool_ttl=data.get("cache_tool_ttl", 300),
             # Goal loop
             evaluator_model=data.get("evaluator_model", ""),
+            effort_level=data.get("effort_level", "medium"),
         )
 
     @staticmethod

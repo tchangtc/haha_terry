@@ -85,6 +85,18 @@ def _cmd_context(cmd: str, args: str | None, agent: AgentLike) -> bool:
 
 # ── Safety Commands ────────────────────────────────────────────────
 
+
+def _cmd_effort(cmd: str, args: str | None, agent: AgentLike) -> bool:
+    valid = ("low", "medium", "high", "xhigh")
+    if not args:
+        current = getattr(agent.config, "effort_level", "medium")
+        console.print(f"Current effort: [bold]{current}[/bold]")
+        return True
+    level = args.strip().lower()
+    if level not in valid: console.print(f"[red]Invalid. Use: {', '.join(valid)}[/red]"); return True
+    if hasattr(agent, "set_effort") and agent.set_effort(level): console.print(f"[green]Effort: {level}[/green]")
+    return True
+
 def _cmd_mode(cmd: str, args: str | None, agent: AgentLike) -> bool:
     if args:
         new_mode = args.strip().lower()
@@ -389,6 +401,14 @@ def _cmd_auto(cmd: str, args: str | None, agent: AgentLike) -> bool:
 
 # ── Skills & Memory ────────────────────────────────────────────────
 
+
+def _cmd_reload_skills(cmd: str, args: str | None, agent: AgentLike) -> bool:
+    if agent.skill_manager:
+        agent.skill_manager.reload()
+        console.print(f"[green]Skills reloaded ({len(agent.skill_manager.list_skills())} skills)[/green]")
+    else: console.print("[yellow]Skill system not enabled[/yellow]")
+    return True
+
 def _cmd_auto_skills(cmd: str, args: str | None, agent: AgentLike) -> bool:
     skills = agent.skill_auto_creator.list_suggested_skills()
     if skills:
@@ -591,6 +611,24 @@ def _cmd_goal(cmd: str, args: str | None, agent: AgentLike) -> bool:
     return True
 
 
+
+def _cmd_doctor(cmd: str, args: str | None, agent: AgentLike) -> bool:
+    from .core.doctor import Doctor
+    doctor = Doctor(agent); results = doctor.run_all()
+    if not results: console.print("[yellow]No results[/yellow]"); return True
+    from rich.table import Table
+    table = Table(title="Diagnostic Report", border_style="cyan")
+    table.add_column("Check", style="bold", width=18)
+    table.add_column("Status", width=7, justify="center")
+    table.add_column("Message")
+    for r in results:
+        style = {"pass": "green", "warn": "yellow", "fail": "red"}.get(r.status, "white")
+        table.add_row(r.name, f"[{style}]{r.status.upper()}[/{style}]", r.message)
+    console.print(table)
+    passed = sum(1 for r in results if r.status == "pass")
+    console.print(f"[green]{passed} passed[/green]  [yellow]{sum(1 for r in results if r.status == 'warn')} warnings[/yellow]  [red]{sum(1 for r in results if r.status == 'fail')} failed[/red]")
+    return True
+
 def _cmd_benchmark(cmd: str, args: str | None, agent: AgentLike) -> bool:
     from .core.benchmark import BenchmarkRunner
     runner = BenchmarkRunner(agent=agent)
@@ -621,11 +659,13 @@ def register_all_commands():
     register_cli_command("/tools", _cmd_tools, "List tools", "basic")
     register_cli_command("/context", _cmd_context, "Show context", "basic")
 
+    register_cli_command("/effort", _cmd_effort, "Set effort level", "basic")
     register_cli_command("/mode", _cmd_mode, "Change mode", "safety")
     register_cli_command("/permissions", _cmd_permissions, "Show permissions", "safety")
     register_cli_command("/undo", _cmd_undo, "Undo change", "safety")
     register_cli_command("/checkpoints", _cmd_checkpoints, "List checkpoints", "safety")
 
+    register_cli_command("/doctor", _cmd_doctor, "Run diagnostics", "safety")
     register_cli_command("/plan", _cmd_plan, "Plan task", "planning")
     register_cli_command("/config", _cmd_config, "Show/change config", "planning")
 
@@ -641,6 +681,7 @@ def register_all_commands():
     register_cli_command("/goal", _cmd_goal, "Goal-driven autonomous loop", "workflow")
     register_cli_command("/tasks", _cmd_tasks, "Background tasks", "workflow")
 
+    register_cli_command("/reload-skills", _cmd_reload_skills, "Reload all skills", "skills", ["/reload"])
     register_cli_command("/auto-skills", _cmd_auto_skills, "Auto skills", "skills")
     register_cli_command("/curator", _cmd_curator, "Skills curator", "skills")
     register_cli_command("/benchmark", _cmd_benchmark, "Run benchmark", "skills")

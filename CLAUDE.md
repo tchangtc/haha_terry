@@ -3,8 +3,9 @@
 > **Agency comes from the model. Terry is the harness.**
 >
 > Terry is an AI coding agent supporting Terminal · Web · Desktop · Mobile interfaces.  
-> Version: **v0.5.0** | Python 3.11+ | MIT License | 115 modules | 26 tools | ~24,500 LOC
+> Version: **v0.6.0** | Python 3.11+ | MIT License | 117 modules | 26 tools | ~25,000 LOC
 >
+> **v0.6.0**: 1M context window, effort levels, auto classifier, /doctor diagnostics
 > **v0.5.0**: Interactive Rewind UI, settings hot-reload, background task management, `/goal` autonomous loop.
 > **v0.4.0**: Self-evolving agent (SkillAutoCreator), typed tool errors (ToolError hierarchy), composable prompt chunks (PromptComposer), MiniMax provider, CJK-aware token estimation, dynamic provider registration.
 
@@ -325,7 +326,7 @@ python -m pytest tests/ -k "not e2e"
 - **`/goal` goal-driven loop**: `GoalLoop` dual-model architecture — main agent generates/refines, evaluator model (cheaper) scores progress. Loop exits when score ≥ 0.85 threshold or 10 iterations max.
 - **New modules**: `config_watcher.py` (83 lines), `background_registry.py` (164 lines), `goal_loop.py` (304 lines)
 - **CLI expansion**: 25 commands (was 23) — added `/bg`, `/goal`, upgraded `/undo`, `/checkpoints`, `/tasks`, `/config reload`
-- ~24,500 LOC across 115 modules, 26 tools, 1,089 test assertions
+- ~25,000 LOC across 117 modules, 26 tools, 1,089 test assertions
 
 ---
 

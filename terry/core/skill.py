@@ -99,6 +99,8 @@ class SkillManager:
         self.skills.clear()
         self._load_skills()
 
+    reload_skills = reload  # alias
+
     def get_skill(self, name: str) -> Skill | None:
         """Get a skill by name.
 
@@ -201,6 +203,37 @@ class SkillExecutor:
             # Restore previous skill state
             self.agent.active_skill = previous_skill
 
+
+
+# SkillWatcher — polling-based hot reload
+class SkillWatcher:
+    POLL_INTERVAL = 3.0
+    def __init__(self, skills_dirs, on_change=None):
+        self.skills_dirs = [Path(d) for d in skills_dirs]
+        self._last_mtimes = {}; self._on_change = on_change
+        self._running = False; self._thread = None
+    def start(self):
+        if self._running: return
+        self._snapshot_mtimes(); self._running = True
+        self._thread = threading.Thread(target=self._poll_loop, daemon=True, name="skill-watcher")
+        self._thread.start()
+    def stop(self): self._running = False
+    def _snapshot_mtimes(self):
+        for d in self.skills_dirs:
+            if d.exists():
+                for sf in d.rglob("SKILL.md"): self._last_mtimes[sf] = sf.stat().st_mtime
+    def _poll_loop(self):
+        while self._running:
+            try:
+                changed = False
+                for d in self.skills_dirs:
+                    if not d.exists(): continue
+                    for sf in d.rglob("SKILL.md"):
+                        cur = sf.stat().st_mtime
+                        if self._last_mtimes.get(sf, 0) < cur: self._last_mtimes[sf] = cur; changed = True
+                if changed and self._on_change: self._on_change()
+            except Exception: pass
+            time.sleep(self.POLL_INTERVAL)
 
 # Global skill manager instance
 _skill_manager: SkillManager | None = None

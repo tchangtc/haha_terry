@@ -317,6 +317,19 @@ class Agent:
         # Performance tracking
         self.session_start_time = time.time()
 
+
+    def set_effort(self, level: str) -> bool:
+        valid = ("low", "medium", "high", "xhigh")
+        if level not in valid: self.logger.warning("Invalid effort: %s", level); return False
+        self.config.effort_level = level
+        from .config import EFFORT_CONFIG
+        ec = EFFORT_CONFIG.get(level, {})
+        if ec.get("model"): self.config.model.model = ec["model"]
+        if ec.get("max_tokens"): self.config.model.max_tokens = ec["max_tokens"]
+        try: self.llm.reconfigure(self.config.model)
+        except Exception: self.logger.warning("LLM reconfigure failed")
+        self.logger.info("Effort: %s", level); return True
+
     def get_mode(self) -> str:
         """Get current sandbox mode."""
         return self._mode.value

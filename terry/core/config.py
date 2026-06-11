@@ -118,6 +118,9 @@ class TerryConfig:
     cache_llm_ttl: int = 3600
     cache_tool_ttl: int = 300
 
+    # Goal loop
+    evaluator_model: str = ""  # empty = use same model as agent for evaluation
+
     def validate(self) -> list[str]:
         """Validate configuration and return a list of warnings/errors.
 
@@ -231,6 +234,8 @@ class TerryConfig:
             "cache_default_ttl": self.cache_default_ttl,
             "cache_llm_ttl": self.cache_llm_ttl,
             "cache_tool_ttl": self.cache_tool_ttl,
+            # Goal loop
+            "evaluator_model": self.evaluator_model,
         }
 
     @classmethod
@@ -291,6 +296,8 @@ class TerryConfig:
             cache_default_ttl=data.get("cache_default_ttl", 3600),
             cache_llm_ttl=data.get("cache_llm_ttl", 3600),
             cache_tool_ttl=data.get("cache_tool_ttl", 300),
+            # Goal loop
+            evaluator_model=data.get("evaluator_model", ""),
         )
 
     @staticmethod
@@ -305,3 +312,124 @@ class TerryConfig:
             if Path(path).exists():
                 return path
         return None
+
+    def reload(self, config_path: str | None = None) -> list[str]:
+        """Reload config from disk and return list of changed field names.
+
+        Validates the new config before applying. If invalid, keeps the old
+        config and returns error-prefixed strings in the list.
+
+        Args:
+            config_path: Path to config file. If None, reuses the path from
+                         the last load (via _find_config).
+
+        Returns:
+            List of changed field names, e.g. ["model.temperature", "sandbox_mode"].
+            Fields prefixed with "error:" indicate validation failures.
+        """
+        if config_path is None:
+            config_path = self.__class__._find_config()
+
+        if not config_path or not Path(config_path).exists():
+            return ["error: config file not found"]
+
+        with open(config_path) as f:
+            data = json.load(f)
+
+        # Load custom providers from updated config
+        from .adapter import load_providers_from_config
+        load_providers_from_config(data)
+
+        # Parse a temporary config
+        new_cfg = self.__class__._from_dict(data)
+        new_cfg.model.resolve()
+
+        # Validate new config
+        issues = new_cfg.validate()
+        if issues:
+            return [f"error: {issue}" for issue in issues]
+
+        # Compute diff
+        changed = self._compute_diff(new_cfg)
+
+        # Atomically swap all fields
+        update_keys = {
+            "model", "max_tool_calls", "max_input_tokens", "compression_threshold",
+            "sandbox_mode", "permission_level", "skills_paths",
+            "memory_enabled", "memory_path",
+            "llm_timeout", "web_fetch_timeout", "web_search_timeout", "weather_timeout",
+            "rate_limit_max_requests", "rate_limit_window_seconds",
+            "max_body_size", "max_prompt_length",
+            "auto_healer_max_attempts",
+            "feedback_sample_rate", "feedback_min_interval", "feedback_auto_dismiss",
+            "rag_chunk_size", "rag_chunk_overlap", "rag_max_documents",
+            "rag_min_score", "rag_top_k", "rag_max_files",
+            "rag_exclude_dirs", "rag_include_extensions",
+            "cache_default_ttl", "cache_llm_ttl", "cache_tool_ttl",
+            "evaluator_model",
+        }
+        for key in update_keys:
+            if hasattr(new_cfg, key):
+                setattr(self, key, getattr(new_cfg, key))
+
+        # Handle nested model fields
+        self.model = new_cfg.model
+
+        return changed
+
+    def _compute_diff(self, new_cfg: TerryConfig) -> list[str]:
+        """Compare current config with new config and return changed field names."""
+        changed = []
+
+        # Compare model fields
+        if self.model.provider != new_cfg.model.provider:
+            changed.append("model.provider")
+        if self.model.model != new_cfg.model.model:
+            changed.append("model.model")
+        if self.model.temperature != new_cfg.model.temperature:
+            changed.append("model.temperature")
+        if self.model.max_tokens != new_cfg.model.max_tokens:
+            changed.append("model.max_tokens")
+        if self.model.base_url != new_cfg.model.base_url:
+            changed.append("model.base_url")
+
+        # Compare top-level scalar fields
+        field_names = [
+            ("max_tool_calls", "max_tool_calls"),
+            ("max_input_tokens", "max_input_tokens"),
+            ("compression_threshold", "compression_threshold"),
+            ("sandbox_mode", "sandbox_mode"),
+            ("permission_level", "permission_level"),
+            ("memory_enabled", "memory_enabled"),
+            ("memory_path", "memory_path"),
+            ("llm_timeout", "llm_timeout"),
+            ("web_fetch_timeout", "web_fetch_timeout"),
+            ("web_search_timeout", "web_search_timeout"),
+            ("weather_timeout", "weather_timeout"),
+            ("rate_limit_max_requests", "rate_limit_max_requests"),
+            ("rate_limit_window_seconds", "rate_limit_window_seconds"),
+            ("max_body_size", "max_body_size"),
+            ("max_prompt_length", "max_prompt_length"),
+            ("auto_healer_max_attempts", "auto_healer_max_attempts"),
+            ("feedback_sample_rate", "feedback_sample_rate"),
+            ("feedback_min_interval", "feedback_min_interval"),
+            ("feedback_auto_dismiss", "feedback_auto_dismiss"),
+            ("rag_chunk_size", "rag_chunk_size"),
+            ("rag_chunk_overlap", "rag_chunk_overlap"),
+            ("rag_max_documents", "rag_max_documents"),
+            ("rag_min_score", "rag_min_score"),
+            ("rag_top_k", "rag_top_k"),
+            ("rag_max_files", "rag_max_files"),
+            ("cache_default_ttl", "cache_default_ttl"),
+            ("cache_llm_ttl", "cache_llm_ttl"),
+            ("cache_tool_ttl", "cache_tool_ttl"),
+            ("evaluator_model", "evaluator_model"),
+        ]
+        for attr_name, display_name in field_names:
+            if hasattr(self, attr_name) and hasattr(new_cfg, attr_name):
+                old_val = getattr(self, attr_name)
+                new_val = getattr(new_cfg, attr_name)
+                if old_val != new_val:
+                    changed.append(display_name)
+
+        return changed

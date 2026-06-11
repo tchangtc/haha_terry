@@ -449,7 +449,7 @@ class SWEBenchRunner:
             },
             {
                 "rank": "—",
-                "agent": "**Terry v0.3.0**",
+                "agent": "**Terry v0.5.0**",
                 "swe_bench_verified": self.generate_report()["pass_rate"],
                 "source": "This run",
             },

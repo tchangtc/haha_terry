@@ -22,6 +22,20 @@ class LLMClient:
         self.provider_type = self._detect_provider_type()
         self.client = self._create_client()
 
+    def reconfigure(self, new_config: ModelConfig) -> None:
+        """Reconfigure the LLM client with new model settings at runtime.
+
+        Recreates the internal SDK client and adapter so changes to
+        provider, model, temperature, or base_url take effect immediately.
+
+        Args:
+            new_config: New ModelConfig to apply.
+        """
+        self.config = new_config
+        self.adapter = self._resolve_adapter()
+        self.provider_type = self._detect_provider_type()
+        self.client = self._create_client()
+
     def _resolve_adapter(self) -> ProviderAdapter | None:
         """Find the matching provider adapter from the registry."""
         return get_provider(self.config.provider)

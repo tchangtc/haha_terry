@@ -206,6 +206,14 @@ class WebUIServer:
                         self._json_response({"tools": []})
                     return
 
+                # API: Background tasks
+                if path == "/api/tasks":
+                    from terry.core.background_registry import get_background_registry
+                    status_filter = params.get("status", [None])[0]
+                    tasks = get_background_registry().list(status=status_filter)
+                    self._json_response({"tasks": [t.to_dict() for t in tasks]})
+                    return
+
                 # Static files
                 if path == "/" or path == "":
                     path = "/index.html"

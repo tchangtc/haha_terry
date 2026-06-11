@@ -209,6 +209,18 @@ class ContextCompactor:
         self.SNIP_TAIL = 7           # keep last N messages
         self.MICRO_MAX_LEN = 200     # max chars for micro result summary
 
+    def reconfigure(self, threshold: float | None = None, max_tokens: int | None = None) -> None:
+        """Update compaction parameters at runtime without recreating the compactor.
+
+        Args:
+            threshold: New compression_threshold (0.1–0.95). If None, keeps current.
+            max_tokens: New max_input_tokens. If None, keeps current.
+        """
+        if threshold is not None:
+            self.compression_threshold = threshold
+        if max_tokens is not None:
+            self.max_tokens = max_tokens
+
     # ── token estimation ──────────────────────────────────────────
 
     def estimate_tokens(self, messages: list[dict[str, Any]]) -> int:

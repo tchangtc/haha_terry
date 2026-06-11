@@ -369,6 +369,19 @@ class SubAgentManager:
 
         self.agents[task_id] = agent
         agent.start()
+
+        # Register with background task registry for unified monitoring
+        try:
+            from .background_registry import BackgroundTask, get_background_registry
+            get_background_registry().register(BackgroundTask(
+                id=task_id,
+                description=prompt[:120],
+                system="subagent",
+                status="running",
+            ))
+        except Exception:
+            pass  # registry integration is best-effort
+
         return task_id
 
     def wait(self, task_id: str, timeout: float | None = None) -> str:

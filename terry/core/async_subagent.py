@@ -119,6 +119,18 @@ class AsyncSubAgentManager:
         )
         self._tasks[sub_agent.id] = task
 
+        # Register with background task registry for unified monitoring
+        try:
+            from .background_registry import BackgroundTask, get_background_registry
+            get_background_registry().register(BackgroundTask(
+                id=sub_agent.id,
+                description=prompt[:120],
+                system="async_subagent",
+                status="running",
+            ))
+        except Exception:
+            pass  # registry integration is best-effort
+
         return sub_agent.id
 
     async def _run_sub_agent(self, sub_agent: AsyncSubAgent, timeout: float) -> None:

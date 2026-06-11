@@ -7,10 +7,10 @@
   <a href="https://github.com/tchangtc/haha_terry/actions"><img src="https://img.shields.io/badge/CI-passing-brightgreen.svg" alt="CI"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
   <a href="#"><img src="https://img.shields.io/badge/python-3.12+-green.svg" alt="Python"></a>
-  <a href="#"><img src="https://img.shields.io/badge/version-0.4.0-orange.svg" alt="Version"></a>
-  <a href="#"><img src="https://img.shields.io/badge/tests-710%20passed-brightgreen.svg" alt="Tests"></a>
+  <a href="#"><img src="https://img.shields.io/badge/version-0.5.0-orange.svg" alt="Version"></a>
+  <a href="#"><img src="https://img.shields.io/badge/tests-1089%20assertions-brightgreen.svg" alt="Tests"></a>
   <a href="#"><img src="https://img.shields.io/badge/tools-26-blue.svg" alt="Tools"></a>
-  <a href="#"><img src="https://img.shields.io/badge/modules-106-orange.svg" alt="Modules"></a>
+  <a href="#"><img src="https://img.shields.io/badge/modules-115-orange.svg" alt="Modules"></a>
   <a href="#"><img src="https://img.shields.io/badge/ruff-0%20issues-green.svg" alt="Ruff"></a>
   <a href="#"><img src="https://img.shields.io/badge/CLI-✅-purple.svg" alt="CLI"></a>
   <a href="#"><img src="https://img.shields.io/badge/WebUI-✅-purple.svg" alt="WebUI"></a>
@@ -36,6 +36,7 @@
 
 **2026-06**
 
+- **v0.5.0** — **Interactive Rewind UI** with diff preview. **Settings hot-reload** for zero-restart iteration. **Background task management** with unified `/tasks` monitoring. **`/goal` command** for goal-driven autonomous loops with evaluator scoring.
 - **v0.4.0** — **Self-evolving agent** auto-creates skills from your workflows. **MiniMax** and dynamic provider support. **CJK-aware token estimation**. **Typed tool errors** for better self-correction.
 - **v0.3.0** — **Git workflow tools**, **vector memory**, **4-layer context compaction**, **AutoHealer** self-healing, and **security middleware**.
 - **v0.2.0** — **Multi-agent harness** (6 patterns), **WebUI**, **Desktop tray**, **PWA mobile**, and **VS Code extension**.
@@ -109,6 +110,9 @@ terry webui                                       # Open in browser
 | **Control** | Plan-first mode lets you review what Terry intends to do before it touches any file. |
 | **Self-healing** | Auto-fixes common errors (missing packages, wrong paths) — 40% fewer manual interventions. |
 | **Memory** | Remembers your preferences across sessions. Auto-creates skills from repeated workflows. |
+| **Safety net** | Interactive Rewind UI — browse, diff, and restore any checkpoint. Preview what will change before rolling back. |
+| **Zero-restart config** | Settings hot-reload — edit `terry.json`, run `/config reload`, changes take effect immediately. |
+| **Autonomous goals** | `/goal` — describe the outcome you want, Terry iterates until it's met with automatic evaluation. |
 | **Privacy** | Everything runs locally. Your code never leaves your machine unless you configure an LLM provider. |
 | **Multi-interface** | Same agent behind every interface — CLI, WebUI, Desktop, Mobile, Telegram, Discord. |
 
@@ -120,7 +124,7 @@ terry webui                                       # Open in browser
 
 - **Files** — read, write, edit (with diff preview), multi-edit (atomic), Jupyter notebook editing
 - **Search** — grep with regex, glob patterns, file finder, directory listing
-- **Git** — status, diff, log, commit (conventional format), branch checkout
+- **Git** — status, diff, log, commit (conventional format), branch, checkout, merge
 - **Web** — fetch (SSRF-safe), search
 - **Extras** — image/PDF reading, calculator (sandboxed), weather, timers, notes, reminders
 
@@ -173,7 +177,8 @@ See [RUNTIME_SECURITY.md](RUNTIME_SECURITY.md) for complete documentation.
 |---------|--------------|
 | `/help` | Show all commands |
 | `/new` | Start a fresh conversation |
-| `/undo` | Undo last file change |
+| `/undo [<id>]` | Undo changes with diff preview and confirmation |
+| `/checkpoints` | Browse all snapshots — diff, delete, selective restore |
 | `/search <q>` | Full-text search your chat history |
 | `/stream <msg>` | Watch response appear token by token |
 | `/save` / `/load` | Save and restore sessions |
@@ -185,8 +190,8 @@ See [RUNTIME_SECURITY.md](RUNTIME_SECURITY.md) for complete documentation.
 | `/mode ask` | Ask before destructive actions (recommended) |
 | `/mode auto` | Auto-approve safe operations |
 | `/permissions` | View and manage permission rules |
-| `/checkpoints` | Browse all undo snapshots |
 | `/plan <task>` | See the plan before execution |
+| `/config reload` | Hot-reload settings from disk (no restart) |
 | `/config key=value` | Change settings live |
 
 **Runtime Protection:** When running as a server, Terry automatically blocks dangerous patterns (rm -rf, sudo, fork bombs, etc.), enforces rate limits, validates requests, and requires API key authentication. See [RUNTIME_SECURITY.md](RUNTIME_SECURITY.md) for details.
@@ -197,7 +202,10 @@ See [RUNTIME_SECURITY.md](RUNTIME_SECURITY.md) for complete documentation.
 |---------|--------------|
 | `/repomap` | Generate a codebase structure map |
 | `/fork` | Branch the conversation to explore alternatives |
+| `/goal <objective>` | Autonomous loop — iterate until goal is met |
 | `/wfd <goal> <pattern>` | Launch a multi-agent workflow |
+| `/bg <task>` | Fire-and-forget a background task |
+| `/tasks list` | Monitor all background tasks (peek, cancel) |
 | `/auto <task>` | Submit a background autonomous task |
 | `/benchmark` | Run evaluation suites |
 | `/sync-export` | Export memories to another device |

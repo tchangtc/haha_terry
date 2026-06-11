@@ -113,25 +113,112 @@ def _cmd_permissions(cmd: str, args: str | None, agent: AgentLike) -> bool:
 
 
 def _cmd_undo(cmd: str, args: str | None, agent: AgentLike) -> bool:
-    if agent.checkpoint_manager:
-        last = agent.checkpoint_manager.get_last_checkpoint()
-        if last:
-            if agent.checkpoint_manager.restore(last["id"]):
-                console.print(f"[green]Restored: {last['id']}[/green]")
-            else:
-                console.print("[red]Restore failed[/red]")
-        else:
-            console.print("[yellow]No checkpoints[/yellow]")
+    """Undo a checkpoint. /undo [<id>]"""
+    if not agent.checkpoint_manager:
+        console.print("[yellow]Checkpoint system not enabled[/yellow]")
+        return True
+
+    cp_id = args.strip() if args else None
+    if cp_id:
+        checkpoint = agent.checkpoint_manager.get_checkpoint(cp_id)
+        if not checkpoint:
+            console.print(f"[red]Checkpoint not found: {cp_id}[/red]")
+            return True
+    else:
+        checkpoint = agent.checkpoint_manager.get_last_checkpoint()
+        if not checkpoint:
+            console.print("[yellow]No checkpoints available[/yellow]")
+            return True
+
+    # Show diff preview
+    preview = agent.checkpoint_manager.diff_preview(checkpoint["id"])
+    if preview:
+        console.print(Panel(
+            preview[:2000],
+            title=f"Changes to revert — {checkpoint.get('tag', '') or checkpoint['id'][:12]}",
+            border_style="yellow",
+        ))
+
+    # Confirmation prompt
+    from rich.prompt import Confirm
+    if not Confirm.ask("This will revert changes. Continue?", default=False):
+        console.print("[dim]Cancelled[/dim]")
+        return True
+
+    if agent.checkpoint_manager.restore(checkpoint["id"]):
+        tag = checkpoint.get("tag", "") or checkpoint["id"]
+        console.print(f"[green]Restored: {tag}[/green]")
+    else:
+        console.print("[red]Restore failed[/red]")
     return True
 
 
 def _cmd_checkpoints(cmd: str, args: str | None, agent: AgentLike) -> bool:
-    if agent.checkpoint_manager:
-        cps = agent.checkpoint_manager.list_checkpoints()
-        if cps:
-            console.print("[bold]Checkpoints:[/bold]")
-            for cp in cps[:20]:
-                console.print(f"  {cp['id']} ({cp.get('tag','')}) @ {cp.get('timestamp','')}")
+    """List / delete / diff checkpoints. /checkpoints [delete|diff <id>]"""
+    if not agent.checkpoint_manager:
+        console.print("[yellow]Checkpoint system not enabled[/yellow]")
+        return True
+
+    # Parse subcommands
+    if args:
+        parts = args.strip().split(maxsplit=1)
+        sub = parts[0].lower()
+        sub_args = parts[1] if len(parts) > 1 else ""
+
+        if sub == "delete":
+            cid = sub_args.strip()
+            if not cid:
+                console.print("[yellow]Usage: /checkpoints delete <id>[/yellow]")
+                return True
+            if agent.checkpoint_manager.delete_checkpoint(cid):
+                console.print(f"[green]Deleted checkpoint: {cid}[/green]")
+            else:
+                console.print(f"[red]Checkpoint not found: {cid}[/red]")
+            return True
+
+        if sub == "diff":
+            cid = sub_args.strip()
+            if not cid:
+                console.print("[yellow]Usage: /checkpoints diff <id>[/yellow]")
+                return True
+            preview = agent.checkpoint_manager.diff_preview(cid)
+            if preview:
+                console.print(Panel(preview[:3000], title=f"Diff Preview — {cid}", border_style="yellow"))
+            else:
+                console.print(f"[red]Checkpoint not found or preview unavailable: {cid}[/red]")
+            return True
+
+    # Default: list checkpoints in a rich table
+    cps = agent.checkpoint_manager.list_checkpoints()
+    if not cps:
+        console.print("[yellow]No checkpoints available[/yellow]")
+        return True
+
+    from rich.table import Table
+    table = Table(title="Checkpoints")
+    table.add_column("#", style="dim", width=3)
+    table.add_column("ID", style="cyan", width=20)
+    table.add_column("Tag", style="bold")
+    table.add_column("Method", width=6)
+    table.add_column("Timestamp", style="dim", width=20)
+
+    for i, cp in enumerate(cps[:20], 1):
+        cid = cp.get("id", "?")
+        tag = (cp.get("tag") or "-")[:30]
+        method = cp.get("method", "tar")
+        method_style = {"git": "[green]git[/green]", "tar": "[yellow]tar[/yellow]"}.get(method, method)
+        timestamp = cp.get("timestamp", "?")
+
+        table.add_row(
+            str(i),
+            cid[:18],
+            tag,
+            method_style,
+            timestamp,
+        )
+
+    console.print(table)
+    console.print("[dim]Actions: /undo [id] | /checkpoints diff <id> | /checkpoints delete <id>[/dim]")
     return True
 
 
@@ -149,6 +236,11 @@ def _cmd_plan(cmd: str, args: str | None, agent: AgentLike) -> bool:
 
 
 def _cmd_config(cmd: str, args: str | None, agent: AgentLike) -> bool:
+    """Manage configuration. /config [reload | <key>=<value>]"""
+    if args and args.strip().startswith("reload"):
+        _cmd_config_reload(agent)
+        return True
+
     if args:
         kv = args.split("=", 1)
         if len(kv) == 2:
@@ -158,6 +250,60 @@ def _cmd_config(cmd: str, args: str | None, agent: AgentLike) -> bool:
         import json
         console.print_json(json.dumps(agent.config._to_dict(), indent=2))
     return True
+
+
+def _cmd_config_reload(agent: AgentLike) -> None:
+    """Reload config from disk and show changes."""
+    from terry.core.config import TerryConfig
+
+    config_path = TerryConfig._find_config()
+    if not config_path:
+        console.print("[yellow]No config file found on disk. Create one with 'terry --save-config'[/yellow]")
+        return
+
+    new_config = TerryConfig()
+    changed = new_config.reload(config_path)
+
+    if not changed:
+        console.print("[green]Config unchanged[/green]")
+        return
+
+    # Separate errors from changes
+    errors = [c for c in changed if c.startswith("error:")]
+    actual_changes = [c for c in changed if not c.startswith("error:")]
+
+    if errors:
+        console.print("[red]Config validation failed — keeping old config:[/red]")
+        for e in errors:
+            console.print(f"  [red]{e.replace('error: ', '')}[/red]")
+        return
+
+    if not actual_changes:
+        console.print("[green]Config unchanged[/green]")
+        return
+
+    # Push changes to subsystems
+    applied = agent.reconfigure(new_config, actual_changes)
+
+    # Show diff table
+    from rich.table import Table
+    table = Table(title="Config Changes Applied")
+    table.add_column("Setting", style="bold cyan")
+    table.add_column("Status", style="bold")
+
+    for field in actual_changes:
+        status = "[green]applied[/green]" if field in applied else "[yellow]needs restart[/yellow]"
+        table.add_row(field, status)
+
+    console.print(table)
+
+    not_applied = set(actual_changes) - set(applied)
+    if not_applied:
+        console.print(
+            f"[yellow]Note: {len(not_applied)} setting(s) require a restart to take full effect:[/yellow]"
+        )
+        for f in sorted(not_applied):
+            console.print(f"  [dim]• {f}[/dim]")
 
 
 # ── Search & History ───────────────────────────────────────────────
@@ -258,11 +404,190 @@ def _cmd_curator(cmd: str, args: str | None, agent: AgentLike) -> bool:
 
 
 def _cmd_tasks(cmd: str, args: str | None, agent: AgentLike) -> bool:
+    """Manage background tasks. /tasks [list|peek <id>|cancel <id>]
+
+    Without subcommand, lists all registered background tasks.
+    Use 'dag' subcommand for the old TaskDAG view.
+    """
+    from .core.background_registry import get_background_registry
+
+    if not args:
+        # Default: list background tasks
+        return _cmd_tasks_list(cmd, None, agent)
+
+    parts = args.strip().split(maxsplit=1)
+    sub = parts[0].lower()
+    sub_args = parts[1] if len(parts) > 1 else ""
+
+    if sub == "list":
+        return _cmd_tasks_list(cmd, sub_args, agent)
+    elif sub == "peek":
+        return _cmd_tasks_peek(cmd, sub_args, agent)
+    elif sub == "cancel":
+        return _cmd_tasks_cancel(cmd, sub_args, agent)
+    elif sub == "dag":
+        # Legacy TaskDAG view
+        return _cmd_tasks_dag(cmd, sub_args, agent)
+    else:
+        console.print(f"[yellow]Unknown subcommand: {sub}. Use list, peek, cancel, or dag.[/yellow]")
+        return True
+
+
+def _cmd_tasks_list(cmd: str, args: str | None, agent: AgentLike) -> bool:
+    """List background tasks, optionally filtered by status."""
+    from .core.background_registry import get_background_registry
+
+    filter_status = args.strip() if args else None
+    tasks = get_background_registry().list(status=filter_status if filter_status else None)
+
+    if not tasks:
+        console.print("[yellow]No background tasks found[/yellow]")
+        return True
+
+    from rich.table import Table
+    table = Table(title="Background Tasks")
+    table.add_column("ID", style="cyan", width=14)
+    table.add_column("Description")
+    table.add_column("System", style="blue", width=14)
+    table.add_column("Status", style="bold", width=12)
+    table.add_column("Created", style="dim", width=10)
+
+    status_color = {
+        "completed": "green", "running": "yellow", "failed": "red",
+        "cancelled": "dim", "pending": "white",
+    }
+
+    for t in tasks:
+        color = status_color.get(t.status, "white")
+        from datetime import datetime
+        created = datetime.fromtimestamp(t.created_at).strftime("%H:%M:%S")
+        table.add_row(
+            t.id[:12],
+            t.description[:60],
+            t.system,
+            f"[{color}]{t.status}[/{color}]",
+            created,
+        )
+
+    console.print(table)
+    if not filter_status:
+        running = sum(1 for t in tasks if t.status == "running")
+        if running:
+            console.print(f"[dim]{running} running, {len(tasks)} total[/dim]")
+    console.print("[dim]Actions: /tasks peek <id> | /tasks cancel <id> | /tasks list running[/dim]")
+    return True
+
+
+def _cmd_tasks_peek(cmd: str, args: str | None, agent: AgentLike) -> bool:
+    """Show partial result of a running task. /tasks peek <id>"""
+    from .core.background_registry import get_background_registry
+
+    if not args:
+        console.print("[yellow]Usage: /tasks peek <id>[/yellow]")
+        return True
+
+    task = get_background_registry().get(args.strip())
+    if not task:
+        console.print(f"[red]Task not found: {args}[/red]")
+        return True
+
+    console.print(Panel(
+        f"[bold]Status:[/bold] {task.status}\n\n"
+        f"[bold]System:[/bold] {task.system}\n\n"
+        f"[bold]Result:[/bold]\n{task.result or '[dim]No result yet[/dim]'}\n\n"
+        f"[bold]Error:[/bold]\n{task.error or '[dim]None[/dim]'}",
+        title=f"Task: {task.id} — {task.description[:60]}",
+        border_style="blue",
+    ))
+    return True
+
+
+def _cmd_tasks_cancel(cmd: str, args: str | None, agent: AgentLike) -> bool:
+    """Cancel a background task. /tasks cancel <id>"""
+    from .core.background_registry import get_background_registry
+
+    if not args:
+        console.print("[yellow]Usage: /tasks cancel <id>[/yellow]")
+        return True
+
+    if get_background_registry().cancel(args.strip()):
+        console.print(f"[yellow]Cancelled: {args}[/yellow]")
+    else:
+        console.print(f"[red]Task not found: {args}[/red]")
+    return True
+
+
+def _cmd_tasks_dag(cmd: str, args: str | None, agent: AgentLike) -> bool:
+    """Show TaskDAG summary (legacy). /tasks dag"""
     summary = agent.task_dag.get_summary()
     ready = agent.task_dag.get_next_ready(limit=5)
-    console.print(f"Tasks: {summary}")
+    console.print(f"DAG Summary: {summary}")
     for task in ready:
         console.print(f"  - {task.description[:80]}")
+    return True
+
+
+def _cmd_bg(cmd: str, args: str | None, agent: AgentLike) -> bool:
+    """Fire-and-forget a background task. /bg <description>"""
+    if not args:
+        console.print("[yellow]Usage: /bg <description of task>[/yellow]")
+        console.print("Examples:")
+        console.print("  /bg audit security patterns")
+        console.print("  /bg refactor the CLI module")
+        return True
+
+    # Submit to autonomous agent for background execution
+    if hasattr(agent, "autonomous_agent") and agent.autonomous_agent:
+        tid = agent.autonomous_agent.submit_task(args)
+        console.print(f"[green]Background task started: {tid}[/green]")
+    else:
+        # Fallback: register directly for tracking but execute inline
+        from .core.background_registry import BackgroundTask, get_background_registry
+        task = BackgroundTask(description=args[:120], system="manual", status="running")
+        tid = get_background_registry().register(task)
+        console.print(f"[green]Background task registered: {tid}[/green]")
+        console.print("[dim]Note: autonomous agent not available, task is tracking-only[/dim]")
+    return True
+
+
+def _cmd_goal(cmd: str, args: str | None, agent: AgentLike) -> bool:
+    """Goal-driven autonomous loop. /goal <description>
+
+    Examples:
+      /goal all tests pass and ruff check is clean
+      /goal implement user authentication module
+      /goal refactor cli.py to use extracted sub-modules
+    """
+    if not args:
+        console.print("[yellow]Usage: /goal <description of the goal>[/yellow]")
+        console.print("[dim]Examples:[/dim]")
+        console.print("  [dim]/goal all tests pass and ruff check is clean[/dim]")
+        console.print("  [dim]/goal implement the user authentication module[/dim]")
+        return True
+
+    if not hasattr(agent, "run_goal"):
+        console.print("[red]Goal loop not available — agent does not support run_goal()[/red]")
+        return True
+
+    with console.status("[green]Running goal loop...[/green]"):
+        result = agent.run_goal(args)
+
+    if result.get("met"):
+        console.print(f"\n[bold green]Goal achieved![/bold green]")
+    else:
+        console.print(
+            f"\n[bold yellow]Goal not fully met "
+            f"(score: {result.get('final_score', 0):.2f})[/bold yellow]"
+        )
+
+    console.print(Panel(
+        f"Iterations: {result.get('iterations', 0)}\n"
+        f"Final score: {result.get('final_score', 0):.2f}\n"
+        f"Feedback: {result.get('feedback', '')[:500]}\n\n"
+        f"Final output:\n{result.get('final_output', '')[:2000]}",
+        title="Goal Result",
+        border_style="green" if result.get("met") else "yellow",
+    ))
     return True
 
 
@@ -284,9 +609,9 @@ def _cmd_benchmark(cmd: str, args: str | None, agent: AgentLike) -> bool:
 # ── Register all commands ──────────────────────────────────────────
 
 def register_all_commands():
-    """Register all 23 built-in CLI commands in the global CommandRegistry.
+    """Register all built-in CLI commands in the global CommandRegistry.
 
-    Categories: basic, skills, safety, workflow, search, config.
+    Categories: basic, skills, safety, workflow, search, config, planning.
     Called once at CLI startup by terry.cli.
     """
     register_cli_command("/exit", _cmd_exit, "Exit Terry", "basic", ["/quit", "/q"])
@@ -312,10 +637,12 @@ def register_all_commands():
     register_cli_command("/wfd", _cmd_wfd, "Dynamic workflow", "workflow")
     register_cli_command("/workflows", _cmd_workflows, "List workflows", "workflow")
     register_cli_command("/auto", _cmd_auto, "Autonomous task", "workflow")
+    register_cli_command("/bg", _cmd_bg, "Background task", "workflow")
+    register_cli_command("/goal", _cmd_goal, "Goal-driven autonomous loop", "workflow")
+    register_cli_command("/tasks", _cmd_tasks, "Background tasks", "workflow")
 
     register_cli_command("/auto-skills", _cmd_auto_skills, "Auto skills", "skills")
     register_cli_command("/curator", _cmd_curator, "Skills curator", "skills")
-    register_cli_command("/tasks", _cmd_tasks, "Task DAG", "skills")
     register_cli_command("/benchmark", _cmd_benchmark, "Run benchmark", "skills")
 
 

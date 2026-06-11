@@ -37,6 +37,7 @@ Thumbs.db
 .terry/
 .terry_todos.json
 .trajectories/
+scripts/
 *.db
 *.sqlite
 feedback.jsonl
@@ -73,3 +74,8 @@ htmlcov/
 .mypy_cache/
 .pyre/
 .claude/
+
+# Package manager locks (use pyproject.toml + requirements.txt)
+uv.lock
+poetry.lock
+Pipfile.lock

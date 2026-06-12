@@ -9,7 +9,7 @@
   <a href="#"><img src="https://img.shields.io/badge/python-3.12+-green.svg" alt="Python"></a>
   <a href="#"><img src="https://img.shields.io/badge/version-0.7.0-orange.svg" alt="Version"></a>
   <a href="#"><img src="https://img.shields.io/badge/tests-1089%20assertions-brightgreen.svg" alt="Tests"></a>
-  <a href="#"><img src="https://img.shields.io/badge/tools-26-blue.svg" alt="Tools"></a>
+  <a href="#"><img src="https://img.shields.io/badge/tools-27-blue.svg" alt="Tools"></a>
   <a href="#"><img src="https://img.shields.io/badge/modules-119-orange.svg" alt="Modules"></a>
   <a href="#"><img src="https://img.shields.io/badge/ruff-0%20issues-green.svg" alt="Ruff"></a>
   <a href="#"><img src="https://img.shields.io/badge/CLI-✅-purple.svg" alt="CLI"></a>
@@ -32,6 +32,8 @@
 
 **2026-06**
 
+- **v0.7.0** — **Workflow Script DSL** Python 流式 API。**多层子代理** 5 级递归。**Agent View** 仪表盘实时监控。**Ultrareview** 4 维度对抗审查。**Routines** Webhook + API 触发。
+- **v0.6.0** — **1M 上下文窗口**。**Effort 等级** (`/effort low|medium|high|xhigh`)。**Auto 模式分类器** 智能权限。**`/doctor` 诊断** 7 项检查。
 - **v0.5.0** — **交互式 Rewind UI** 带 diff 预览。**Settings 热重载** 免重启迭代。**Background Tasks 管理** 统一 `/tasks` 监控。**`/goal` 命令** 目标驱动自主循环 + 评估器评分。
 - **v0.4.0** — **自进化 Agent** 自动从工作流中学习并创建技能。**MiniMax** 及动态供应商支持。**CJK 分词估算**。**类型化工具错误** 提升自修正能力。
 - **v0.3.0** — **Git 工作流工具**、**向量记忆**、**4 层上下文压缩**、**AutoHealer** 自愈、**安全中间件**。
@@ -108,7 +110,7 @@ terry [ask] ▸ 帮我找到这个项目里用户认证逻辑在哪里实现的
 
 ## 核心能力
 
-### 🛠️ 26 个内置工具
+### 🛠️ 27 个内置工具
 
 - **文件** — 读取、写入、编辑（含 diff 预览）、多点编辑（原子操作）、Jupyter 笔记本编辑
 - **搜索** — 正则搜索、glob 模式匹配、文件查找、目录列表

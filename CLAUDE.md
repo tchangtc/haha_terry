@@ -3,7 +3,7 @@
 > **Agency comes from the model. Terry is the harness.**
 >
 > Terry is an AI coding agent supporting Terminal · Web · Desktop · Mobile interfaces.  
-> Version: **v0.7.0** | Python 3.11+ | MIT License | 119 modules | 26 tools | ~25,300 LOC
+> Version: **v0.7.0** | Python 3.11+ | MIT License | 119 modules | 27 tools | ~25,300 LOC
 >
 > **v0.7.0**: workflow scripts, multi-tier subagents, Agent View, ultrareview
 > **v0.6.0**: 1M context window, effort levels, auto classifier, /doctor diagnostics
@@ -33,7 +33,7 @@ haha_terry/
 ├── terry/                          # Main package
 │   ├── __init__.py                  # v0.3.0
 │   ├── cli.py                       # CLI entry point (332 lines, refactored from 884)
-│   ├── cli_commands.py              # CLI command handlers (317 lines, 23 commands in 6 categories)
+│   ├── cli_commands.py              # CLI command handlers (32 commands in 6 categories)
 │   ├── desktop.py                   # Desktop tray app (136 lines)
 │   ├── i18n.py                      # Internationalization
 │   │
@@ -162,7 +162,7 @@ True async via `httpx.AsyncClient` + `asyncio`, NOT `run_in_executor()` wrapping
 
 ### 2. CLI Refactoring (884 → 332 lines)
 Split `cli.py` into command definition (`cli_commands.py`) + routing (`cli.py`).  
-**Pattern**: CommandRegistry with 23 commands in 6 categories (general, skills, safety, workflow, search, config).  
+**Pattern**: CommandRegistry with 32 commands in 6 categories (basic, safety, planning, search, workflow, skills).  
 **Why**: Single-file CLI was unmaintainable with 48 commands in elif chains.
 
 ### 3. Agent.run() Slimmed (→ 99 lines)
@@ -306,7 +306,7 @@ python -m pytest tests/ -k "not e2e"
 ### Adding a CLI Command
 1. Add handler in `terry/cli_commands.py`
 2. Register via `register_cli_command(name, handler, description, category)`
-3. Categories: `general`, `skills`, `safety`, `workflow`, `search`, `config`
+3. Categories: `basic`, `safety`, `planning`, `search`, `workflow`, `skills`
 
 ### Adding a Subagent Pattern
 1. Add pattern enum to `HarnessPattern` in `harness.py`
@@ -319,15 +319,15 @@ python -m pytest tests/ -k "not e2e"
 
 ---
 
-## Current Focus (v0.5.0)
+## Current Focus (v0.7.0)
 
-- **Interactive Rewind UI**: Rich-powered checkpoint browser with diff preview, selective restore, delete. CheckpointManager backend extended with `get_checkpoint()`, `delete_checkpoint()`, `diff_preview()`.
-- **Settings hot-reload**: `ConfigWatcher` polling-based file monitor (2s interval) + `TerryConfig.reload()` with field diff + `Agent.reconfigure()` pushing changes to LLMClient, ContextCompactor, sandbox mode. `/config reload` CLI command.
-- **Background task management**: `BackgroundTaskRegistry` — unified tracking across all 4 parallel execution systems (SubAgentManager, AsyncSubAgentManager, HarnessEngine, DynamicWorkflowEngine). `/bg` fire-and-forget + `/tasks list|peek|cancel` commands + `GET /api/tasks` WebUI endpoint.
-- **`/goal` goal-driven loop**: `GoalLoop` dual-model architecture — main agent generates/refines, evaluator model (cheaper) scores progress. Loop exits when score ≥ 0.85 threshold or 10 iterations max.
-- **New modules**: `config_watcher.py` (83 lines), `background_registry.py` (164 lines), `goal_loop.py` (304 lines)
-- **CLI expansion**: 25 commands (was 23) — added `/bg`, `/goal`, upgraded `/undo`, `/checkpoints`, `/tasks`, `/config reload`
-- ~25,300 LOC across 119 modules, 26 tools, 1,089 test assertions
+- **Workflow Script DSL**: `workflow_script.py` — fluent Python API wrapping 6 DynamicWorkflowEngine patterns. `/workflow` CLI.
+- **Multi-tier Subagents**: `SubAgent`/`AsyncSubAgent` with depth tracking, `spawn_child()` and max_depth=5 guard. `/agents --tree` CLI.
+- **Agent View Dashboard**: `agents.html` — dark-themed dashboard with 3s polling. `/api/agents` REST endpoint and `/agents` CLI.
+- **Ultrareview**: `ultrareview.py` — 4-dimension adversarial code review with 3-vote verification and auto-fix loop. `/ultrareview` CLI.
+- **Routines**: `CronScheduler.trigger_api()` with webhook and API trigger support. `/routine` CLI and `/api/routines` endpoint.
+- **CLI expansion**: 32 commands (was 23 in v0.4.0) — added across v0.5-v0.7: `/bg`, `/goal`, `/effort`, `/doctor`, `/agents`, `/ultrareview`, `/routine`, `/workflow`, `/reload-skills`
+- ~25,300 LOC across 119 modules, 27 tools, ~1,100 test assertions
 
 ---
 

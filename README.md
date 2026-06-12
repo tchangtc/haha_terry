@@ -9,7 +9,7 @@
   <a href="#"><img src="https://img.shields.io/badge/python-3.12+-green.svg" alt="Python"></a>
   <a href="#"><img src="https://img.shields.io/badge/version-0.7.0-orange.svg" alt="Version"></a>
   <a href="#"><img src="https://img.shields.io/badge/tests-1089%20assertions-brightgreen.svg" alt="Tests"></a>
-  <a href="#"><img src="https://img.shields.io/badge/tools-26-blue.svg" alt="Tools"></a>
+  <a href="#"><img src="https://img.shields.io/badge/tools-27-blue.svg" alt="Tools"></a>
   <a href="#"><img src="https://img.shields.io/badge/modules-119-orange.svg" alt="Modules"></a>
   <a href="#"><img src="https://img.shields.io/badge/ruff-0%20issues-green.svg" alt="Ruff"></a>
   <a href="#"><img src="https://img.shields.io/badge/CLI-✅-purple.svg" alt="CLI"></a>
@@ -36,6 +36,8 @@
 
 **2026-06**
 
+- **v0.7.0** — **Workflow Script DSL** with fluent Python API. **Multi-tier subagents** with 5-level depth. **Agent View** dashboard with live monitoring. **Ultrareview** 4-dimension adversarial code review. **Routines** with webhook and API triggers.
+- **v0.6.0** — **1M context window** with dynamic token budget. **Effort levels** (`/effort low|medium|high|xhigh`). **Auto mode classifier** for smart permission decisions. **`/doctor` diagnostic command** with 7 health checks.
 - **v0.5.0** — **Interactive Rewind UI** with diff preview. **Settings hot-reload** for zero-restart iteration. **Background task management** with unified `/tasks` monitoring. **`/goal` command** for goal-driven autonomous loops with evaluator scoring.
 - **v0.4.0** — **Self-evolving agent** auto-creates skills from your workflows. **MiniMax** and dynamic provider support. **CJK-aware token estimation**. **Typed tool errors** for better self-correction.
 - **v0.3.0** — **Git workflow tools**, **vector memory**, **4-layer context compaction**, **AutoHealer** self-healing, and **security middleware**.
@@ -120,7 +122,7 @@ terry webui                                       # Open in browser
 
 ## Core Capabilities
 
-### 🛠️ Rich Tool Set (26 tools)
+### 🛠️ Rich Tool Set (27 tools)
 
 - **Files** — read, write, edit (with diff preview), multi-edit (atomic), Jupyter notebook editing
 - **Search** — grep with regex, glob patterns, file finder, directory listing

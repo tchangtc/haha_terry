@@ -320,7 +320,7 @@ class Agent:
 
     def set_effort(self, level: str) -> bool:
         valid = ("low", "medium", "high", "xhigh")
-        if level not in valid: self.logger.warning("Invalid effort: %s", level); return False
+        if level not in valid: self.logger.warning("Invalid effort level", value=level); return False
         self.config.effort_level = level
         from .config import EFFORT_CONFIG
         ec = EFFORT_CONFIG.get(level, {})
@@ -328,7 +328,7 @@ class Agent:
         if ec.get("max_tokens"): self.config.model.max_tokens = ec["max_tokens"]
         try: self.llm.reconfigure(self.config.model)
         except Exception: self.logger.warning("LLM reconfigure failed")
-        self.logger.info("Effort: %s", level); return True
+        self.logger.info("Effort level changed", level=level); return True
 
     def get_mode(self) -> str:
         """Get current sandbox mode."""
@@ -858,7 +858,7 @@ class Agent:
                     self.llm.reconfigure(new_config.model)
                     applied.append(field)
                 except Exception:
-                    self.logger.warning("Failed to reconfigure LLM for %s", field)
+                    self.logger.warning("Failed to reconfigure LLM", field=field)
             elif field in ("compression_threshold", "max_input_tokens"):
                 try:
                     threshold = new_config.compression_threshold if field == "compression_threshold" else None
@@ -867,7 +867,7 @@ class Agent:
                         self.compactor.reconfigure(threshold=threshold, max_tokens=max_tok)
                     applied.append(field)
                 except Exception:
-                    self.logger.warning("Failed to reconfigure compactor for %s", field)
+                    self.logger.warning("Failed to reconfigure compactor", field=field)
             elif field == "sandbox_mode":
                 self.set_mode(new_config.sandbox_mode)
                 applied.append(field)

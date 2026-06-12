@@ -346,8 +346,11 @@ class TerryConfig:
         if not config_path or not Path(config_path).exists():
             return ["error: config file not found"]
 
-        with open(config_path) as f:
-            data = json.load(f)
+        try:
+            with open(config_path) as f:
+                data = json.load(f)
+        except (json.JSONDecodeError, OSError, ValueError) as e:
+            return [f"error: failed to parse config: {e}"]
 
         # Load custom providers from updated config
         from .adapter import load_providers_from_config

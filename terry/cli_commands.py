@@ -33,27 +33,40 @@ def _cmd_exit(cmd: str, args: str | None, agent: AgentLike) -> bool:
 
 def _cmd_help(cmd: str, args: str | None, agent: AgentLike) -> bool:
     console.print(Panel(
-        f"[bold]{t('commands.help.description')}[/bold]\n\n"
-        f"/help       - {t('commands.help.description')}\n"
-        f"/exit       - {t('commands.quit.description')}\n"
-        f"/new        - {t('commands.reset.description')}\n"
+        f"[bold]Basics[/bold]\n"
+        f"/help       - Show this help\n"
+        f"/exit       - Exit Terry\n"
+        f"/new        - Reset conversation\n"
         f"/model      - Show current model\n"
-        f"/mode       - Cycle sandbox mode (deny ↔ ask ↔ auto)\n"
-        f"/mode <m>   - Set mode to deny, ask, or auto\n"
         f"/tools      - List available tools\n"
         f"/context    - Show context usage\n"
-        f"/language   - {t('commands.language.description')}\n"
-        f"/save       - {t('commands.save.description')}\n"
-        f"/load       - {t('commands.load.description')}\n\n"
+        f"/save /load - Save and restore sessions\n\n"
+        f"[bold]Safety & Control[/bold]\n"
+        f"/mode <ask|auto|deny> - Set sandbox mode\n"
+        f"/permissions - View permission rules\n"
+        f"/undo [<id>] - Undo changes with preview\n"
+        f"/checkpoints - Browse/restore/delete snapshots\n"
+        f"/plan <task> - Plan before executing\n"
+        f"/config [reload] - Show or hot-reload config\n\n"
+        f"[bold]Diagnostics[/bold]\n"
+        f"/doctor      - Run full system health check\n"
+        f"/effort <low|medium|high|xhigh> - Set effort level\n\n"
         f"[bold]Skills[/bold]\n"
         f"/skills /activate /deactivate /reload-skills\n\n"
-        f"[bold]Safety[/bold]\n"
-        f"/undo /checkpoints /plan /config /permissions\n\n"
-        f"[bold]Workflow[/bold]\n"
-        f"/wfd /auto /workflow /benchmark\n\n"
-        f"[bold]Search[/bold]\n"
+        f"[bold]Workflow & Automation[/bold]\n"
+        f"/goal <objective> - Autonomous goal-driven loop\n"
+        f"/wfd <goal> <pattern> - Dynamic multi-agent workflow\n"
+        f"/workflow <script.py> - Run a Python workflow script\n"
+        f"/bg <task> - Fire-and-forget background task\n"
+        f"/tasks [list|peek|cancel] - Monitor background tasks\n"
+        f"/agents [--tree] - Agent dashboard\n"
+        f"/auto <task> - Submit autonomous task\n"
+        f"/routine [list|add|trigger] - Manage routines\n\n"
+        f"[bold]Review & Search[/bold]\n"
+        f"/ultrareview <file> - Multi-dimension code review\n"
+        f"/benchmark - Run evaluation suites\n"
         f"/search /replay /fork /stream",
-        title="Help",
+        title="Help — Terry v{}".format(__import__('terry').__version__),
     ))
     return True
 
@@ -91,6 +104,7 @@ def _cmd_effort(cmd: str, args: str | None, agent: AgentLike) -> bool:
     if not args:
         current = getattr(agent.config, "effort_level", "medium")
         console.print(f"Current effort: [bold]{current}[/bold]")
+        console.print(f"[dim]Usage: /effort {'|'.join(valid)}[/dim]")
         return True
     level = args.strip().lower()
     if level not in valid: console.print(f"[red]Invalid. Use: {', '.join(valid)}[/red]"); return True
@@ -108,7 +122,8 @@ def _cmd_mode(cmd: str, args: str | None, agent: AgentLike) -> bool:
     else:
         new_mode = agent.cycle_mode()
         mode_color = {"deny": "red", "ask": "yellow", "auto": "green"}.get(new_mode, "white")
-        console.print(f"[{mode_color}]Mode: {new_mode}[/{mode_color}]")
+        console.print(f"[{mode_color}]Mode cycled to: {new_mode}[/{mode_color}]")
+        console.print(f"[dim]Use /mode <ask|auto|deny> to set directly.[/dim]")
     return True
 
 
@@ -244,6 +259,8 @@ def _cmd_plan(cmd: str, args: str | None, agent: AgentLike) -> bool:
         plan = agent.planner.create_plan(args, [t.name for t in agent.tools.list_tools()], str(agent.workdir))
         agent.plan = plan
         console.print(Panel(Markdown(agent.planner.format_plan(plan)), title="Plan", border_style="blue"))
+    else:
+        console.print("[yellow]Planner not enabled. Start Terry with --planner flag.[/yellow]")
     return True
 
 
@@ -321,13 +338,18 @@ def _cmd_config_reload(agent: AgentLike) -> None:
 # ── Search & History ───────────────────────────────────────────────
 
 def _cmd_search(cmd: str, args: str | None, agent: AgentLike) -> bool:
-    if args and agent.fts_search:
-        results = agent.fts_search.search(args, limit=15)
-        if results:
-            for r in results:
-                console.print(f"  {r['session_id'][:8]} [{r['role']}] {r['content'][:120]}")
-        else:
-            console.print("[yellow]No results[/yellow]")
+    if not args:
+        console.print("[yellow]Usage: /search <query>[/yellow]")
+        return True
+    if not agent.fts_search:
+        console.print("[yellow]Search not enabled. Start Terry with --fts flag.[/yellow]")
+        return True
+    results = agent.fts_search.search(args, limit=15)
+    if results:
+        for r in results:
+            console.print(f"  {r['session_id'][:8]} [{r['role']}] {r['content'][:120]}")
+    else:
+        console.print("[yellow]No results[/yellow]")
     return True
 
 
@@ -410,10 +432,26 @@ def _cmd_reload_skills(cmd: str, args: str | None, agent: AgentLike) -> bool:
     return True
 
 def _cmd_auto_skills(cmd: str, args: str | None, agent: AgentLike) -> bool:
-    skills = agent.skill_auto_creator.list_suggested_skills()
-    if skills:
-        for s in skills:
-            console.print(f"  {s['name']}: confidence={s['confidence']:.0%}")
+    if not agent.skill_auto_creator:
+        console.print("[yellow]Skill auto-creator not available[/yellow]")
+        return True
+    try:
+        if hasattr(agent.skill_auto_creator, "list_suggested_skills"):
+            skills = agent.skill_auto_creator.list_suggested_skills()
+        elif hasattr(agent.skill_auto_creator, "get_suggestions"):
+            skills = agent.skill_auto_creator.get_suggestions()
+        else:
+            console.print("[yellow]No suggested skills available[/yellow]")
+            return True
+        if skills:
+            for s in skills:
+                name = s.get("name", s) if isinstance(s, dict) else str(s)
+                conf = s.get("confidence", 0) if isinstance(s, dict) else 0
+                console.print(f"  {name}: confidence={conf:.0%}")
+        else:
+            console.print("[dim]No skill suggestions yet. Complete complex tasks to generate them.[/dim]")
+    except Exception as e:
+        console.print(f"[yellow]Could not list auto skills: {e}[/yellow]")
     return True
 
 

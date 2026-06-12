@@ -77,6 +77,10 @@ class AutoModeClassifier:
         if ident in self._approved: score += 0.2
         return max(0.0, min(1.0, score))
 
+    def get_decision_count(self) -> int:
+        """Return total number of classification decisions made."""
+        return self._decision_count
+
     @staticmethod
     def _make_identifier(tool_name: str, args: dict[str, Any]) -> str:
         if tool_name == "bash": return f"bash:{args.get("command", "")[:80]}"

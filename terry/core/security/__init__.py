@@ -151,6 +151,8 @@ class CORSPolicy:
     def is_origin_allowed(self, origin: str) -> bool:
         if self.allowed_origins is None:
             return True
+        if "*" in self.allowed_origins:
+            return True
         return origin in self.allowed_origins
 
     def get_headers(self, origin: str | None = None) -> dict[str, str]:

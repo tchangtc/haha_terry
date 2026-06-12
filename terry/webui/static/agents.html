@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Agent View — Terry</title>
+<style>
+:root{--bg:#1a1a2e;--fg:#e0e0e0;--accent:#7c3aed;--row:#16213e;--hover:#1f3460}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--fg);padding:20px}
+h1{font-size:1.4em;margin-bottom:16px}
+h1 span{color:var(--accent)}
+.status{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.8em;font-weight:600}
+.running{background:#92400e;color:#fbbf24}
+.completed{background:#065f46;color:#6ee7b7}
+.failed{background:#7f1d1d;color:#fca5a5}
+.cancelled{background:#333;color:#999}
+.pending{background:#1e3a5f;color:#93c5fd}
+.btn{padding:4px 12px;border:1px solid #444;border-radius:4px;cursor:pointer;font-size:.8em;background:#222;color:#ccc}
+.btn:hover{background:#333}
+.btn.danger{color:#f87171;border-color:#7f1d1d}
+.btn.danger:hover{background:#7f1d1d}
+table{width:100%;border-collapse:collapse;margin-top:12px}
+th{text-align:left;padding:8px 12px;border-bottom:2px solid #333;color:#999;font-size:.8em;text-transform:uppercase}
+td{padding:8px 12px;border-bottom:1px solid #222;font-size:.9em}
+tr{background:var(--row)}tr:hover{background:var(--hover)}
+.stats{margin-bottom:12px;font-size:.9em;color:#999}
+.stats b{color:#fff}
+nav{margin-bottom:20px}
+nav a{color:var(--accent);text-decoration:none;margin-right:16px}
+nav a:hover{text-decoration:underline}
+</style></head><body>
+<nav><a href="/">← Chat</a> <strong>Agent View</strong></nav>
+<h1>Terry <span>Agent View</span></h1>
+<div class="stats" id="stats">Loading…</div>
+<table><thead><tr><th>ID</th><th>Description</th><th>System</th><th>Depth</th><th>Status</th><th>Actions</th></tr></thead><tbody id="tbody"></tbody></table>
+<script>
+async function fetchAgents(){
+ const r=await fetch("/api/agents");
+ const d=await r.json();
+ const tbody=document.getElementById("tbody");
+ const stats=document.getElementById("stats");
+ let running=0,completed=0,failed=0;
+ tbody.innerHTML="";
+(d.agents||[]).forEach(a=>{
+  const cls={"running":"running","completed":"completed","failed":"failed","cancelled":"cancelled","pending":"pending"}[a.status]||"";
+  if(a.status==="running")running++;else if(a.status==="completed")completed++;else if(a.status==="failed")failed++;
+  tbody.innerHTML+=`<tr><td style="color:#888;font-family:mono">${a.id.slice(0,10)}</td><td>${a.description.slice(0,60)}</td><td style="color:#888">${a.system||"-"}</td><td style="color:#888">${a.depth||0}</td><td><span class="status ${cls}">${a.status}</span></td><td><button class=btn onclick=peek("${a.id}")>Peek</button> <button class="btn danger" onclick=stop("${a.id}")>Stop</button></td></tr>`});
+ stats.innerHTML=`<b>${(d.agents||[]).length}</b> total — <span style="color:#fbbf24"><b>${running}</b> running</span> <span style="color:#6ee7b7"><b>${completed}</b> completed</span> <span style="color:#fca5a5"><b>${failed}</b> failed</span>`}
+function peek(id){fetch(`/api/agents/${id}/peek`).then(r=>r.json()).then(d=>alert(JSON.stringify(d,null,2).slice(0,1000)))}
+function stop(id){if(confirm("Stop agent "+id.slice(0,10)+"?")){fetch(`/api/agents/${id}/cancel`);setTimeout(fetchAgents,500)}}
+fetchAgents();setInterval(fetchAgents,3000);
+</script></body></html>

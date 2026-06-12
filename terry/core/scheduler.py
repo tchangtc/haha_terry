@@ -252,6 +252,25 @@ class CronScheduler:
             self._save()
         return len(to_remove)
 
+    def trigger_api(self, name: str) -> str:
+        """Trigger a routine by name (API/webhook entry point).
+
+        Returns result string or error message.
+        """
+        for task in self.tasks.values():
+            if task.get("name") == name or task.get("type") == name:
+                if task["status"] == "expired":
+                    return "Routine is expired"
+                task["run_count"] = task.get("run_count", 0) + 1
+                task["last_run"] = datetime.now().isoformat()
+                if task.get("callback"):
+                    try:
+                        return task["callback"](task["params"])
+                    except Exception as e:
+                        return f"Error: {e}"
+                return f"Routine '{name}' triggered (no callback)"
+        return f"Routine not found: {name}"
+
     def get_summary(self) -> dict[str, int]:
         """Get task count summary by status."""
         summary = {}

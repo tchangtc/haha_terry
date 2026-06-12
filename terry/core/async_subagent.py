@@ -33,6 +33,8 @@ class AsyncSubAgent:
     started_at: str = ""
     completed_at: str = ""
     parent_id: str | None = None
+    depth: int = 0
+    children: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         return {
@@ -68,6 +70,7 @@ class AsyncSubAgentManager:
         self.agent_factory = agent_factory
         self.max_concurrent = max_concurrent
         self.default_timeout = default_timeout
+        self.max_depth: int = 5
         self._agents: dict[str, AsyncSubAgent] = {}
         self._tasks: dict[str, asyncio.Task] = {}
         self._semaphore: asyncio.Semaphore | None = None
@@ -132,6 +135,29 @@ class AsyncSubAgentManager:
             pass  # registry integration is best-effort
 
         return sub_agent.id
+
+    async def spawn_child(
+        self,
+        parent_id: str,
+        prompt: str,
+        timeout: float | None = None,
+    ) -> str | None:
+        """Spawn a child sub-agent under a parent. Enforces max_depth.
+
+        Returns child agent ID or None if max depth exceeded.
+        """
+        parent = self._agents.get(parent_id)
+        if not parent:
+            raise ValueError(f"Unknown parent agent: {parent_id}")
+        child_depth = parent.depth + 1
+        if child_depth > self.max_depth:
+            return None
+        child_id = await self.spawn(prompt, timeout=timeout, parent_id=parent_id)
+        child = self._agents.get(child_id)
+        if child:
+            child.depth = child_depth
+            parent.children.append(child_id)
+        return child_id
 
     async def _run_sub_agent(self, sub_agent: AsyncSubAgent, timeout: float) -> None:
         """Run a sub-agent asynchronously."""

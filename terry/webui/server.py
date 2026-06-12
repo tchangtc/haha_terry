@@ -214,6 +214,29 @@ class WebUIServer:
                     self._json_response({"tasks": [t.to_dict() for t in tasks]})
                     return
 
+                # API: Agents list
+                if path == "/api/agents":
+                    from terry.core.background_registry import get_background_registry
+                    reg = get_background_registry()
+                    tasks = reg.list(limit=200)
+                    agents_data = []
+                    for t in tasks:
+                        agents_data.append({
+                            "id": t.id, "description": t.description[:120], "system": t.system,
+                            "status": t.status, "parent_id": t.parent_id, "depth": t.depth,
+                            "children": t.children, "error": (t.error or "")[:200],
+                            "created": t.created_at if hasattr(t, "created_at") else "",
+                        })
+                    self._json_response({"agents": agents_data, "total": len(agents_data)})
+                    return
+
+                # API: Routines
+                if path == "/api/routines":
+                    from terry.core.scheduler import CronScheduler
+                    s = CronScheduler()
+                    self._json_response({"routines": s.list_tasks()})
+                    return
+
                 # Static files
                 if path == "/" or path == "":
                     path = "/index.html"

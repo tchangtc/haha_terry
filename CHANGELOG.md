@@ -5,6 +5,43 @@ All notable changes to Terry will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2026-06-12
+
+### Added
+
+#### Dynamic Workflow Script Engine (inspired by Claude Code v2.1.154)
+- WorkflowScript Python DSL: fluent chainable API (fan_out, verify, tournament, etc.)
+- Wraps 6 existing DynamicWorkflowEngine patterns
+- /workflow CLI: load and execute user-written orchestration scripts
+
+#### Multi-tier Subagents (inspired by Claude Code v2.1.172)
+- SubAgent and AsyncSubAgent: depth, parent_id, children tracking
+- spawn_child(): recursive sub-agent spawning with max_depth=5 guard
+- BackgroundTask: parent_id and depth fields for tree visualization
+- /agents --tree CLI: hierarchical agent tree view
+
+#### Agent View Dashboard (inspired by Claude Code v2.1.139)
+- agents.html: dark-themed dashboard with 3s polling
+- /api/agents REST endpoint: structured agent list with status
+- /agents CLI: table view of all running agents
+
+#### Ultrareview — Adversarial Code Review (inspired by Claude Code v2.1.113)
+- ultrareview.py: 4-dimension review (correctness, security, performance, maintainability)
+- 3-vote adversarial verification per finding (2/3 majority required)
+- Auto-fix loop: fix → re-review until all dimensions pass
+- /ultrareview CLI command
+
+#### Routines — Webhook + API Triggers
+- CronScheduler.trigger_api(): programmatic routine triggering
+- /api/routines REST endpoint: list configured routines
+- /routine CLI: list, add, trigger, remove routines
+
+### Changed
+- Version: 0.6.0 → 0.7.0
+- Modules: 117 → 119 | LOC: ~25K → ~25.3K | CLI: 28 → 32
+
+## [0.6.0] - 2026-06-11
+
 ## [0.5.0] - 2026-06-11
 
 ### Added

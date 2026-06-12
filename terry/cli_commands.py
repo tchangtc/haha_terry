@@ -629,6 +629,115 @@ def _cmd_doctor(cmd: str, args: str | None, agent: AgentLike) -> bool:
     console.print(f"[green]{passed} passed[/green]  [yellow]{sum(1 for r in results if r.status == 'warn')} warnings[/yellow]  [red]{sum(1 for r in results if r.status == 'fail')} failed[/red]")
     return True
 
+def _cmd_workflow(cmd: str, args: str | None, agent: AgentLike) -> bool:
+    """Run a WorkflowScript. /workflow <path.py>"""
+    from pathlib import Path
+    if not args:
+        console.print("[yellow]Usage: /workflow <path.py>[/yellow]"); return True
+    path = Path(args.strip())
+    if not path.exists(): console.print(f"[red]Not found: {path}[/red]"); return True
+    ns: dict = {}
+    try: exec(path.read_text(encoding="utf-8"), ns)
+    except Exception as e: console.print(f"[red]Error: {e}[/red]"); return True
+    from .core.workflow_script import WorkflowScript
+    wf = ns.get("wf")
+    if not isinstance(wf, WorkflowScript): console.print("[red]Script must define 'wf' as WorkflowScript[/red]"); return True
+    with console.status("[green]Running..."): results = wf.run(agent_factory=lambda: agent)
+    for sid, r in results.items():
+        ok = not str(r).startswith("Error")
+        console.print(f"  {'[green]OK[/green]' if ok else '[red]FAIL[/red]'} {sid}: {str(r)[:120]}")
+    return True
+
+
+def _cmd_agents(cmd: str, args: str | None, agent: AgentLike) -> bool:
+    """Show agent dashboard. /agents [--tree]"""
+    from .core.background_registry import get_background_registry
+    tasks = get_background_registry().list(limit=100)
+    if not tasks: console.print("[yellow]No agents[/yellow]"); return True
+    from rich.table import Table
+    use_tree = args and "--tree" in args
+    if use_tree:
+        from rich.tree import Tree
+        t = Tree("[bold]Agent Tree[/bold]")
+        by_parent: dict = {}; roots = []
+        for tk in tasks:
+            tk.children = by_parent.setdefault(tk.id, [])
+            if tk.parent_id: by_parent.setdefault(tk.parent_id, []).append(tk)
+            else: roots.append(tk)
+        def _add(n, tree):
+            for c in n.children:
+                label = f"{c.id[:8]} [{c.status}] {c.description[:40]}"
+                _add(c, tree.add(label))
+        for r in roots[:10]:
+            node = t.add(f"{r.id[:8]} [{r.status}] {r.description[:40]}")
+            _add(r, node)
+        console.print(t)
+    else:
+        table = Table(title="Agents Dashboard"); table.add_column("ID"); table.add_column("Description"); table.add_column("System"); table.add_column("Depth"); table.add_column("Status")
+        for t in tasks[:50]:
+            c = {"completed":"green","running":"yellow","failed":"red","cancelled":"dim"}.get(t.status,"white")
+            table.add_row(t.id[:10], t.description[:50], t.system or "-", str(t.depth or 0), f"[{c}]{t.status}[/{c}]")
+        console.print(table)
+    running = sum(1 for t in tasks if t.status == "running")
+    console.print(f"[dim]{running} running, {len(tasks)} total[/dim]")
+    return True
+
+
+def _cmd_ultrareview(cmd: str, args: str | None, agent: AgentLike) -> bool:
+    """Adversarial code review. /ultrareview [file_path|code]"""
+    if not args: console.print("[yellow]Usage: /ultrareview <file_path|code>[/yellow]"); return True
+    from pathlib import Path
+    path = Path(args.strip())
+    if path.exists():
+        code = path.read_text(encoding="utf-8"); file_path = str(path)
+    else:
+        code = args; file_path = "<inline>"
+    from .core.ultrareview import Ultrareview
+    with console.status("[green]Reviewing..."):
+        result = Ultrareview(agent_factory=lambda: agent).review(code, file_path)
+    from rich.table import Table
+    table = Table(title="Ultrareview"); table.add_column("Dimension"); table.add_column("Score")
+    for d, s in result.scores.items():
+        c = "green" if s >= 0.8 else "yellow" if s >= 0.5 else "red"
+        table.add_row(d, f"[{c}]{s:.0%}[/{c}]")
+    console.print(table)
+    for f in result.findings:
+        icon = "✅" if f.passed else "❌"
+        c = {"critical":"red","major":"yellow","minor":"dim"}.get(f.severity,"white")
+        console.print(f"  {icon} [{c}][{f.severity.upper()}][/{c}] {f.dimension}: {f.description[:120]}")
+    if not result.passed:
+        console.print("[yellow]Auto-fixing...[/yellow]")
+        final = Ultrareview(agent_factory=lambda: agent).auto_fix(code, result)
+        console.print(f"[green]{'All issues resolved' if final.passed else 'Some issues remain'} after {final.iterations} iterations[/green]")
+    return True
+
+
+def _cmd_routine(cmd: str, args: str | None, agent: AgentLike) -> bool:
+    """Manage routines. /routine list|add|trigger|remove"""
+    from .core.scheduler import CronScheduler
+    s = CronScheduler()
+    if not args: args = "list"
+    parts = args.strip().split(maxsplit=2)
+    sub = parts[0].lower()
+    if sub == "list":
+        tasks = s.list_tasks()
+        if not tasks: console.print("[yellow]No routines[/yellow]"); return True
+        from rich.table import Table
+        t = Table(title="Routines"); t.add_column("ID"); t.add_column("Name"); t.add_column("Type"); t.add_column("Next"); t.add_column("Runs")
+        for r in tasks:
+            t.add_row(str(r.get("id","?")), r.get("name",r.get("type","?"))[:30], r.get("trigger","cron"), (r.get("next_run") or "-")[:16], str(r.get("run_count",0)))
+        console.print(t)
+    elif sub == "add" and len(parts) >= 3:
+        s.schedule(name=parts[1], task_type="routine", params={}, trigger="cron" if len(parts) < 3 else parts[2])
+        console.print(f"[green]Added: {parts[1]}[/green]")
+    elif sub == "trigger" and len(parts) >= 2:
+        r = s.trigger_api(parts[1]); console.print(f"[green]Triggered: {r[:200]}[/green]")
+    elif sub == "remove" and len(parts) >= 2:
+        s.cancel(int(parts[1])); console.print(f"[green]Removed[/green]")
+    else: console.print("[yellow]Usage: /routine list|add|trigger|remove[/yellow]")
+    return True
+
+
 def _cmd_benchmark(cmd: str, args: str | None, agent: AgentLike) -> bool:
     from .core.benchmark import BenchmarkRunner
     runner = BenchmarkRunner(agent=agent)
@@ -679,6 +788,10 @@ def register_all_commands():
     register_cli_command("/auto", _cmd_auto, "Autonomous task", "workflow")
     register_cli_command("/bg", _cmd_bg, "Background task", "workflow")
     register_cli_command("/goal", _cmd_goal, "Goal-driven autonomous loop", "workflow")
+    register_cli_command("/workflow", _cmd_workflow, "Run a workflow script (.py)", "workflow")
+    register_cli_command("/agents", _cmd_agents, "Show agent dashboard", "workflow")
+    register_cli_command("/ultrareview", _cmd_ultrareview, "Adversarial code review", "workflow")
+    register_cli_command("/routine", _cmd_routine, "Manage automated routines", "workflow")
     register_cli_command("/tasks", _cmd_tasks, "Background tasks", "workflow")
 
     register_cli_command("/reload-skills", _cmd_reload_skills, "Reload all skills", "skills", ["/reload"])

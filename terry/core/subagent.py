@@ -50,6 +50,9 @@ class SubAgent:
         self.result_queue: queue.Queue[str] = queue.Queue()
         self.status = "pending"  # pending, running, completed, failed
         self.tool_call_count = 0
+        self.parent_id: str | None = None
+        self.depth: int = 0
+        self.children: list[str] = []
 
     def start(self) -> None:
         """Start the subagent in a background thread."""
@@ -322,6 +325,32 @@ class SubAgentManager:
         self.agents: dict[str, SubAgent] = {}
         self._worktrees: dict[str, Path] = {}
         self._counter = 0
+        self.max_depth: int = 5
+
+    def spawn_child(
+        self,
+        parent_id: str,
+        prompt: str,
+        on_complete: Callable | None = None,
+        isolated: bool = True,
+    ) -> str | None:
+        """Spawn a child sub-agent under a parent. Enforces max_depth.
+
+        Returns child task_id or None if max depth exceeded.
+        """
+        parent = self.agents.get(parent_id)
+        if not parent:
+            raise ValueError(f"Unknown parent agent: {parent_id}")
+        child_depth = parent.depth + 1
+        if child_depth > self.max_depth:
+            return None  # Max depth exceeded
+        child_id = self.spawn(prompt, on_complete=on_complete, isolated=isolated)
+        child = self.agents.get(child_id)
+        if child:
+            child.parent_id = parent_id
+            child.depth = child_depth
+            parent.children.append(child_id)
+        return child_id
 
     def spawn(
         self,

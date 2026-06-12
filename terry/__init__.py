@@ -6,5 +6,5 @@ Agency comes from the model. Terry is the harness.
 
 from __future__ import annotations
 
-__version__ = "0.6.0"
+__version__ = "0.7.0"
 __author__ = "Terry Contributors"

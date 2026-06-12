@@ -38,6 +38,9 @@ class BackgroundTask:
     status: str = "pending"   # pending | running | completed | failed | cancelled
     result: str | None = None
     error: str | None = None
+    parent_id: str | None = None  # parent task for tree views
+    depth: int = 0                 # nesting depth (0 = root)
+    children: list[str] = field(default_factory=list)  # spawned child IDs
     created_at: float = field(default_factory=time.time)
     completed_at: float | None = None
 

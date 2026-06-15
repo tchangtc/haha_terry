@@ -215,9 +215,14 @@ class AutoHealer:
             return None
 
         # Try the fix command
+        # Sanitize: only allow alphanumeric, hyphens, underscores, dots, slashes, spaces
+        import re
+        safe_cmd = re.sub(r"[^a-zA-Z0-9\-_./ |]", "", fix_cmd)
+        if safe_cmd != fix_cmd:
+            return None  # Reject commands with unsafe characters
         try:
             result = subprocess.run(
-                ["/bin/sh", "-c", fix_cmd],
+                ["/bin/sh", "-c", safe_cmd],
                 cwd=self.workdir,
                 capture_output=True,
                 text=True,

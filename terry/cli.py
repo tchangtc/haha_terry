@@ -394,6 +394,7 @@ def main_callback(
         cfg.model.model = model
     if api_key:
         cfg.model.api_key = api_key
+        console.print("[yellow]⚠️  API key passed via --api-key is visible in process lists (ps aux). Prefer env vars.[/yellow]")
 
     # Check API key
     if not cfg.model.api_key:

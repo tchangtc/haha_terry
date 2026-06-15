@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import threading
 import time
 from datetime import datetime
 from pathlib import Path
@@ -262,30 +263,27 @@ def estimate_cost(model: str, input_tokens: int, output_tokens: int) -> float:
 
 # Global metrics instance
 _metrics_instance: Metrics | None = None
+_metrics_lock = threading.Lock()
 
 
 def get_metrics(metrics_dir: Path | None = None) -> Metrics:
-    """Get or create the global metrics instance.
-
-    Args:
-        metrics_dir: Optional metrics directory override
-
-    Returns:
-        Metrics instance
-    """
+    """Get or create the global metrics instance."""
     global _metrics_instance
-    if _metrics_instance is None:
-        _metrics_instance = Metrics(metrics_dir)
-    return _metrics_instance
+    with _metrics_lock:
+        if _metrics_instance is None:
+            _metrics_instance = Metrics(metrics_dir)
+        return _metrics_instance
 
 
 def set_metrics(instance: Metrics) -> None:
     """Inject a custom Metrics instance (for testing/DI)."""
     global _metrics_instance
-    _metrics_instance = instance
+    with _metrics_lock:
+        _metrics_instance = instance
 
 
 def reset_metrics() -> None:
-    """Reset metrics singleton (forces re-initialization on next get)."""
+    """Reset metrics singleton."""
     global _metrics_instance
-    _metrics_instance = None
+    with _metrics_lock:
+        _metrics_instance = None

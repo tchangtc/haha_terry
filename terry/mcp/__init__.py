@@ -63,9 +63,18 @@ class MCPClient:
             True if connected successfully
         """
         try:
-            import json
+            import json, shutil
 
-            full_args = [command] + (args or [])
+            # Validate command is a known executable on PATH
+            if "/" in command or "\\" in command:
+                # Absolute/relative path — must resolve to an existing file
+                resolved = shutil.which(command) or command
+            else:
+                resolved = shutil.which(command)
+                if not resolved:
+                    raise ValueError(f"Command not found on PATH: {command}")
+
+            full_args = [resolved] + (args or [])
             process = subprocess.Popen(
                 full_args,
                 stdin=subprocess.PIPE,

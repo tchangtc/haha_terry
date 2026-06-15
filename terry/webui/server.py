@@ -147,7 +147,16 @@ class WebUIServer:
 
                 # API: Health check
                 if path == "/api/health":
-                    self._json_response({"status": "ok", "version": __version__})
+                    agent_ready = bool(
+                        server_instance.agent_factory and
+                        server_instance.agent_factory().config.model.api_key
+                    )
+                    self._json_response({
+                        "status": "ok",
+                        "version": __version__,
+                        "ready": agent_ready,
+                        "message": "" if agent_ready else "API key not configured",
+                    })
                     return
 
                 # API: Get sessions

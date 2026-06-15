@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import re
+import threading
 from datetime import datetime
 from enum import StrEnum
 from pathlib import Path
@@ -435,26 +436,30 @@ class Memory:
 
 # Global memory instance
 _memory_instance: Memory | None = None
+_memory_lock = threading.Lock()
 
 
 def get_memory(memory_dir: Path | None = None) -> Memory:
     """Get or create the global memory instance."""
     global _memory_instance
-    if _memory_instance is None:
-        _memory_instance = Memory(memory_dir)
-    return _memory_instance
+    with _memory_lock:
+        if _memory_instance is None:
+            _memory_instance = Memory(memory_dir)
+        return _memory_instance
 
 
 def set_memory(instance: Memory) -> None:
     """Inject a custom Memory instance (for testing/DI)."""
     global _memory_instance
-    _memory_instance = instance
+    with _memory_lock:
+        _memory_instance = instance
 
 
 def reset_memory() -> None:
     """Reset memory singleton."""
     global _memory_instance
-    _memory_instance = None
+    with _memory_lock:
+        _memory_instance = None
 
 
 def _vector_search_impl(memories: dict, query: str, top_k: int = 10) -> list[dict[str, Any]]:

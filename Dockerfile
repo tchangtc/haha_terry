@@ -13,7 +13,9 @@ RUN pip install --no-cache-dir uv && \
 FROM python:3.12-slim
 WORKDIR /app
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
-COPY . .
+COPY terry/ ./terry/
+COPY skills/ ./skills/
+COPY pyproject.toml README.md ./
 
 # Create terry user for security
 RUN useradd --create-home --shell /bin/bash terry && \

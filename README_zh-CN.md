@@ -63,18 +63,17 @@ Terry 是一个可以从**任何地方**对话的 AI 编程代理——终端、
 
 ---
 
-## 30 秒上手指南
+## 快速上手
 
 ```bash
 # 终端模式
 git clone https://github.com/tchangtc/haha_terry.git && cd haha_terry
-# Or: pip install terry
-pip install -e .
+pip install -e . 2>/dev/null || pip install -r requirements.txt
 export ANTHROPIC_API_KEY="sk-ant-..."
-terry
+terry || python -m terry.cli
 
 # 网页模式（浏览器打开）
-terry webui
+python -m terry.cli webui
 
 # 桌面模式（系统托盘 + 网页界面）
 terry desktop

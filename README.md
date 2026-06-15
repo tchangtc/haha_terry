@@ -67,27 +67,32 @@ Terry is an AI coding agent you can talk to from **anywhere** — your terminal,
 
 ---
 
-## Try It in 30 Seconds
+## Quick Start
 
 Works on **Windows, macOS, Linux** — same commands everywhere.
 
 ```bash
-# Create a virtual environment (Python 3.12+ required)
+# Create a virtual environment (Python 3.11+ required)
 python3 -m venv .venv && source .venv/bin/activate
 
 # Clone and install
 git clone https://github.com/tchangtc/haha_terry.git && cd haha_terry
-pip install -e .
+pip install -e . 2>/dev/null || pip install -r requirements.txt
 
 # Set API key (Anthropic, or use DeepSeek/OpenAI — see .env.example)
 export ANTHROPIC_API_KEY="sk-ant-..."
 # 💡 Beginners: copy .env.example → .env and edit the key there
 
-# Start!
-terry
+# Start (if 'terry' is not found, use: python -m terry.cli)
+terry || python -m terry.cli
 ```
 
-**No API key?** Use free local models: `terry --provider ollama --model llama3`
+**No API key?** Try free local models via Ollama:
+```bash
+# Install Ollama: https://ollama.com/download
+ollama pull llama3
+python -m terry.cli --provider ollama --model llama3
+```
 
 ### First things to try
 

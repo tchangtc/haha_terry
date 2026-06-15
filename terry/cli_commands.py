@@ -71,6 +71,31 @@ def _cmd_help(cmd: str, args: str | None, agent: AgentLike) -> bool:
     return True
 
 
+def _cmd_save(cmd: str, args: str | None, agent: AgentLike) -> bool:
+    """Save current session. /save [name]"""
+    from datetime import datetime
+    name = args.strip() if args else datetime.now().strftime("session_%Y%m%d_%H%M%S")
+    try:
+        path = agent.save_session(name)
+        console.print(f"[green]Session saved: {path}[/green]")
+    except Exception as e:
+        console.print(f"[red]Save failed: {e}[/red]")
+    return True
+
+
+def _cmd_load(cmd: str, args: str | None, agent: AgentLike) -> bool:
+    """Load a saved session. /load <name>"""
+    if not args:
+        console.print("[yellow]Usage: /load <session_name>[/yellow]")
+        return True
+    try:
+        agent.load_session(args.strip())
+        console.print(f"[green]Session loaded: {args.strip()}[/green]")
+    except Exception as e:
+        console.print(f"[red]Load failed: {e}[/red]")
+    return True
+
+
 def _cmd_new(cmd: str, args: str | None, agent: AgentLike) -> bool:
     agent.reset()
     console.print(f"[dim]{t('status.conversation_reset')}[/dim]")
@@ -674,7 +699,8 @@ def _cmd_workflow(cmd: str, args: str | None, agent: AgentLike) -> bool:
         console.print("[yellow]Usage: /workflow <path.py>[/yellow]"); return True
     path = Path(args.strip())
     if not path.exists(): console.print(f"[red]Not found: {path}[/red]"); return True
-    ns: dict = {}
+    ns: dict = {"__builtins__": {k: v for k, v in __builtins__.items()
+                                   if k not in ("exec", "eval", "compile", "open", "__import__")}}
     try: exec(path.read_text(encoding="utf-8"), ns)
     except Exception as e: console.print(f"[red]Error: {e}[/red]"); return True
     from .core.workflow_script import WorkflowScript
@@ -801,6 +827,8 @@ def register_all_commands():
     """
     register_cli_command("/exit", _cmd_exit, "Exit Terry", "basic", ["/quit", "/q"])
     register_cli_command("/help", _cmd_help, "Show help", "basic")
+    register_cli_command("/save", _cmd_save, "Save current session", "basic")
+    register_cli_command("/load", _cmd_load, "Load a saved session", "basic")
     register_cli_command("/new", _cmd_new, "New conversation", "basic")
     register_cli_command("/model", _cmd_model, "Show model", "basic")
     register_cli_command("/tools", _cmd_tools, "List tools", "basic")

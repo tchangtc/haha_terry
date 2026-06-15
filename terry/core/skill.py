@@ -236,7 +236,8 @@ class SkillWatcher:
                         cur = sf.stat().st_mtime
                         if self._last_mtimes.get(sf, 0) < cur: self._last_mtimes[sf] = cur; changed = True
                 if changed and self._on_change: self._on_change()
-            except Exception: pass
+            except Exception:
+                logger.debug("Skill watcher poll error", exc_info=True)
             time.sleep(self.POLL_INTERVAL)
 
 # Global skill manager instance

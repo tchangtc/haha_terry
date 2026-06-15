@@ -466,17 +466,22 @@ def run_repl(agent: Agent):
         readline.set_history_length(1000)
         atexit.register(lambda: readline.write_history_file(str(history_file)))
 
-    # Setup tab completion for commands
-    commands_list = [
-        "/help", "/exit", "/new", "/model", "/mode", "/tools", "/context",
-        "/language", "/save", "/load", "/skills", "/skill", "/activate",
-        "/deactivate", "/reload-skills", "/undo", "/checkpoints", "/plan",
-        "/config", "/permissions", "/fork", "/stream", "/repomap", "/search",
-        "/benchmark", "/replay", "/workflow", "/curator", "/tasks",
-    ]
+    # Dynamic tab completion from CommandRegistry (no hardcoded list)
     if _readline_available:
+        def _get_commands():
+            try:
+                from terry.cli_commands import cli_registry
+                cmds = set()
+                for cmd_name in cli_registry._commands:
+                    cmds.add(cmd_name)
+                return sorted(cmds)
+            except Exception:
+                return ["/help", "/exit", "/new", "/model", "/tools", "/context",
+                        "/mode", "/doctor", "/effort", "/goal", "/plan", "/config",
+                        "/tasks", "/agents", "/save", "/load", "/undo", "/checkpoints"]
+
         def completer(text, state):
-            options = [c for c in commands_list if c.startswith(text)]
+            options = [c for c in _get_commands() if c.startswith(text)]
             if state < len(options):
                 return options[state]
             return None

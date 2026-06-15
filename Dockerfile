@@ -6,9 +6,7 @@
 FROM python:3.12-slim AS builder
 WORKDIR /app
 COPY pyproject.toml ./
-RUN pip install --no-cache-dir uv && \
-    uv pip install --system --no-cache -e ".[dev]" || \
-    pip install --no-cache-dir anthropic openai httpx python-dotenv rich typer pyyaml tiktoken
+RUN pip install --no-cache-dir anthropic openai httpx python-dotenv rich typer pyyaml tiktoken
 
 FROM python:3.12-slim
 WORKDIR /app

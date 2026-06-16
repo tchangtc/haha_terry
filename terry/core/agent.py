@@ -378,6 +378,18 @@ class Agent:
             task_context = self.task_manager.to_tool_format()
             if task_context:
                 prompt += "\n\n" + task_context
+
+        # Re-inject compacted session context from Memory
+        if self.memory:
+            try:
+                compacts = self.memory.get_by_type("session_compact")[:3]
+                if compacts:
+                    ctx = "\n".join(m.get("content", "")[:500] for m in compacts[:3])
+                    if ctx.strip():
+                        prompt += "\n\n## Recent Context (recovered from compaction)\n" + ctx
+            except Exception:
+                pass
+
         return prompt
 
     def run(self, user_message: str, use_cache: bool = True,
@@ -458,7 +470,7 @@ class Agent:
                 self.logger.info("Compacting context", message_count=len(self.messages))
                 if self.metrics:
                     self.metrics.increment("context_compactions")
-                self.messages = self.compactor.compact(self.messages, self.llm)
+                self.messages = self.compactor.compact(self.messages, self.llm, memory=self.memory)
 
             # LLM call — clear tool context so display shows "thinking" phase
             _progress("llm_call", iteration=iteration, tool_name="", tool_detail="")

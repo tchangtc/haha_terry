@@ -269,27 +269,96 @@ class ContextCompactor:
     # ── public compact() entry point ───────────────────────────────
 
     def compact(
-        self, messages: list[dict[str, Any]], llm_client: Any = None
+        self, messages: list[dict[str, Any]], llm_client: Any = None,
+        memory: Any = None,
     ) -> list[dict[str, Any]]:
-        """Apply progressive compaction: budget → snip → micro → auto."""
-        # Layer 1: Budget (persist large outputs)
+        """Apply progressive compaction: budget → snip → micro → auto.
+
+        Before irreversible compaction (Snip/Micro/Auto), extracts key facts
+        from messages about to be removed and persists them to Memory.
+        This prevents context window compression from silently losing
+        critical information in long conversations.
+        """
+        # Layer 1: Budget (persist large outputs — reversible, no loss)
         messages = self._budget_compact(messages)
         if not self.needs_compaction(messages):
             return messages
 
-        # Layer 2: Snip (trim middle)
+        # Memory savepoint: persist key facts before Snip removes messages
+        if memory is not None and len(messages) > self.SNIP_HEAD + self.SNIP_TAIL:
+            try:
+                middle = messages[self.SNIP_HEAD:-self.SNIP_TAIL]
+                self._memory_savepoint(middle, memory)
+            except Exception:
+                pass  # Memory integration is best-effort
+
+        # Layer 2: Snip (trim middle — IRREVERSIBLE)
         messages = self._snip_compact(messages)
         if not self.needs_compaction(messages):
             return messages
 
-        # Layer 3: Micro (terse tool results)
+        # Layer 3: Micro (terse tool results — IRREVERSIBLE)
         messages = self._micro_compact(messages)
         if not self.needs_compaction(messages):
             return messages
 
-        # Layer 4: Auto (LLM summarization)
+        # Layer 4: Auto (LLM summarization — IRREVERSIBLE)
         messages = self._auto_compact(messages, llm_client)
         return messages
+
+    def _memory_savepoint(self, messages: list[dict[str, Any]], memory: Any) -> None:
+        """Extract key facts from messages about to be compacted.
+
+        Saves structured summaries as MemoryType.SESSION_COMPACT entries
+        so critical context survives compaction.
+        """
+        import json, time
+        facts = []
+        for msg in messages:
+            content = str(msg.get("content", ""))
+            role = msg.get("role", "unknown")
+            # Extract lines that contain code, errors, decisions, or file paths
+            for line in content.split("\n"):
+                line = line.strip()
+                if not line or len(line) < 10:
+                    continue
+                # Key signal: errors, file changes, decisions
+                if any(kw in line.lower() for kw in (
+                    "error", "exception", "traceback", "failed", "fixed",
+                    "write_file", "edit_file", "created", "modified", "deleted",
+                    "decision", "decided", "should", "must", "important",
+                    ".py:", ".js:", ".ts:", ".md:",  # file references
+                )):
+                    facts.append(f"[{role}] {line[:200]}")
+                # Tool results
+                if role in ("tool", "assistant") and len(line) > 50:
+                    facts.append(f"[{role}] {line[:200]}")
+
+        if facts:
+            # Deduplicate and limit
+            seen = set()
+            unique = []
+            for f in facts:
+                key = f[:80]
+                if key not in seen:
+                    seen.add(key)
+                    unique.append(f)
+                    if len(unique) >= 20:
+                        break
+
+            timestamp = int(time.time())
+            content = "\n".join(unique)
+            try:
+                memory.add(
+                    name=f"session-compact-{timestamp}",
+                    content=f"# Context Snapshot ({timestamp})\n\n{content}",
+                    memory_type="SESSION_COMPACT",
+                    description=f"Auto-saved context from session compaction at {timestamp}",
+                    tags=["auto", "compaction", "session"],
+                )
+                logger.info("Memory savepoint: %d facts saved", len(unique))
+            except Exception:
+                logger.debug("Memory savepoint failed", exc_info=True)
 
     # ── Layer 1: Budget ────────────────────────────────────────────
 

@@ -24,6 +24,7 @@ class MemoryType(StrEnum):
     PROJECT = "project"     # Project context, goals, constraints
     REFERENCE = "reference" # External resources (URLs, docs, tickets)
     NOTE = "note"           # General notes
+    SESSION_COMPACT = "session_compact"  # Auto-saved context from compaction
 
 
 class Memory:

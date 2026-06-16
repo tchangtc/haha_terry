@@ -127,6 +127,7 @@ class LLMClient:
                     if chunk.choices and chunk.choices[0].delta.content:
                         yield chunk.choices[0].delta.content
         except Exception:
+            logger.debug("Unexpected error in llm.py", exc_info=True)
             # Fallback: non-streaming
             response = self.chat(messages, system, tools, max_tokens)
             from .text_utils import extract_text

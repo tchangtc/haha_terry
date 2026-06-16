@@ -478,6 +478,7 @@ class Agent:
                             agent_response=result,
                         )
                     except Exception:
+                        logger.debug("Unexpected error in agent.py", exc_info=True)
                         self.logger.debug(
                             "Skill auto-creation skipped", exc_info=True
                         )
@@ -603,6 +604,7 @@ class Agent:
                                 import json
                                 inp = json.loads(tc.get("function", {}).get("arguments", "{}"))
                             except Exception:
+                                logger.debug("Unexpected error in agent.py", exc_info=True)
                                 inp = {}
                 if not name:
                     continue
@@ -721,6 +723,7 @@ class Agent:
                             f"\n### @file:{mvalue}\n```\n{preview}\n```\n"
                         )
                     except Exception:
+                        logger.debug("Unexpected error in agent.py", exc_info=True)
                         context_parts.append(f"\n*(Could not read @file:{mvalue})*\n")
 
             elif mtype == "symbol":
@@ -738,6 +741,7 @@ class Agent:
                             if s.get("signature"):
                                 context_parts.append(f"  ```{s['signature']}```\n")
                 except Exception:
+                    logger.debug("Unexpected error in agent.py", exc_info=True)
                     context_parts.append(f"\n*(Could not resolve @symbol:{mvalue})*\n")
 
             elif mtype == "git":
@@ -754,6 +758,7 @@ class Agent:
                             f"\n### @git:{mvalue}\n```\n{result.stdout.strip()}\n```\n"
                         )
                 except Exception:
+                    logger.debug("Unexpected error in agent.py", exc_info=True)
                     pass
 
         if len(context_parts) > 1:
@@ -858,6 +863,7 @@ class Agent:
                     self.llm.reconfigure(new_config.model)
                     applied.append(field)
                 except Exception:
+                    logger.debug("Unexpected error in agent.py", exc_info=True)
                     self.logger.warning("Failed to reconfigure LLM", field=field)
             elif field in ("compression_threshold", "max_input_tokens"):
                 try:
@@ -867,6 +873,7 @@ class Agent:
                         self.compactor.reconfigure(threshold=threshold, max_tokens=max_tok)
                     applied.append(field)
                 except Exception:
+                    logger.debug("Unexpected error in agent.py", exc_info=True)
                     self.logger.warning("Failed to reconfigure compactor", field=field)
             elif field == "sandbox_mode":
                 self.set_mode(new_config.sandbox_mode)

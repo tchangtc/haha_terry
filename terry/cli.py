@@ -317,6 +317,19 @@ class ProgressDisplay:
             # Clear any leftover sub-line from a previous frame
             sys.stderr.write("\n\r\033[K\033[F")
 
+        # Show task progress if a plan is active
+        try:
+            from terry.core.task_manager import TaskManager
+            tm = TaskManager()
+            if tm.load() and tm.is_active():
+                prog = tm.progress_str()
+                if prog:
+                    current = tm.get_next_ready()
+                    detail = current.description[:60] if current else ""
+                    sys.stderr.write(f"\n\r\033[K  {prog}  {detail}\033[F")
+        except Exception:
+            pass
+
         sys.stderr.flush()
 
     # ── Helpers ────────────────────────────────────────────────────

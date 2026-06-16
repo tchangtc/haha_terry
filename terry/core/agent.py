@@ -124,6 +124,13 @@ class Agent:
 
         # Discover and register tools
         discover_tools()
+
+        # Register task_update tool (needs agent reference for TaskManager access)
+        from ..tools.task_update import register as register_task_update
+        register_task_update(agent=self)
+        from ..tools.slash_command import register as register_slash_command
+        register_slash_command(agent=self)
+
         self.tools = tool_registry
         self.logger.info(f"Registered {len(self.tools.list_tools())} tools")
 
@@ -252,6 +259,11 @@ class Agent:
             self.skill_auto_creator.llm_client = self.llm
         self.logger.info("Advanced subsystems initialized via AgentSubsystems")
 
+        # Unified task manager — bridges Planner + TodoWrite + TaskDAG
+        from .task_manager import TaskManager
+        self.task_manager = TaskManager()
+        self.task_manager.load()  # Restore from disk if available
+
         # Feedback + Store + Telemetry (small, keep inline)
         from .feedback import FeedbackCollector
         from .feedback import set_feedback_collector as _set_fc
@@ -353,7 +365,7 @@ class Agent:
     def build_system_prompt(self) -> str:
         """Build comprehensive system prompt with context."""
         from .agent_prompts import build_system_prompt
-        return build_system_prompt(
+        prompt = build_system_prompt(
             workdir=str(self.workdir),
             tools=self.tools.list_tools(),
             active_skill=self.active_skill,
@@ -361,6 +373,12 @@ class Agent:
             memory=self.memory,
             session=self.session,
         )
+        # Inject active task plan if present
+        if self.task_manager and self.task_manager.is_active():
+            task_context = self.task_manager.to_tool_format()
+            if task_context:
+                prompt += "\n\n" + task_context
+        return prompt
 
     def run(self, user_message: str, use_cache: bool = True,
             on_progress: Callable[[str, dict], None] | None = None) -> str:
@@ -491,6 +509,14 @@ class Agent:
 
             # Execute tool calls
             results = self._execute_tools(response["content"])
+
+            # Auto-advance task plan if task_manager is active
+            if self.task_manager and self.task_manager.is_active():
+                current_task = self.task_manager.get_next_ready()
+                if current_task:
+                    # Mark as in_progress on first tool call
+                    if current_task.status == "pending":
+                        self.task_manager.mark(current_task.id, "in_progress")
 
             # Add tool results to history
             self.messages.append({"role": "user", "content": results})

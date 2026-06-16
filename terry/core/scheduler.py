@@ -2,6 +2,12 @@
 
 Supports cron-style scheduling with persistence, task history,
 and heartbeat-based recovery for 24/7 autonomous operation.
+
+Trigger types:
+  - cron: time-based scheduling (cron expressions or intervals)
+  - webhook: triggered by external HTTP POST
+  - api: triggered programmatically via trigger_api()
+  - conditional: triggered when a condition is met (CI failure, file change, etc.)
 """
 
 from __future__ import annotations
@@ -11,10 +17,18 @@ import threading
 import time
 from collections.abc import Callable
 from datetime import datetime, timedelta
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
 from .platform_utils import get_terry_dir
+
+
+class TriggerType(StrEnum):
+    CRON = "cron"
+    WEBHOOK = "webhook"
+    API = "api"
+    CONDITIONAL = "conditional"
 
 
 class CronScheduler:
@@ -270,6 +284,54 @@ class CronScheduler:
                         return f"Error: {e}"
                 return f"Routine '{name}' triggered (no callback)"
         return f"Routine not found: {name}"
+
+    def handle_webhook(self, name: str, payload: dict | None = None) -> str:
+        """Handle an incoming webhook trigger by routine name.
+
+        Looks up routines with trigger='webhook' matching the name and
+        executes their callbacks with the webhook payload as context.
+        """
+        for task in self.tasks.values():
+            if task.get("trigger") == "webhook" and task.get("name") == name:
+                if task["status"] == "expired":
+                    return "Routine is expired"
+                task["run_count"] = task.get("run_count", 0) + 1
+                task["last_run"] = datetime.now().isoformat()
+                if task.get("callback"):
+                    try:
+                        params = {**(task.get("params", {})), **(payload or {})}
+                        return task["callback"](params)
+                    except Exception as e:
+                        return f"Error: {e}"
+                return f"Webhook '{name}' handled (no callback)"
+        return f"No webhook routine found: {name}"
+
+    def schedule_conditional(
+        self,
+        name: str,
+        condition: str,
+        params: dict[str, Any] | None = None,
+        callback: Callable | None = None,
+    ) -> int:
+        """Schedule a conditional routine (triggered on-demand, not by time).
+
+        Args:
+            name: Routine name.
+            condition: Human-readable condition description.
+            params: Parameters to pass to the callback.
+            callback: Function to call when triggered.
+
+        Returns:
+            Task ID.
+        """
+        return self.schedule(
+            name=name,
+            task_type="conditional_routine",
+            params=params or {},
+            trigger="conditional",
+            trigger_config={"condition": condition},
+            callback=callback,
+        )
 
     def get_summary(self) -> dict[str, int]:
         """Get task count summary by status."""

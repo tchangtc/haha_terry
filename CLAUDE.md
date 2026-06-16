@@ -3,8 +3,9 @@
 > **Agency comes from the model. Terry is the harness.**
 >
 > Terry is an AI coding agent supporting Terminal · Web · Desktop · Mobile interfaces.  
-> Version: **v0.7.0** | Python 3.11+ | MIT License | 119 modules | 27 tools | ~25,300 LOC
+> Version: **v0.8.0** | Python 3.11+ | MIT License | 124 modules | 27 tools | ~26,400 LOC
 >
+> **v0.8.0**: Agentic Task Loop, session teleportation, skill marketplace
 > **v0.7.0**: workflow scripts, multi-tier subagents, Agent View, ultrareview
 > **v0.6.0**: 1M context window, effort levels, auto classifier, /doctor diagnostics
 > **v0.5.0**: Interactive Rewind UI, settings hot-reload, background task management, `/goal` autonomous loop.
@@ -327,7 +328,7 @@ python -m pytest tests/ -k "not e2e"
 - **Ultrareview**: `ultrareview.py` — 4-dimension adversarial code review with 3-vote verification and auto-fix loop. `/ultrareview` CLI.
 - **Routines**: `CronScheduler.trigger_api()` with webhook and API trigger support. `/routine` CLI and `/api/routines` endpoint.
 - **CLI expansion**: 32 commands (was 23 in v0.4.0) — added across v0.5-v0.7: `/bg`, `/goal`, `/effort`, `/doctor`, `/agents`, `/ultrareview`, `/routine`, `/workflow`, `/reload-skills`
-- ~25,300 LOC across 119 modules, 27 tools, ~1,100 test assertions
+- ~26,400 LOC across 124 modules, 27 tools, ~1,100 test assertions
 
 ---
 

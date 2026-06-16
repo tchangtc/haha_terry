@@ -2,7 +2,7 @@
   "name": "terry-vscode",
   "displayName": "Terry AI Agent",
   "description": "AI coding agent for VS Code \u2014 chat, edit, and automate your workflow",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "publisher": "terry-ai",
   "license": "MIT",
   "icon": "icon.png",

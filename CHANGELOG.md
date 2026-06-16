@@ -5,6 +5,37 @@ All notable changes to Terry will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2026-06-16
+
+### Added
+
+#### Agentic Task Loop
+- TaskManager: unified plan execution with automatic progress tracking
+- task_update tool: LLM can mark tasks as completed/in_progress/failed
+- System prompt injection shows active plan progress
+- ProgressDisplay shows task completion bar in CLI
+- /plan auto-creates structured task lists from Planner output
+
+#### Session Teleportation
+- teleport.py: export sessions to portable .tar.gz archives
+- /teleport export|import commands for cross-machine session migration
+- api_key excluded from exports for security
+
+#### Skill Marketplace
+- skill_registry.py: community skill discovery from remote index
+- /skill-market search|install|update|list commands
+
+#### Slash Command Tool
+- slash_command.py: LLM can invoke registered CLI commands
+- Safety filter blocks /exit, /mode, /bash from LLM access
+
+#### Routines — Conditional Triggers
+- TriggerType enum: cron, webhook, api, conditional
+- handle_webhook() and schedule_conditional() methods
+
+### Changed
+- Modules: 119 → 124 | CLI: 32 → 36 | LOC: ~25.3K → ~26.4K
+
 ## [0.7.0] - 2026-06-12
 
 ### Added

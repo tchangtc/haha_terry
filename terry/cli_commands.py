@@ -284,6 +284,13 @@ def _cmd_plan(cmd: str, args: str | None, agent: AgentLike) -> bool:
         plan = agent.planner.create_plan(args, [t.name for t in agent.tools.list_tools()], str(agent.workdir))
         agent.plan = plan
         console.print(Panel(Markdown(agent.planner.format_plan(plan)), title="Plan", border_style="blue"))
+
+        # Feed plan steps into TaskManager for automatic execution tracking
+        if hasattr(agent, "task_manager") and agent.task_manager:
+            steps = [s.get("description", "") for s in plan.get("steps", [])]
+            if steps:
+                agent.task_manager.create_plan(args, steps, [t.name for t in agent.tools.list_tools()])
+                console.print(f"\n[dim]Task plan created with {len(steps)} steps. Agent will auto-track progress.[/dim]")
     else:
         console.print("[yellow]Planner not enabled. Start Terry with --planner flag.[/yellow]")
     return True
@@ -449,6 +456,60 @@ def _cmd_auto(cmd: str, args: str | None, agent: AgentLike) -> bool:
 # ── Skills & Memory ────────────────────────────────────────────────
 
 
+def _cmd_skill_market(cmd: str, args: str | None, agent: AgentLike) -> bool:
+    """Browse community skill marketplace. /skill-market search|install|list [query]"""
+    from .core.skill_registry import SkillRegistry
+
+    if not args:
+        console.print("[yellow]Usage: /skill-market search <query> | install <name> | list[/yellow]")
+        return True
+
+    parts = args.strip().split(maxsplit=1)
+    sub = parts[0].lower()
+    sub_args = parts[1] if len(parts) > 1 else ""
+
+    registry = SkillRegistry()
+
+    if sub == "search" or sub == "list":
+        results = registry.search(sub_args) if sub == "search" else registry.list_remote()
+        if not results:
+            console.print("[yellow]No skills found. The community registry may be empty or unreachable.[/yellow]")
+            return True
+        from rich.table import Table
+        table = Table(title="Skill Marketplace")
+        table.add_column("Name", style="bold cyan")
+        table.add_column("Description")
+        table.add_column("Author")
+        table.add_column("Version")
+        for s in results[:20]:
+            table.add_row(s.name, s.description[:60], s.author or "-", s.version or "-")
+        console.print(table)
+    elif sub == "install":
+        name = sub_args.strip()
+        if not name:
+            console.print("[yellow]Usage: /skill-market install <name>[/yellow]")
+            return True
+        if registry.install(name):
+            console.print(f"[green]Skill installed: {name}[/green]")
+            if agent.skill_manager:
+                agent.skill_manager.reload()
+                console.print("[dim]Skills reloaded.[/dim]")
+        else:
+            console.print(f"[red]Failed to install: {name}[/red]")
+    elif sub == "update":
+        name = sub_args.strip()
+        if not name:
+            console.print("[yellow]Usage: /skill-market update <name>[/yellow]")
+            return True
+        if registry.update(name):
+            console.print(f"[green]Skill updated: {name}[/green]")
+        else:
+            console.print(f"[red]Failed to update: {name}[/red]")
+    else:
+        console.print("[yellow]Usage: /skill-market search|install|update|list[/yellow]")
+    return True
+
+
 def _cmd_reload_skills(cmd: str, args: str | None, agent: AgentLike) -> bool:
     if agent.skill_manager:
         agent.skill_manager.reload()
@@ -519,6 +580,18 @@ def _cmd_tasks(cmd: str, args: str | None, agent: AgentLike) -> bool:
 def _cmd_tasks_list(cmd: str, args: str | None, agent: AgentLike) -> bool:
     """List background tasks, optionally filtered by status."""
     from .core.background_registry import get_background_registry
+
+    # Show active plan progress if TaskManager is active
+    if hasattr(agent, "task_manager") and agent.task_manager and agent.task_manager.is_active():
+        tm = agent.task_manager
+        prog = tm.progress_str()
+        console.print(f"\n[bold]Active Plan:[/bold] {tm._goal[:80]}")
+        console.print(f"  {prog}")
+        for t in tm.to_list():
+            icon = {"pending": "⬜", "in_progress": "🔄", "completed": "✅",
+                    "failed": "❌", "blocked": "🔒"}.get(t["status"], "❓")
+            console.print(f"  {icon} {t['description'][:80]}")
+        console.print()
 
     filter_status = args.strip() if args else None
     tasks = get_background_registry().list(status=filter_status if filter_status else None)
@@ -776,6 +849,39 @@ def _cmd_ultrareview(cmd: str, args: str | None, agent: AgentLike) -> bool:
     return True
 
 
+def _cmd_teleport(cmd: str, args: str | None, agent: AgentLike) -> bool:
+    """Export or import session state. /teleport export [name] | import <file>"""
+    from .core.teleport import TeleportExporter, TeleportImporter
+
+    if not args:
+        console.print("[yellow]Usage: /teleport export [name] | /teleport import <file>[/yellow]")
+        return True
+
+    parts = args.strip().split(maxsplit=1)
+    sub = parts[0].lower()
+    sub_args = parts[1] if len(parts) > 1 else ""
+
+    if sub == "export":
+        exporter = TeleportExporter()
+        path = exporter.export(agent, sub_args)
+        console.print(f"[green]Session exported: {path}[/green]")
+    elif sub == "import":
+        if not sub_args:
+            console.print("[yellow]Usage: /teleport import <file>[/yellow]")
+            return True
+        importer = TeleportImporter()
+        result = importer.import_archive(agent, Path(sub_args.strip()))
+        if result["restored"]:
+            console.print(f"[green]Session restored: {result['messages']} messages, {result['checkpoints']} checkpoints[/green]")
+        else:
+            console.print(f"[red]Import failed: {result.get('error', 'Unknown error')}[/red]")
+        for w in result.get("warnings", []):
+            console.print(f"[yellow]Warning: {w}[/yellow]")
+    else:
+        console.print("[yellow]Usage: /teleport export [name] | /teleport import <file>[/yellow]")
+    return True
+
+
 def _cmd_routine(cmd: str, args: str | None, agent: AgentLike) -> bool:
     """Manage routines. /routine list|add|trigger|remove"""
     from .core.scheduler import CronScheduler
@@ -858,8 +964,10 @@ def register_all_commands():
     register_cli_command("/agents", _cmd_agents, "Show agent dashboard", "workflow")
     register_cli_command("/ultrareview", _cmd_ultrareview, "Adversarial code review", "workflow")
     register_cli_command("/routine", _cmd_routine, "Manage automated routines", "workflow")
+    register_cli_command("/teleport", _cmd_teleport, "Export or import session state", "workflow")
     register_cli_command("/tasks", _cmd_tasks, "Background tasks", "workflow")
 
+    register_cli_command("/skill-market", _cmd_skill_market, "Browse community skill marketplace", "skills")
     register_cli_command("/reload-skills", _cmd_reload_skills, "Reload all skills", "skills", ["/reload"])
     register_cli_command("/auto-skills", _cmd_auto_skills, "Auto skills", "skills")
     register_cli_command("/curator", _cmd_curator, "Skills curator", "skills")

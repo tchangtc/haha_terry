@@ -470,7 +470,10 @@ class Agent:
                 self.logger.info("Compacting context", message_count=len(self.messages))
                 if self.metrics:
                     self.metrics.increment("context_compactions")
-                self.messages = self.compactor.compact(self.messages, self.llm, memory=self.memory)
+                self.messages = self.compactor.compact(
+                    self.messages, self.llm, memory=self.memory,
+                    on_warning=lambda msg: _progress("compaction", message=msg) if on_progress else None,
+                )
 
             # LLM call — clear tool context so display shows "thinking" phase
             _progress("llm_call", iteration=iteration, tool_name="", tool_detail="")

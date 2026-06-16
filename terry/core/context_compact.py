@@ -1,4 +1,4 @@
-"""4-layer context compaction system — cheap first, expensive last.
+"""4-layer progressive context compaction — inspired by opencode + hermes-agent.
 
 Layers (executed in order before each LLM call):
   1. Budget  — persist large (>50K) tool outputs to disk, replace with [stored] marker
@@ -6,7 +6,13 @@ Layers (executed in order before each LLM call):
   3. Micro   — compress old tool results into terse [tool:name → result_summary] format
   4. Auto    — LLM-assisted summarization of oldest messages
 
-Design: Each layer is independent and idempotent. Execute 1→4 sequentially.
+Design principles (from industry leaders):
+  - Observable: compaction events emit warnings so users know context was compressed
+  - Pluggable: hooks allow customization of compaction prompts (opencode pattern)
+  - Safe: feasibility checks before Layer 4 prevent wasted LLM calls (hermes-agent pattern)
+  - Memory-aware: auto-saves critical facts to Memory before irreversible compression
+
+Each layer is independent and idempotent. Execute 1→4 sequentially.
 If layer N brings context below threshold, skip layers N+1..4.
 """
 
@@ -14,6 +20,8 @@ from __future__ import annotations
 
 import hashlib
 import logging
+from collections.abc import Callable
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -179,6 +187,26 @@ def get_model_context_window(provider: str, model: str) -> int:
     return 1_000_000  # Default to 1M for modern models
 
 
+@dataclass
+class CompactionEvent:
+    """Emitted before and after compaction — inspired by opencode's plugin hook."""
+    layer: str = ""            # "budget" | "snip" | "micro" | "auto"
+    before_count: int = 0      # messages before compaction
+    after_count: int = 0       # messages after compaction
+    tokens_saved: int = 0      # estimated tokens freed
+    custom_prompt: str = ""    # plugin can override Layer 4 prompt
+    warnings: list[str] = field(default_factory=list)
+
+
+# Global hook registry for compaction events
+_compaction_hooks: list[Callable[[CompactionEvent], None]] = []
+
+
+def register_compaction_hook(hook: Callable[[CompactionEvent], None]) -> None:
+    """Register a callback invoked before each compaction layer."""
+    _compaction_hooks.append(hook)
+
+
 class ContextCompactor:
     """4-layer progressive context compaction with precise token counting."""
 
@@ -270,21 +298,45 @@ class ContextCompactor:
 
     def compact(
         self, messages: list[dict[str, Any]], llm_client: Any = None,
-        memory: Any = None,
+        memory: Any = None, on_warning: Callable[[str], None] | None = None,
     ) -> list[dict[str, Any]]:
         """Apply progressive compaction: budget → snip → micro → auto.
 
-        Before irreversible compaction (Snip/Micro/Auto), extracts key facts
-        from messages about to be removed and persists them to Memory.
-        This prevents context window compression from silently losing
-        critical information in long conversations.
+        Before irreversible compaction, persists key facts to Memory and
+        emits observable warnings so users know context was compressed.
+
+        Args:
+            messages: Current conversation messages.
+            llm_client: LLM client for Layer 4 auto-summarization.
+            memory: Optional Memory instance for auto-savepoints.
+            on_warning: Optional callback for user-visible compaction notifications.
         """
-        # Layer 1: Budget (persist large outputs — reversible, no loss)
+        before_count = len(messages)
+        before_tokens = self.estimate_tokens(messages)
+
+        # Layer 1: Budget (reversible — no data loss)
         messages = self._budget_compact(messages)
         if not self.needs_compaction(messages):
             return messages
 
-        # Memory savepoint: persist key facts before Snip removes messages
+        # Emit compaction event to registered hooks (opencode pattern)
+        event = CompactionEvent(
+            layer="snip",
+            before_count=before_count,
+            after_count=len(messages),
+            tokens_saved=max(0, before_tokens - self.estimate_tokens(messages)),
+        )
+        for hook in _compaction_hooks:
+            try: hook(event)
+            except Exception: pass
+
+        if on_warning:
+            on_warning(
+                f"Context window at {before_tokens:,}/{self.max_tokens:,} tokens "
+                f"({before_tokens/self.max_tokens:.0%}). Compacting to preserve context."
+            )
+
+        # Memory savepoint: persist key facts before Snip (hermes-agent pattern)
         if memory is not None and len(messages) > self.SNIP_HEAD + self.SNIP_TAIL:
             try:
                 middle = messages[self.SNIP_HEAD:-self.SNIP_TAIL]
@@ -292,17 +344,23 @@ class ContextCompactor:
             except Exception:
                 pass  # Memory integration is best-effort
 
-        # Layer 2: Snip (trim middle — IRREVERSIBLE)
+        # Layer 2: Snip (IRREVERSIBLE)
         messages = self._snip_compact(messages)
         if not self.needs_compaction(messages):
             return messages
 
-        # Layer 3: Micro (terse tool results — IRREVERSIBLE)
+        # Layer 3: Micro (IRREVERSIBLE)
         messages = self._micro_compact(messages)
         if not self.needs_compaction(messages):
             return messages
 
-        # Layer 4: Auto (LLM summarization — IRREVERSIBLE)
+        # Layer 4: Auto — only if LLM is available (hermes-agent feasibility check)
+        if llm_client is None:
+            logger.warning("Layer 4 (Auto) skipped: no LLM client available")
+            if on_warning:
+                on_warning("Auto-compaction skipped (no LLM). Some context may be lost.")
+            return messages
+
         messages = self._auto_compact(messages, llm_client)
         return messages
 

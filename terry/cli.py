@@ -670,5 +670,20 @@ def init_cmd(path: str = typer.Argument(".", help="Project path")):
     console.print(f"[green]Created config: {config_path}[/green]")
 
 
+@app.command("tui")
+def tui_cmd():
+    """Start Terry with the Textual TUI (modern terminal interface)."""
+    try:
+        from terry.tui.app import run_tui
+        cfg = TerryConfig.load()
+        cfg.model.api_key = cfg.model.api_key or os.environ.get("ANTHROPIC_API_KEY", "")
+        from terry.core.agent import Agent
+        agent = Agent(config=cfg)
+        run_tui(agent=agent)
+    except ImportError:
+        console.print("[red]Textual is not installed. Run: pip install textual[/red]")
+        console.print("[dim]Falling back to REPL mode. Use 'terry' for the classic interface.[/dim]")
+
+
 if __name__ == "__main__":
     app()

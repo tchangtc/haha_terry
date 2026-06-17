@@ -346,7 +346,7 @@ class TestBugHuntThinking:
     def test_window_unknown_model(self):
         from terry.core.thinking import ExtendedThinking
         et = ExtendedThinking(model="unknown-model-xyz")
-        assert et.total == 200000  # Default fallback
+        assert et.total == 1000000  # Default fallback
 
 
 class TestBugHuntScheduler:

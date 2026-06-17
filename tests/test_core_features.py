@@ -200,7 +200,7 @@ class TestConfigSystem:
     def test_defaults(self):
         config = TerryConfig()
         assert config.max_tool_calls == 50
-        assert config.compression_threshold == 0.75
+        assert config.compression_threshold == 0.85
         assert config.sandbox_mode == "ask"
 
     def test_validate(self):

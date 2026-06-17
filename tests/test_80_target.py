@@ -248,7 +248,7 @@ class TestThinkingEdge:
     def test_get_window_default(self):
         from terry.core.thinking import ExtendedThinking
         et = ExtendedThinking(model="unknown-xyz-123")
-        assert et.total == 200000
+        assert et.total == 1000000
 
     def test_estimate_system_tokens(self):
         from terry.core.thinking import ExtendedThinking

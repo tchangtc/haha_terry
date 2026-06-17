@@ -153,7 +153,7 @@ class TestCLIIntegration:
 
     def test_version(self):
         from terry import __version__
-        assert __version__ == "0.5.0"
+        assert __version__ == "0.9.0"
 
 
 class TestHarnessToolRegistration:

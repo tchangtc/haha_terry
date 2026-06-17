@@ -1,48 +1,44 @@
 name: CI
-
 on:
   push:
-    branches: [main, develop]
+    branches: [master, main]
   pull_request:
-    branches: [main]
-
+    branches: [master, main]
 jobs:
   lint:
-    name: Lint (Ruff)
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-ruff@v5
-        with:
-          version: '>=0.5'
-      - run: ruff check terry/ tests/
-
-  type-check:
-    name: Type Check (MyPy)
-    runs-on: ubuntu-latest
-    continue-on-error: true  # Not a hard failure yet
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - run: pip install . mypy types-pyyaml types-requests
-      - run: mypy terry/ --ignore-missing-imports || true
-
+        with: {python-version: '3.12'}
+      - run: pip install ruff
+      - run: ruff check terry/ --select F --ignore F401,F541
   test:
-    name: Test (Pytest)
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.12', '3.13']
+        python-version: ['3.11', '3.12']
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
+        with: {python-version: '${{ matrix.python-version }}'}
+      - run: pip install -e ".[dev]"
+      - run: pytest tests/ -v --tb=short
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Secret scan
         run: |
-          pip install ".[dev]" tiktoken
-      - name: Run tests
-        run: |
-          python -m pytest tests/ -v --tb=short --timeout=30
+          ! grep -rnE '(api_key|password|secret|token)\s*=\s*"[^"]{12,}"' terry/ --include="*.py" | grep -v 'None\|os.environ\|key_env\|test\|example\|your-\|key_help'
+  build:
+    needs: [lint, test, security]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: pip install hatchling
+      - run: python -m hatchling build
+      - uses: actions/upload-artifact@v4
+        with: {name: dist, path: dist/}

@@ -62,8 +62,8 @@ def post_process(agent: Any, user_message: str, response_text: str, start_time: 
     if agent.knowledge_graph:
         _track_knowledge(agent, user_message, response_text)
 
-    # Skill auto-creation
-    if agent.skill_auto_creator:
+    # Skill auto-creation — guard against differing SkillAutoCreator backends
+    if agent.skill_auto_creator and hasattr(agent.skill_auto_creator, "analyze_conversation"):
         suggestion = agent.skill_auto_creator.analyze_conversation(user_message, response_text)
         if suggestion and suggestion.get("confidence", 0) >= 0.7:
             agent.skill_auto_creator.create_skill(suggestion, response_text)

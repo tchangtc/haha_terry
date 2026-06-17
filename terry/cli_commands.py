@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from rich.console import Console
 
 from .core.typing_protocols import AgentLike
@@ -32,42 +34,42 @@ def _cmd_exit(cmd: str, args: str | None, agent: AgentLike) -> bool:
 
 
 def _cmd_help(cmd: str, args: str | None, agent: AgentLike) -> bool:
-    console.print(Panel(
-        f"[bold]Basics[/bold]\n"
-        f"/help       - Show this help\n"
-        f"/exit       - Exit Terry\n"
-        f"/new        - Reset conversation\n"
-        f"/model      - Show current model\n"
-        f"/tools      - List available tools\n"
-        f"/context    - Show context usage\n"
-        f"/save /load - Save and restore sessions\n\n"
-        f"[bold]Safety & Control[/bold]\n"
-        f"/mode <ask|auto|deny> - Set sandbox mode\n"
-        f"/permissions - View permission rules\n"
-        f"/undo [<id>] - Undo changes with preview\n"
-        f"/checkpoints - Browse/restore/delete snapshots\n"
-        f"/plan <task> - Plan before executing\n"
-        f"/config [reload] - Show or hot-reload config\n\n"
-        f"[bold]Diagnostics[/bold]\n"
-        f"/doctor      - Run full system health check\n"
-        f"/effort <low|medium|high|xhigh> - Set effort level\n\n"
-        f"[bold]Skills[/bold]\n"
-        f"/skills /activate /deactivate /reload-skills\n\n"
-        f"[bold]Workflow & Automation[/bold]\n"
-        f"/goal <objective> - Autonomous goal-driven loop\n"
-        f"/wfd <goal> <pattern> - Dynamic multi-agent workflow\n"
-        f"/workflow <script.py> - Run a Python workflow script\n"
-        f"/bg <task> - Fire-and-forget background task\n"
-        f"/tasks [list|peek|cancel] - Monitor background tasks\n"
-        f"/agents [--tree] - Agent dashboard\n"
-        f"/auto <task> - Submit autonomous task\n"
-        f"/routine [list|add|trigger] - Manage routines\n\n"
-        f"[bold]Review & Search[/bold]\n"
-        f"/ultrareview <file> - Multi-dimension code review\n"
-        f"/benchmark - Run evaluation suites\n"
-        f"/search /replay /fork /stream",
-        title="Help — Terry v{}".format(__import__('terry').__version__),
-    ))
+    help_text = (
+        "[bold]Basics[/bold]\n"
+        "/help       - Show this help\n"
+        "/exit       - Exit Terry\n"
+        "/new        - Reset conversation\n"
+        "/model      - Show current model\n"
+        "/tools      - List available tools\n"
+        "/context    - Show context usage\n"
+        "/save /load - Save and restore sessions\n\n"
+        "[bold]Safety & Control[/bold]\n"
+        "/mode <ask|auto|deny> - Set sandbox mode\n"
+        "/permissions - View permission rules\n"
+        "/undo [<id>] - Undo changes with preview\n"
+        "/checkpoints - Browse/restore/delete snapshots\n"
+        "/plan <task> - Plan before executing\n"
+        "/config [reload] - Show or hot-reload config\n\n"
+        "[bold]Diagnostics[/bold]\n"
+        "/doctor      - Run full system health check\n"
+        "/effort <low|medium|high|xhigh> - Set effort level\n\n"
+        "[bold]Skills[/bold]\n"
+        "/skills /activate /deactivate /reload-skills\n\n"
+        "[bold]Workflow & Automation[/bold]\n"
+        "/goal <objective> - Autonomous goal-driven loop\n"
+        "/wfd <goal> <pattern> - Dynamic multi-agent workflow\n"
+        "/workflow <script.py> - Run a Python workflow script\n"
+        "/bg <task> - Fire-and-forget background task\n"
+        "/tasks [list|peek|cancel] - Monitor background tasks\n"
+        "/agents [--tree] - Agent dashboard\n"
+        "/auto <task> - Submit autonomous task\n"
+        "/routine [list|add|trigger] - Manage routines\n\n"
+        "[bold]Review & Search[/bold]\n"
+        "/ultrareview <file> - Multi-dimension code review\n"
+        "/benchmark - Run evaluation suites\n"
+        "/search /replay /fork /stream"
+    )
+    console.print(Panel(help_text, title=f"Help — Terry v{__import__('terry').__version__}"))
     return True
 
 

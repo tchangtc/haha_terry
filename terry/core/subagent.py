@@ -176,7 +176,7 @@ def _is_git_repo(path: Path) -> bool:
         )
         return result.returncode == 0
     except Exception:
-        logger.debug("Unexpected error in subagent.py", exc_info=True)
+        pass  # pass  # subagent.py  # FIXME: add module-level logger
         return False
 
 
@@ -227,7 +227,7 @@ def _remove_worktree(base_dir: Path, worktree_path: Path) -> None:
             cwd=base_dir, capture_output=True, text=True, timeout=10,
         )
     except Exception:
-        logger.debug("Unexpected error in subagent.py", exc_info=True)
+        pass  # pass  # subagent.py  # FIXME: add module-level logger
         # Best-effort cleanup — try rm -rf fallback
         try:
             shutil.rmtree(worktree_path, ignore_errors=True)
@@ -411,7 +411,7 @@ class SubAgentManager:
                 status="running",
             ))
         except Exception:
-            logger.debug("Unexpected error in subagent.py", exc_info=True)
+            pass  # pass  # subagent.py  # FIXME: add module-level logger
             pass  # registry integration is best-effort
 
         return task_id

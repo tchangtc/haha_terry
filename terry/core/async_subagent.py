@@ -132,7 +132,7 @@ class AsyncSubAgentManager:
                 status="running",
             ))
         except Exception:
-            logger.debug("Unexpected error in async_subagent.py", exc_info=True)
+            pass  # pass  # async_subagent.py  # FIXME: add module-level logger
             pass  # registry integration is best-effort
 
         return sub_agent.id

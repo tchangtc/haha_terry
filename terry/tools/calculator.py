@@ -111,9 +111,6 @@ class CalculatorTool(BaseTool):
                 return node.value
             raise ValueError(f"Unsupported constant type: {type(node.value).__name__}")
 
-        elif isinstance(node, ast.Num):  # Python < 3.8 compatibility
-            return node.n
-
         elif isinstance(node, ast.UnaryOp):
             op = self._safe_operators.get(type(node.op))
             if op is None:

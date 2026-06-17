@@ -56,7 +56,7 @@ class ModelConfig:
     api_key: str | None = None
     base_url: str | None = None
     temperature: float = 0.7
-    max_tokens: int = 64000
+    max_tokens: int = 128000
 
     def resolve(self):
         """Fill in missing fields from provider registry."""

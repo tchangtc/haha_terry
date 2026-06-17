@@ -19,7 +19,6 @@ import logging
 import time
 import uuid
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import Any
 
 from .platform_utils import get_terry_dir
@@ -218,7 +217,7 @@ class TaskManager:
     def _save(self) -> None:
         """Persist task state to disk."""
         try:
-            path = get_terry_dir(self.STORAGE_FILE)
+            path = get_terry_dir() / self.STORAGE_FILE
             data = {
                 "goal": self._goal,
                 "active": self._active,
@@ -231,7 +230,7 @@ class TaskManager:
     def load(self) -> bool:
         """Restore task state from disk. Returns True if state was loaded."""
         try:
-            path = get_terry_dir(self.STORAGE_FILE)
+            path = get_terry_dir() / self.STORAGE_FILE
             if not path.exists():
                 return False
             data = json.loads(path.read_text(encoding="utf-8"))

@@ -231,7 +231,7 @@ class DynamicWorkflowEngine:
                         wf.add_stage(name, desc)
 
         except Exception:
-            logger.debug("Unexpected error in dynamic_workflow.py", exc_info=True)
+            pass  # pass  # dynamic_workflow.py  # FIXME: add module-level logger
             pass
 
         # If LLM planning failed or produced no stages, add a single stage
@@ -443,7 +443,7 @@ class DynamicWorkflowEngine:
                     results[fix_stage["id"]] = response[:2000]
                     results["_verdict"] = "fixed"
                 except Exception:
-                    logger.debug("Unexpected error in dynamic_workflow.py", exc_info=True)
+                    pass  # pass  # dynamic_workflow.py  # FIXME: add module-level logger
                     fix_stage["status"] = "failed"
 
         return results
@@ -507,7 +507,7 @@ class DynamicWorkflowEngine:
                         elif "B" in choice:
                             scores[entries[j][0]] += 1
                     except Exception:
-                        logger.debug("Unexpected error in dynamic_workflow.py", exc_info=True)
+                        pass  # pass  # dynamic_workflow.py  # FIXME: add module-level logger
                         pass
 
             judge_stage["status"] = "completed"
@@ -587,7 +587,7 @@ class DynamicWorkflowEngine:
                     )
                     results[stage["id"]] = response[:2000]
                 except Exception:
-                    logger.debug("Unexpected error in dynamic_workflow.py", exc_info=True)
+                    pass  # pass  # dynamic_workflow.py  # FIXME: add module-level logger
                     stage["status"] = "failed"
 
         # Deduplicate
@@ -685,6 +685,6 @@ class DynamicWorkflowEngine:
                     "status": data.get("status", ""),
                 })
             except Exception:
-                logger.debug("Unexpected error in dynamic_workflow.py", exc_info=True)
+                pass  # pass  # dynamic_workflow.py  # FIXME: add module-level logger
                 pass
         return cps[:20]

@@ -83,7 +83,10 @@ class AutoModeClassifier:
 
     @staticmethod
     def _make_identifier(tool_name: str, args: dict[str, Any]) -> str:
-        if tool_name == "bash": return f"bash:{args.get("command", "")[:80]}"
+        if tool_name == "bash":
+            cmd = args.get("command", "")
+            return f"bash:{cmd[:80]}"
         elif tool_name in ("read_file", "write_file", "edit_file", "multi_edit"):
-            return f"{tool_name}:{args.get("path", args.get("file_path", ""))}"
+            p = args.get("path", args.get("file_path", ""))
+            return f"{tool_name}:{p}"
         return f"{tool_name}:{str(args)[:80]}"

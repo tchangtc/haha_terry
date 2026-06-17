@@ -17,14 +17,13 @@ Layout:
 
 from __future__ import annotations
 
-import asyncio
 from datetime import datetime
 from typing import Any
 
 from textual.app import App, ComposeResult
 from textual.containers import Container, Horizontal, Vertical, VerticalScroll
 from textual.reactive import reactive
-from textual.widgets import Footer, Header as TextualHeader, Input, Label, Static
+from textual.widgets import Footer, Header as TextualHeader, Input, Static
 
 from terry.core.theme import TerryTheme
 

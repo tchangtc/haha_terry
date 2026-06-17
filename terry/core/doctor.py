@@ -36,7 +36,7 @@ class Doctor:
         try:
             issues = self.agent.config.validate()
             if not issues: return [CheckResult("config", "pass", "Configuration is valid")]
-            return [CheckResult("config", "warn", f"{len(issues)} issue(s): {"; ".join(issues[:3])}")]
+            return [CheckResult("config", "warn", f"{len(issues)} issue(s): {'; '.join(issues[:3])}")]
         except Exception as e: return [CheckResult("config", "fail", str(e))]
 
     def _check_llm(self) -> list[CheckResult]:

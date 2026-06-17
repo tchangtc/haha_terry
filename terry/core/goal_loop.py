@@ -135,6 +135,7 @@ class GoalLoop:
                 })
 
             # a. Generate or refine using the main agent
+            eval_result: dict[str, Any] = {}
             if iteration == 1:
                 prompt = self._build_generation_prompt(goal, criteria)
             else:

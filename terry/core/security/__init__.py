@@ -97,6 +97,8 @@ class RequestValidator:
 
     @classmethod
     def validate_prompt(cls, prompt: str) -> tuple[bool, str]:
+        if prompt is None:
+            raise ValueError("prompt must not be None")
         if len(prompt) > cls.MAX_PROMPT_LENGTH:
             return False, f"Prompt too long: {len(prompt)} > {cls.MAX_PROMPT_LENGTH} characters"
         prompt_lower = prompt.lower()
@@ -125,7 +127,7 @@ class APIKeyAuth:
         self.api_key = api_key
 
     def is_enabled(self) -> bool:
-        return self.api_key is not None
+        return self.api_key is not None and self.api_key != ""
 
     def validate(self, provided_key: str | None) -> bool:
         if not self.is_enabled():

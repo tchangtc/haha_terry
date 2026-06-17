@@ -7,10 +7,10 @@
   <a href="https://github.com/tchangtc/haha_terry/actions"><img src="https://img.shields.io/badge/CI-passing-brightgreen.svg" alt="CI"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
   <a href="#"><img src="https://img.shields.io/badge/python-3.12+-green.svg" alt="Python"></a>
-  <a href="#"><img src="https://img.shields.io/badge/version-0.8.0-orange.svg" alt="Version"></a>
+  <a href="#"><img src="https://img.shields.io/badge/version-0.9.0-orange.svg" alt="Version"></a>
   <a href="#"><img src="https://img.shields.io/badge/tests-1089%20assertions-brightgreen.svg" alt="Tests"></a>
   <a href="#"><img src="https://img.shields.io/badge/tools-27-blue.svg" alt="Tools"></a>
-  <a href="#"><img src="https://img.shields.io/badge/modules-124-orange.svg" alt="Modules"></a>
+  <a href="#"><img src="https://img.shields.io/badge/modules-127-orange.svg" alt="Modules"></a>
   <a href="#"><img src="https://img.shields.io/badge/ruff-0%20issues-green.svg" alt="Ruff"></a>
   <a href="#"><img src="https://img.shields.io/badge/CLI-✅-purple.svg" alt="CLI"></a>
   <a href="#"><img src="https://img.shields.io/badge/WebUI-✅-purple.svg" alt="WebUI"></a>
@@ -32,6 +32,7 @@
 
 **2026-06**
 
+- **v0.9.0** — **設計系統** 統一配色體系。**Textual TUI** 多面板佈局與 Vim 鍵位。**語音模式** Web Speech API。**WebUI** 程式碼高亮與動畫。
 - **v0.8.0** — **Agentic Task Loop** 自動規劃執行與進度追蹤。**Session Teleportation** 跨機器會話遷移。**Skill Marketplace** 社群技能市場。**Slash Command 工具** LLM 驅動 CLI 互動。
 - **v0.7.0** — **Workflow Script DSL** Python 流式 API。**多層子代理** 5 級遞迴。**Agent View** 儀表板即時監控。**Ultrareview** 4 維度對抗審查。**Routines** Webhook + API 觸發。
 - **v0.6.0** — **1M 上下文視窗**。**Effort 等級** (`/effort low|medium|high|xhigh`)。**Auto 模式分類器** 智慧權限。**`/doctor` 診斷** 7 項檢查。

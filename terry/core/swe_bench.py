@@ -13,6 +13,8 @@ from __future__ import annotations
 import json
 import time
 from datetime import datetime
+
+from terry import __version__
 from pathlib import Path
 from typing import Any
 
@@ -449,7 +451,7 @@ class SWEBenchRunner:
             },
             {
                 "rank": "—",
-                "agent": "**Terry v0.5.0**",
+                "agent": f"**Terry v{__version__}**",
                 "swe_bench_verified": self.generate_report()["pass_rate"],
                 "source": "This run",
             },

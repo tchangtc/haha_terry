@@ -3,7 +3,7 @@
 > **Agency comes from the model. Terry is the harness.**
 >
 > Terry is an AI coding agent supporting Terminal · Web · Desktop · Mobile interfaces.  
-> Version: **v1.0.0** | Python 3.11+ | MIT License | 127 modules | 27 tools | ~26,900 LOC
+> Version: **v1.0.0** | Python 3.11+ | MIT License | 127 modules | 29 tools | ~26,900 LOC
 >
 > **v1.0.0**: GA release — stable API, documentation, community governance
 > **v0.9.0**: design system, Textual TUI, voice mode, WebUI polish
@@ -36,7 +36,7 @@ haha_terry/
 ├── terry/                          # Main package
 │   ├── __init__.py                  # v0.3.0
 │   ├── cli.py                       # CLI entry point (332 lines, refactored from 884)
-│   ├── cli_commands.py              # CLI command handlers (32 commands in 6 categories)
+│   ├── cli_commands.py              # CLI command handlers (36 commands in 6 categories)
 │   ├── desktop.py                   # Desktop tray app (136 lines)
 │   ├── i18n.py                      # Internationalization
 │   │
@@ -130,7 +130,7 @@ haha_terry/
 │   └── locale/                      # i18n resources
 │
 ├── skills/                          # 📦 Bundled skills (marketplace)
-├── tests/                           # 🧪 22 test files, 634+ passing
+├── tests/                           # 🧪 23 test files, 1,189 assertions
 ├── vscode-extension/                # VS Code extension (TypeScript)
 ├── mobile/                          # Mobile app (TWA + iOS WKWebView)
 ├── deploy/                          # Deployment guides (containerd, K8s)
@@ -165,7 +165,7 @@ True async via `httpx.AsyncClient` + `asyncio`, NOT `run_in_executor()` wrapping
 
 ### 2. CLI Refactoring (884 → 332 lines)
 Split `cli.py` into command definition (`cli_commands.py`) + routing (`cli.py`).  
-**Pattern**: CommandRegistry with 32 commands in 6 categories (basic, safety, planning, search, workflow, skills).  
+**Pattern**: CommandRegistry with 36 commands in 6 categories (basic, safety, planning, search, workflow, skills).  
 **Why**: Single-file CLI was unmaintainable with 48 commands in elif chains.
 
 ### 3. Agent.run() Slimmed (→ 99 lines)
@@ -262,7 +262,7 @@ pip install hatchling && python -m hatchling build  # Build wheel
 ## Testing Strategy
 
 ### Test Structure
-- **22 test files** under `tests/`, targeting 80%+ coverage
+- **23 test files** under `tests/`, targeting 80%+ coverage
 - `test_core_full.py` — Core agent functionality (44 tests)
 - `test_comprehensive.py` — Broad integration tests (67 tests)
 - `test_coverage.py` — Targeted coverage tests (78 tests)
@@ -322,15 +322,16 @@ python -m pytest tests/ -k "not e2e"
 
 ---
 
-## Current Focus (v0.7.0)
+## Current Focus (v1.0.0)
 
-- **Workflow Script DSL**: `workflow_script.py` — fluent Python API wrapping 6 DynamicWorkflowEngine patterns. `/workflow` CLI.
-- **Multi-tier Subagents**: `SubAgent`/`AsyncSubAgent` with depth tracking, `spawn_child()` and max_depth=5 guard. `/agents --tree` CLI.
-- **Agent View Dashboard**: `agents.html` — dark-themed dashboard with 3s polling. `/api/agents` REST endpoint and `/agents` CLI.
-- **Ultrareview**: `ultrareview.py` — 4-dimension adversarial code review with 3-vote verification and auto-fix loop. `/ultrareview` CLI.
-- **Routines**: `CronScheduler.trigger_api()` with webhook and API trigger support. `/routine` CLI and `/api/routines` endpoint.
-- **CLI expansion**: 32 commands (was 23 in v0.4.0) — added across v0.5-v0.7: `/bg`, `/goal`, `/effort`, `/doctor`, `/agents`, `/ultrareview`, `/routine`, `/workflow`, `/reload-skills`
-- ~26,900 LOC across 127 modules, 27 tools, ~1,100 test assertions
+- **GA Release**: stable API, `pip install terry`, community governance model, CI/CD pipeline
+- **Documentation**: full documentation suite, 3-language README sync, CHANGELOG versioning policy
+- **Code Quality**: 0 hardcoded versions (single-source from `__version__`), semver validation in tests
+- **Test Suite**: 23 test files, 1,189 assertions, validate.py format checks
+- **Security**: runtime security middleware (RateLimiter, RequestValidator, SecurityMiddleware)
+- **CLI**: 36 commands across 6 categories
+
+- ~26,900 LOC across 127 modules, 29 tools, ~1,189 test assertions
 
 ---
 

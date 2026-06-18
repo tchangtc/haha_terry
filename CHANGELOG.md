@@ -5,7 +5,61 @@ All notable changes to Terry will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.9.0] - 2026-06-16
+## [1.0.1] - 2026-06-18
+
+### Fixed
+- 4 hardcoded version references eliminated, unified to single-source `__version__`
+  - `terry/tui/app.py`: `v0.9.0` → `import terry; terry.__version__`
+  - `tests/test_coverage.py`: `"0.5.0"` → `__version__`
+  - `tests/test_new_modules.py`: `== "0.9.0"` → semver regex
+  - `terry/core/swe_bench.py`: `"v0.5.0"` → `f"v{__version__}"`
+- `test_version()`: semver regex supporting pre-release/build suffixes (was `isdigit()`)
+- `validate.py`: added `__version__` format validation
+- `pyproject.toml`: Development Status classifier 3 (Alpha) → 5 (Production/Stable)
+- `terry/tui/__init__.py`: added missing `from __future__ import annotations`
+
+### Documentation
+- `CHANGELOG.md`: added missing `[1.0.0]` section, filled empty `[0.6.0]` (30 lines), corrected v0.1.0/v0.9.0 dates to match git tags
+- `CLAUDE.md`: corrected stale statistics (tools 27→29, CLI 32→36, tests 22→23, updated Current Focus)
+- `CHANGELOG.md`: codified commit message convention (version number in every commit)
+
+## [1.0.0] - 2026-06-18
+
+### Added
+
+#### GA Release
+- Stable public API with semantic versioning policy (Major.Minor.Patch)
+- `pip install terry` distribution via PyPI
+- CI/CD pipeline (GitHub Actions): lint, test (3.11/3.12), security scan, build
+- Community governance model (CONTRIBUTING.md, Code of Conduct)
+- PyPI classifier: Production/Stable (upgraded from Alpha)
+
+#### Single-Source Version
+- All version references unified to single `__version__` in `terry/__init__.py`
+- Zero hardcoded version strings in codebase (eliminated 4 instances: TUI, tests, SWE-bench)
+- Semver validation in `test_version()` with regex supporting pre-release/build suffixes
+- `validate.py` now asserts `__version__` format is valid semver
+
+#### Documentation
+- Full three-language README sync (EN, 简体中文, 繁體中文)
+- CHANGELOG.md versioning policy codified (Major/Minor/Patch per semver.org)
+- RUNTIME_SECURITY.md updated for v1.0.0
+- CLAUDE.md stats updated: 29 tools, 36 CLI commands, 23 test files
+
+### Changed
+- Modules: 124 → 127 | CLI: 32 → 36 | Tools: 27 → 29 | Tests: 22 → 23
+- `pyproject.toml`: Development Status classifier 3 (Alpha) → 5 (Production/Stable)
+- `terry/tui/app.py`: hardcoded `v0.9.0` → `import terry; terry.__version__`
+- Model limits: `max_tokens` 8K → 128K, `max_input_tokens` 200K → 1M
+
+### Fixed
+- 4 hardcoded version strings eliminated (TUI header, test_coverage, test_new_modules, swe_bench)
+- Test assertions made version-independent (semantic check instead of exact match)
+- All Python files now have `from __future__ import annotations` (127/127)
+- VSCode extension settings: version constraints updated for v1.0.0
+- CI test matrix: Python 3.11 + 3.12 compatibility verified
+
+## [0.9.0] - 2026-06-17
 
 ### Added
 - Terry Design System: unified color palette across CLI, TUI, and WebUI
@@ -80,6 +134,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modules: 117 → 119 | LOC: ~25K → ~25.3K | CLI: 28 → 32
 
 ## [0.6.0] - 2026-06-11
+
+### Added
+
+#### Context Window Expansion (inspired by Claude Code v2.1.x)
+- `max_input_tokens`: 200K → 1M (5x improvement)
+- `compression_threshold`: 0.75 → 0.85, delays compaction on large codebases
+- `model.max_tokens`: 8K → 64K (8x improvement)
+- Fallback values updated across config, context_compact, thinking
+
+#### Effort Level System
+- `EFFORT_CONFIG` mapping: low / medium / high / xhigh with model + thinking + max_tokens per level
+- `Agent.set_effort()`: runtime effort changes without config reload
+- `/effort` CLI command with validation and rich output
+
+#### Auto Mode Smart Classifier
+- `auto_classifier.py` (158 lines): heuristic trust scoring for permission decisions
+- Dimensions: tool risk weight, danger keywords, path safety, session memory
+- Integrated into permission_hook between deny list and destructive gate
+
+#### /doctor Diagnostic Command
+- `doctor.py` (217 lines): 7-dimension health check
+- Rich table output with pass / warn / fail color coding
+- `/doctor` CLI command
+- Dimensions: API key, Python version, dependencies, config, tools, disk, network
+
+#### Skill System Upgrade
+- `SkillWatcher`: polling-based hot reload (3s interval)
+- `reload_skills` alias fix (was broken in v0.5.0)
+- `/reload-skills` CLI command
+
+### Changed
+- Version: 0.5.0 → 0.6.0
+- Modules: 115 → 117 | LOC: ~24.5K → ~25K | CLI: 25 → 28
 
 ## [0.5.0] - 2026-06-11
 
@@ -229,7 +316,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - LLM providers: 4 → 6+ (added Zhipu GLM, Qwen, custom adapters)
 - README: Three-language support (EN/zh-CN/zh-TW)
 
-## [0.1.0] - 2026-06-05
+## [0.1.0] - 2026-06-06
 
 ### Added
 
@@ -343,14 +430,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
-- Task dependency graph
-- Background task execution
-- More tools (browser automation, database queries)
+- Coverage push: test webui/server.py (428 lines), server/async_server.py (439 lines), server/gateways/ (475 lines)
+- Reduce 232 broad `except Exception` catches to specific exception types
+- Address 21 FIXME markers (module-level logger) across checkpoint, dynamic_workflow, error_recovery
 - Plugin system for third-party extensions
-- Web UI interface
-- MCP protocol support
-- Streaming response support
-- Async agent loop
+- Browser automation and database query tools
+- Comprehensive end-to-end tests with mock LLM responses
 
 ---
 
@@ -361,6 +446,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Major (X.0.0)**: Breaking changes
 - **Minor (0.X.0)**: New features, backward compatible
 - **Patch (0.0.X)**: Bug fixes, backward compatible
+
+### Commit Message Convention (v1.0.0+)
+
+Every commit message must include the version number:
+```
+vX.Y.Z: <type>: <description>
+
+- file1: change
+- file2: change
+```
+Types: `fix:` (patch), `feat:` (minor), `BREAKING:` (major).
+Always bump version numbers before committing. Organize and review all changes before commit & push.
 
 ### Release Notes
 

@@ -79,6 +79,15 @@ def check_imports():
             print(f"   ❌ {module_name}.{attr}: {e}")
             return False
 
+    # Validate __version__ is valid semver
+    import re
+    from terry import __version__
+    semver_re = re.compile(r'^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$')
+    if not semver_re.match(__version__):
+        print(f"   ❌ terry.__version__ = '{__version__}' is not valid semver (X.Y.Z)")
+        return False
+    print(f"   ✅ terry.__version__ = {__version__} (valid semver)")
+
     return True
 
 

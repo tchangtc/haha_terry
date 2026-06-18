@@ -152,8 +152,16 @@ class TestCLIIntegration:
         assert essential <= commands
 
     def test_version(self):
+        import re
         from terry import __version__
-        assert __version__ == "0.9.0"
+        # Semantic semver check: allows pre-release (-alpha.1, -rc1) and build (+sha123) suffixes.
+        # Follows CHANGELOG.md versioning policy: Major.Minor.Patch per semver.org.
+        semver_re = re.compile(r'^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$')
+        assert semver_re.match(__version__), (
+            f"Version '{__version__}' is not valid semver. "
+            f"Expected format: X.Y.Z (e.g., 1.0.0, 1.0.1rc1, 1.0.0-alpha.1+build). "
+            f"See CHANGELOG.md versioning policy."
+        )
 
 
 class TestHarnessToolRegistration:

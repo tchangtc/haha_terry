@@ -25,6 +25,7 @@ from textual.containers import Container, Horizontal, Vertical, VerticalScroll
 from textual.reactive import reactive
 from textual.widgets import Footer, Header as TextualHeader, Input, Static
 
+import terry
 from terry.core.theme import TerryTheme
 
 
@@ -146,7 +147,7 @@ class TerryTUI(App):
         """Build the TUI layout."""
         # Header
         yield Static(
-            f"[bold {TerryTheme.PRIMARY}]Terry v0.9.0[/] │ "
+            f"[bold {TerryTheme.PRIMARY}]Terry v{terry.__version__}[/] │ "
             f"[{TerryTheme.TEXT_SECONDARY}]Ctrl+O focus │ /help │ /plan[/]",
             id="header",
         )

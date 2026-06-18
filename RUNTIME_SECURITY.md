@@ -2,7 +2,7 @@
 
 ## Overview
 
-Terry v0.9.0 includes comprehensive runtime security protections to prevent DDoS attacks, injection attacks, and unauthorized access when deployed in production environments.
+Terry v1.0.0 includes comprehensive runtime security protections to prevent DDoS attacks, injection attacks, and unauthorized access when deployed in production environments.
 
 ## Security Components
 

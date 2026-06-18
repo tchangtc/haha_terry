@@ -7,7 +7,7 @@
   <a href="https://github.com/tchangtc/haha_terry/actions"><img src="https://img.shields.io/badge/CI-passing-brightgreen.svg" alt="CI"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
   <a href="#"><img src="https://img.shields.io/badge/python-3.12+-green.svg" alt="Python"></a>
-  <a href="#"><img src="https://img.shields.io/badge/version-0.9.0-orange.svg" alt="Version"></a>
+  <a href="#"><img src="https://img.shields.io/badge/version-1.0.0-orange.svg" alt="Version"></a>
   <a href="#"><img src="https://img.shields.io/badge/tests-1089%20assertions-brightgreen.svg" alt="Tests"></a>
   <a href="#"><img src="https://img.shields.io/badge/tools-27-blue.svg" alt="Tools"></a>
   <a href="#"><img src="https://img.shields.io/badge/modules-127-orange.svg" alt="Modules"></a>
@@ -36,6 +36,7 @@
 
 **2026-06**
 
+- **v1.0.0** — **GA Release** — stable API, `pip install terry`, community governance, CI/CD pipeline, 128K output, full documentation.
 - **v0.9.0** — **Design System** with unified color palette. **Textual TUI** with multi-panel layout and Vim keybindings. **Voice Mode** via Web Speech API. **WebUI** code highlighting and animations.
 - **v0.8.0** — **Agentic Task Loop** with automatic plan execution and progress tracking. **Session Teleportation** for cross-machine migration. **Skill Marketplace** for community skill discovery. **Slash Command tool** for LLM-driven CLI interaction.
 - **v0.7.0** — **Workflow Script DSL** with fluent Python API. **Multi-tier subagents** with 5-level depth. **Agent View** dashboard with live monitoring. **Ultrareview** 4-dimension adversarial code review. **Routines** with webhook and API triggers.

@@ -7,7 +7,7 @@
   <a href="https://github.com/tchangtc/haha_terry/actions"><img src="https://img.shields.io/badge/CI-passing-brightgreen.svg" alt="CI"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
   <a href="#"><img src="https://img.shields.io/badge/python-3.12+-green.svg" alt="Python"></a>
-  <a href="#"><img src="https://img.shields.io/badge/version-0.9.0-orange.svg" alt="Version"></a>
+  <a href="#"><img src="https://img.shields.io/badge/version-1.0.0-orange.svg" alt="Version"></a>
   <a href="#"><img src="https://img.shields.io/badge/tests-1089%20assertions-brightgreen.svg" alt="Tests"></a>
   <a href="#"><img src="https://img.shields.io/badge/tools-27-blue.svg" alt="Tools"></a>
   <a href="#"><img src="https://img.shields.io/badge/modules-127-orange.svg" alt="Modules"></a>
@@ -32,6 +32,7 @@
 
 **2026-06**
 
+- **v1.0.0** — **GA 发布** — 稳定 API、`pip install terry`、社区治理、CI/CD、128K 输出、完整文档。
 - **v0.9.0** — **设计系统** 统一配色体系。**Textual TUI** 多面板布局与 Vim 键位。**语音模式** Web Speech API。**WebUI** 代码高亮与动画。
 - **v0.8.0** — **Agentic Task Loop** 自动规划执行与进度追踪。**Session Teleportation** 跨机器会话迁移。**Skill Marketplace** 社区技能市场。**Slash Command 工具** LLM 驱动 CLI 交互。
 - **v0.7.0** — **Workflow Script DSL** Python 流式 API。**多层子代理** 5 级递归。**Agent View** 仪表盘实时监控。**Ultrareview** 4 维度对抗审查。**Routines** Webhook + API 触发。

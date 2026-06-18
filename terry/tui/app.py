@@ -23,7 +23,7 @@ from typing import Any
 from textual.app import App, ComposeResult
 from textual.containers import Container, Horizontal, Vertical, VerticalScroll
 from textual.reactive import reactive
-from textual.widgets import Footer, Header as TextualHeader, Input, Static
+from textual.widgets import Footer, Input, Static
 
 import terry
 from terry.core.theme import TerryTheme

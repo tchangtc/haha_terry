@@ -14,6 +14,7 @@ Resume: interrupted workflows persist state to disk and can resume from checkpoi
 from __future__ import annotations
 
 import json
+import logging
 import threading
 import uuid
 from collections.abc import Callable
@@ -23,6 +24,8 @@ from pathlib import Path
 from typing import Any
 
 from .platform_utils import get_terry_dir
+
+logger = logging.getLogger(__name__)
 
 
 class WorkflowPattern(StrEnum):
@@ -231,8 +234,7 @@ class DynamicWorkflowEngine:
                         wf.add_stage(name, desc)
 
         except Exception:
-            pass  # pass  # dynamic_workflow.py  # FIXME: add module-level logger
-            pass
+            logger.warning("Failed to plan workflow stages via LLM", exc_info=True)
 
         # If LLM planning failed or produced no stages, add a single stage
         if not wf.stages:
@@ -443,7 +445,7 @@ class DynamicWorkflowEngine:
                     results[fix_stage["id"]] = response[:2000]
                     results["_verdict"] = "fixed"
                 except Exception:
-                    pass  # pass  # dynamic_workflow.py  # FIXME: add module-level logger
+                    logger.warning("Failed to fix rejected solution in adversarial verify", exc_info=True)
                     fix_stage["status"] = "failed"
 
         return results
@@ -507,8 +509,7 @@ class DynamicWorkflowEngine:
                         elif "B" in choice:
                             scores[entries[j][0]] += 1
                     except Exception:
-                        pass  # pass  # dynamic_workflow.py  # FIXME: add module-level logger
-                        pass
+                        logger.warning("Failed to judge pairwise comparison in tournament", exc_info=True)
 
             judge_stage["status"] = "completed"
             judge_stage["result"] = f"Scores: {scores}"
@@ -587,7 +588,7 @@ class DynamicWorkflowEngine:
                     )
                     results[stage["id"]] = response[:2000]
                 except Exception:
-                    pass  # pass  # dynamic_workflow.py  # FIXME: add module-level logger
+                    logger.warning("Failed to generate ideas in generate-filter", exc_info=True)
                     stage["status"] = "failed"
 
         # Deduplicate
@@ -685,6 +686,5 @@ class DynamicWorkflowEngine:
                     "status": data.get("status", ""),
                 })
             except Exception:
-                pass  # pass  # dynamic_workflow.py  # FIXME: add module-level logger
-                pass
+                logger.warning("Failed to list workflow checkpoints", exc_info=True)
         return cps[:20]

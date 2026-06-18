@@ -259,7 +259,7 @@ class TerryConfig:
             api_key=model_data.get("api_key"),
             base_url=model_data.get("base_url"),
             temperature=model_data.get("temperature", 0.7),
-            max_tokens=model_data.get("max_tokens", 8000),
+            max_tokens=model_data.get("max_tokens", 128000),
         )
         return cls(
             model=model,

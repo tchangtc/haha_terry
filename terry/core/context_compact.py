@@ -370,7 +370,7 @@ class ContextCompactor:
         Saves structured summaries as MemoryType.SESSION_COMPACT entries
         so critical context survives compaction.
         """
-        import json, time
+        import time
         facts = []
         for msg in messages:
             content = str(msg.get("content", ""))

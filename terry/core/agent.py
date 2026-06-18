@@ -946,7 +946,7 @@ class Agent:
             GoalResult dict with keys: met, iterations, final_score, feedback,
             final_output, history.
         """
-        from .goal_loop import GoalLoop, GoalResult
+        from .goal_loop import GoalLoop
         from .llm import LLMClient
         from .config import ModelConfig
 

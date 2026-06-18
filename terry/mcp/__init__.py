@@ -63,7 +63,8 @@ class MCPClient:
             True if connected successfully
         """
         try:
-            import json, shutil
+            import json
+            import shutil
 
             # Validate command is a known executable on PATH
             if "/" in command or "\\" in command:

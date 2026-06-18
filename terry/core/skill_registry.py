@@ -13,7 +13,6 @@ Usage:
 
 from __future__ import annotations
 
-import json
 import logging
 import subprocess
 from dataclasses import dataclass
@@ -22,7 +21,6 @@ from typing import Any
 
 import httpx
 
-from .platform_utils import get_terry_dir
 
 logger = logging.getLogger(__name__)
 

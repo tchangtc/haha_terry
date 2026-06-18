@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import StrEnum
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 
 class AsyncSubAgentStatus(StrEnum):
@@ -132,8 +135,7 @@ class AsyncSubAgentManager:
                 status="running",
             ))
         except Exception:
-            pass  # pass  # async_subagent.py  # FIXME: add module-level logger
-            pass  # registry integration is best-effort
+            logger.warning("Failed to register async subagent in background registry", exc_info=True)
 
         return sub_agent.id
 

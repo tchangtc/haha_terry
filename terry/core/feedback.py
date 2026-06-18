@@ -221,7 +221,7 @@ class FeedbackCollector:
     def _show_prompt(self, entry: FeedbackEntry) -> None:
         """Display a subtle feedback prompt to stderr (TUI element)."""
         preview = entry.assistant_response_preview[:80].replace("\n", " ")
-        sys.stderr.write(f"\n\033[90m┌─ Feedback ─────────────────────────────\033[0m\n")
+        sys.stderr.write("\n\033[90m┌─ Feedback ─────────────────────────────\033[0m\n")
         sys.stderr.write(f"\033[90m│ Q: {entry.user_message[:60]}\033[0m\n")
         sys.stderr.write(f"\033[90m│ A: {preview}...\033[0m\n")
         sys.stderr.write("\033[90m└────────────────────────────────────────\033[0m\n")

@@ -1,6 +1,6 @@
 [project]
 name = "terry"
-version = "1.0.1"
+version = "1.0.2"
 description = "A personal AI coding agent - the harness for your LLM"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -34,6 +34,10 @@ dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.23",
     "ruff>=0.5",
+]
+server = [
+    "fastapi",
+    "uvicorn",
 ]
 vector = [
     "numpy>=1.24",

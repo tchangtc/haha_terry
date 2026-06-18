@@ -7,6 +7,7 @@ This prevents file conflicts and provides filesystem-level safety.
 
 from __future__ import annotations
 
+import logging
 import queue
 import shutil
 import subprocess
@@ -19,6 +20,8 @@ from ..tools import ToolRegistry
 from .config import TerryConfig
 from .llm import LLMClient
 from .text_utils import extract_text
+
+logger = logging.getLogger(__name__)
 
 
 class SubAgent:
@@ -176,7 +179,7 @@ def _is_git_repo(path: Path) -> bool:
         )
         return result.returncode == 0
     except Exception:
-        pass  # pass  # subagent.py  # FIXME: add module-level logger
+        logger.warning("Failed to check if git repo for worktree", exc_info=True)
         return False
 
 
@@ -227,7 +230,7 @@ def _remove_worktree(base_dir: Path, worktree_path: Path) -> None:
             cwd=base_dir, capture_output=True, text=True, timeout=10,
         )
     except Exception:
-        pass  # pass  # subagent.py  # FIXME: add module-level logger
+        logger.warning("Failed to remove git worktree", exc_info=True)
         # Best-effort cleanup — try rm -rf fallback
         try:
             shutil.rmtree(worktree_path, ignore_errors=True)
@@ -411,8 +414,7 @@ class SubAgentManager:
                 status="running",
             ))
         except Exception:
-            pass  # pass  # subagent.py  # FIXME: add module-level logger
-            pass  # registry integration is best-effort
+            logger.warning("Failed to register subagent in background registry", exc_info=True)
 
         return task_id
 

@@ -109,6 +109,8 @@ def discover_tools():
         notes,
         read_file,
         reminder,
+        slash_command,
+        task_update,
         timer,
         todo_write,
         weather,

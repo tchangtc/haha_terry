@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import shutil
 import subprocess
 import tarfile
@@ -11,6 +12,8 @@ from pathlib import Path
 from typing import Any
 
 from .platform_utils import get_terry_dir
+
+logger = logging.getLogger(__name__)
 
 
 class CheckpointManager:
@@ -43,7 +46,7 @@ class CheckpointManager:
             try:
                 self._index = json.loads(self._index_file.read_text(encoding="utf-8"))
             except Exception:
-                pass  # pass  # checkpoint.py  # FIXME: add module-level logger
+                logger.warning("Failed to load checkpoint index", exc_info=True)
                 self._index = []
 
     def _save_index(self) -> None:
@@ -65,7 +68,7 @@ class CheckpointManager:
             )
             return result.returncode == 0
         except Exception:
-            pass  # pass  # checkpoint.py  # FIXME: add module-level logger
+            logger.warning("Failed to check if git repo", exc_info=True)
             return False
 
     def snapshot(self, tag: str = "", paths: list[str] | None = None) -> str:
@@ -197,7 +200,7 @@ class CheckpointManager:
         try:
             meta = json.loads(meta_file.read_text(encoding="utf-8"))
         except Exception:
-            pass  # pass  # checkpoint.py  # FIXME: add module-level logger
+            logger.warning("Failed to parse checkpoint metadata", exc_info=True)
             return False
 
         if meta["type"] == "git":
@@ -222,7 +225,7 @@ class CheckpointManager:
             )
             return result.returncode == 0
         except Exception:
-            pass  # pass  # checkpoint.py  # FIXME: add module-level logger
+            logger.warning("Failed to apply git reverse diff", exc_info=True)
             return False
 
     def _restore_tar(self, cp_dir: Path) -> bool:
@@ -236,7 +239,7 @@ class CheckpointManager:
                 tar.extractall(path=self.workdir)
             return True
         except Exception:
-            pass  # pass  # checkpoint.py  # FIXME: add module-level logger
+            logger.warning("Failed to restore from tar snapshot", exc_info=True)
             return False
 
     def list_checkpoints(self) -> list[dict[str, Any]]:
@@ -329,7 +332,7 @@ class CheckpointManager:
                         # --check failed means the patch won't apply cleanly
                         return f"Warning: patch may not apply cleanly.\n{result.stderr.strip()[:1000]}"
                 except Exception:
-                    pass  # pass  # checkpoint.py  # FIXME: add module-level logger
+                    logger.warning("Failed to generate diff preview", exc_info=True)
                     return "Unable to generate diff preview"
         elif method == "tar":
             # For tar checkpoints, list what's inside
@@ -346,7 +349,7 @@ class CheckpointManager:
                         files = result.stdout.strip().split("\n")
                         return f"Files in checkpoint ({len(files)} total):\n" + "\n".join(files[:20])
                 except Exception:
-                    pass  # pass  # checkpoint.py  # FIXME: add module-level logger
+                    logger.warning("Failed to list tar contents", exc_info=True)
                     return "Unable to list tar contents"
         return None
 

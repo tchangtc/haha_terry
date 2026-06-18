@@ -3,7 +3,7 @@
 > **Agency comes from the model. Terry is the harness.**
 >
 > Terry is an AI coding agent supporting Terminal · Web · Desktop · Mobile interfaces.  
-> Version: **v1.0.0** | Python 3.11+ | MIT License | 127 modules | 29 tools | ~26,900 LOC
+> Version: **v1.0.2** | Python 3.11+ | MIT License | 127 modules | 29 tools | ~26,900 LOC
 >
 > **v1.0.0**: GA release — stable API, documentation, community governance
 > **v0.9.0**: design system, Textual TUI, voice mode, WebUI polish
@@ -35,7 +35,7 @@ When making design decisions, ask: *"Does this make the harness better, or is it
 haha_terry/
 ├── terry/                          # Main package
 │   ├── __init__.py                  # v0.3.0
-│   ├── cli.py                       # CLI entry point (332 lines, refactored from 884)
+│   ├── cli.py                       # CLI entry point (689 lines)
 │   ├── cli_commands.py              # CLI command handlers (36 commands in 6 categories)
 │   ├── desktop.py                   # Desktop tray app (136 lines)
 │   ├── i18n.py                      # Internationalization
@@ -100,7 +100,7 @@ haha_terry/
 │   │   ├── scheduling/              # Scheduling subsystem
 │   │   └── storage/                 # Storage subsystem
 │   │
-│   ├── tools/                       # 🔧 26 built-in tools
+│   ├── tools/                       # 🔧 29 built-in tools
 │   │   ├── bash.py, read_file.py, write_file.py, edit_file.py
 │   │   ├── grep_tool.py, glob_tool.py, find_tool.py, ls_tool.py
 │   │   ├── web_search.py, web_fetch.py
@@ -111,13 +111,13 @@ haha_terry/
 │   │   └── templates/               # Tool templates
 │   │
 │   ├── server/                      # 🌐 Server infrastructure
-│   │   ├── async_server.py          # Async HTTP server (439 lines)
+│   │   ├── async_server.py          # Async HTTP server (457 lines)
 │   │   └── gateways/                # External platform gateways
 │   │       ├── telegram_gateway.py  # Telegram Bot gateway (257 lines)
 │   │       └── discord_gateway.py   # Discord Bot gateway (210 lines)
 │   │
 │   ├── webui/                       # 🖥️ Web interface
-│   │   ├── server.py                # WebUI HTTP server (428 lines, SSE streaming)
+│   │   ├── server.py                # WebUI HTTP server (491 lines, SSE streaming)
 │   │   └── static/                  # Frontend assets
 │   │
 │   ├── hooks/                       # 🪝 Hook system
@@ -126,7 +126,7 @@ haha_terry/
 │   │   └── logging_hook.py          # Logging hook
 │   │
 │   ├── lsp/                         # Language Server Protocol client (227 lines)
-│   ├── mcp/                         # Model Context Protocol client (180 lines)
+│   ├── mcp/                         # Model Context Protocol client (191 lines)
 │   └── locale/                      # i18n resources
 │
 ├── skills/                          # 📦 Bundled skills (marketplace)
@@ -191,7 +191,7 @@ All in `terry/core/security/__init__.py` (184 lines).
 ## Development Conventions
 
 ### Code Style
-- **Python 3.12+** — use modern syntax (`str \| None`, `list[dict]`, match/case)
+- **Python 3.11+** — use modern syntax (`str \| None`, `list[dict]`, match/case)
 - **Ruff** for linting (E, F, I, N, W, UP rules), line length **120**
 - **0 Ruff issues** required before commit
 - Type hints on all public APIs (`from __future__ import annotations`)
@@ -289,11 +289,11 @@ python -m pytest tests/ -k "not e2e"
 ### Coverage Blind Spots (needing attention)
 | Module | Lines | Status |
 |--------|-------|--------|
-| `webui/server.py` | 360 | ⚠️ Untested |
-| `server/async_server.py` | 382 | ⚠️ Untested |
-| `server/gateways/` | 475 | ⚠️ Untested |
+| `webui/server.py` | 491 | ⚠️ Untested |
+| `server/async_server.py` | 457 | ⚠️ Untested |
+| `server/gateways/` | 481 | ⚠️ Untested |
 | `lsp/__init__.py` | 227 | ⚠️ Untested |
-| `mcp/__init__.py` | 180 | ⚠️ Untested |
+| `mcp/__init__.py` | 191 | ⚠️ Untested |
 | `desktop.py` | 136 | ⚠️ Untested |
 
 ---

@@ -5,6 +5,23 @@ All notable changes to Terry will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2026-06-18
+
+### Fixed
+- 22 silent `pass` FIXMEs resolved — all except blocks now log warnings via `logging.getLogger(__name__)`
+  - `checkpoint.py` (7), `dynamic_workflow.py` (5), `memory.py` (2), `error_recovery.py` (3), `subagent.py` (3), `async_subagent.py` (1), `llm.py` (1)
+- `error_recovery.py`: removed dangerous "Retry with sudo" healing pattern
+- `config.py`: `_from_dict()` fallback `max_tokens` corrected 8000→128000 (matched dataclass default)
+- `tools/__init__.py`: registered 2 unregistered tools (`slash_command`, `task_update`)
+- `requirements.txt`: added missing `textual>=0.52.0` dependency
+- `pyproject.toml`: added `[project.optional-dependencies] server = ["fastapi", "uvicorn"]`
+
+### Documentation
+- `CLAUDE.md`: corrected stale line counts (cli.py 332→689, webui/server.py 360→491, async_server.py 382→457, mcp 180→191)
+- `CLAUDE.md`: fixed Python version claim (3.12+→3.11+), tool count in tree (26→29)
+- `CLAUDE.md`: updated coverage blind spot line counts
+- `requirements.txt`: version comment v1.0.0→v1.0.1
+
 ## [1.0.1] - 2026-06-18
 
 ### Fixed

@@ -160,7 +160,7 @@ class AutoHealer:
         (r"command not found:?\s*(\S+)", "Install missing command", "which {cmd} 2>/dev/null || apt-get install -y {cmd} 2>/dev/null || brew install {cmd} 2>/dev/null || pip install {cmd}"),
         (r"No module named ['\"]?(\w+)['\"]?", "Install missing Python module", "pip install {cmd}"),
         (r"cannot access ['\"]?([^'\"]+)['\"]?: No such file", "Create parent directory", "mkdir -p $(dirname {path})"),
-        (r"Permission denied", "Retry with sudo", "sudo !!"),
+        (r"Permission denied", "Check file/directory permissions", None),
         (r"ModuleNotFoundError: No module named ['\"]?(\w+)['\"]?", "Install Python package", "pip install {cmd}"),
         (r"SyntaxError:.*", "Check syntax", None),  # Just report, can't auto-fix
         (r"ImportError:.*", "Check imports", None),
@@ -248,7 +248,7 @@ class AutoHealer:
                 f"Original error: {error_text}"
             )
         except Exception:
-            pass  # logger.debug("Unexpected error in error_recovery.py", exc_info=True)  # FIXME: add module-level logger
+            logger.warning("Failed to auto-heal tool error", exc_info=True)
             return None
 
 
@@ -283,7 +283,7 @@ def auto_commit_after_edit(
         if result.returncode != 0:
             return None
     except Exception:
-        pass  # logger.debug("Unexpected error in error_recovery.py", exc_info=True)  # FIXME: add module-level logger
+        logger.warning("Failed to check git repo for auto-commit", exc_info=True)
         return None
 
     # Get the file path
@@ -334,7 +334,7 @@ def auto_commit_after_edit(
             return f"Committed: {msg}"
         return None
     except Exception:
-        pass  # logger.debug("Unexpected error in error_recovery.py", exc_info=True)  # FIXME: add module-level logger
+        logger.warning("Failed to auto-commit changes", exc_info=True)
         return None
 
 

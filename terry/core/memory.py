@@ -82,9 +82,7 @@ class Memory:
                                     "created": metadata.get("created", ""),
                                 }
         except Exception:
-            pass  # logger.debug("Unexpected error in memory.py", exc_info=True)  # FIXME: add module-level logger
-            logger.warning("Failed to load memories from index", exc_info=True)  # FIXME: add module-level logger
-            pass
+            logger.warning("Failed to load memories from index", exc_info=True)
 
         # Rebuild reference graph
         for name, memory in self.memories.items():
@@ -106,8 +104,7 @@ class Memory:
             fm = _yaml_mod.safe_load(parts[1])
             return fm if isinstance(fm, dict) else {}
         except Exception:
-            pass  # logger.debug("Unexpected error in memory.py", exc_info=True)  # FIXME: add module-level logger
-            logger.warning("Failed to parse YAML frontmatter", exc_info=True)  # FIXME: add module-level logger
+            logger.warning("Failed to parse YAML frontmatter", exc_info=True)
             return {}
 
     def _extract_references(self, content: str) -> set[str]:

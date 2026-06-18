@@ -150,7 +150,7 @@ def _cmd_mode(cmd: str, args: str | None, agent: AgentLike) -> bool:
         new_mode = agent.cycle_mode()
         mode_color = {"deny": "red", "ask": "yellow", "auto": "green"}.get(new_mode, "white")
         console.print(f"[{mode_color}]Mode cycled to: {new_mode}[/{mode_color}]")
-        console.print(f"[dim]Use /mode <ask|auto|deny> to set directly.[/dim]")
+        console.print("[dim]Use /mode <ask|auto|deny> to set directly.[/dim]")
     return True
 
 
@@ -555,7 +555,6 @@ def _cmd_tasks(cmd: str, args: str | None, agent: AgentLike) -> bool:
     Without subcommand, lists all registered background tasks.
     Use 'dag' subcommand for the old TaskDAG view.
     """
-    from .core.background_registry import get_background_registry
 
     if not args:
         # Default: list background tasks
@@ -731,7 +730,7 @@ def _cmd_goal(cmd: str, args: str | None, agent: AgentLike) -> bool:
         result = agent.run_goal(args)
 
     if result.get("met"):
-        console.print(f"\n[bold green]Goal achieved![/bold green]")
+        console.print("\n[bold green]Goal achieved![/bold green]")
     else:
         console.print(
             f"\n[bold yellow]Goal not fully met "
@@ -905,7 +904,7 @@ def _cmd_routine(cmd: str, args: str | None, agent: AgentLike) -> bool:
     elif sub == "trigger" and len(parts) >= 2:
         r = s.trigger_api(parts[1]); console.print(f"[green]Triggered: {r[:200]}[/green]")
     elif sub == "remove" and len(parts) >= 2:
-        s.cancel(int(parts[1])); console.print(f"[green]Removed[/green]")
+        s.cancel(int(parts[1])); console.print("[green]Removed[/green]")
     else: console.print("[yellow]Usage: /routine list|add|trigger|remove[/yellow]")
     return True
 

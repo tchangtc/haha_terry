@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 from typing import Any
 
@@ -11,6 +12,8 @@ from openai import OpenAI
 
 from .adapter import ProviderAdapter, get_provider
 from .config import ModelConfig
+
+logger = logging.getLogger(__name__)
 
 
 class LLMClient:
@@ -127,7 +130,7 @@ class LLMClient:
                     if chunk.choices and chunk.choices[0].delta.content:
                         yield chunk.choices[0].delta.content
         except Exception:
-            pass  # pass  # llm.py  # FIXME: add module-level logger
+            logger.warning("Streaming failed, falling back to non-streaming", exc_info=True)
             # Fallback: non-streaming
             response = self.chat(messages, system, tools, max_tokens)
             from .text_utils import extract_text

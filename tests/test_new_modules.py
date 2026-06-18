@@ -153,7 +153,10 @@ class TestCLIIntegration:
 
     def test_version(self):
         from terry import __version__
-        assert __version__ == "0.9.0"
+        # Semantic check: version must be a valid semver string, not a specific number
+        parts = __version__.split(".")
+        assert len(parts) == 3, f"Expected semver, got: {__version__}"
+        assert all(p.isdigit() for p in parts), f"Expected numeric semver, got: {__version__}"
 
 
 class TestHarnessToolRegistration:

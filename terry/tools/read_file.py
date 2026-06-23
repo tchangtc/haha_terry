@@ -9,6 +9,8 @@ from . import BaseTool, tool_registry
 
 class ReadFileTool(BaseTool):
     """Read file contents with optional line limit."""
+    risk_level = "read_only"
+    category = "file"
 
     name = "read_file"
     description = "Read the contents of a file. Use 'limit' to read only the first N lines."

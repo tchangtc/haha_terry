@@ -12,6 +12,8 @@ from . import BaseTool, tool_registry
 
 class ReminderTool(BaseTool):
     """Manage reminders and schedules."""
+    risk_level = "safe"
+    category = "task"
 
     name = "reminder"
     description = "Create, list, and manage reminders. Supports one-time and recurring reminders."

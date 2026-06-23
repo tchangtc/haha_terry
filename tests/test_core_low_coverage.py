@@ -1,9 +1,7 @@
 """Comprehensive tests for core modules with low coverage."""
 
 import json
-import tempfile
-from pathlib import Path
-from unittest.mock import MagicMock, AsyncMock, patch
+from unittest.mock import MagicMock
 import pytest
 import asyncio
 
@@ -13,7 +11,7 @@ class TestDynamicWorkflow:
 
     def test_init(self):
         """Test workflow initialization."""
-        from terry.core.dynamic_workflow import DynamicWorkflowEngine, DynamicWorkflow, WorkflowPattern
+        from terry.core.dynamic_workflow import DynamicWorkflowEngine
 
         engine = DynamicWorkflowEngine()
         assert engine.agent_factory is None
@@ -37,7 +35,7 @@ class TestDynamicWorkflow:
 
     def test_workflow_add_stage(self):
         """Test adding stages to workflow."""
-        from terry.core.dynamic_workflow import DynamicWorkflow, WorkflowPattern
+        from terry.core.dynamic_workflow import DynamicWorkflow
 
         wf = DynamicWorkflow(name="test", goal="Test goal")
         stage_id = wf.add_stage("Stage 1", "Do something")
@@ -47,7 +45,7 @@ class TestDynamicWorkflow:
 
     def test_workflow_to_dict(self):
         """Test workflow serialization."""
-        from terry.core.dynamic_workflow import DynamicWorkflow, WorkflowPattern
+        from terry.core.dynamic_workflow import DynamicWorkflow
 
         wf = DynamicWorkflow(name="test", goal="Test goal")
         wf.add_stage("Stage 1", "Do something")
@@ -60,7 +58,7 @@ class TestDynamicWorkflow:
 
     def test_workflow_from_dict(self):
         """Test workflow deserialization."""
-        from terry.core.dynamic_workflow import DynamicWorkflow, WorkflowPattern
+        from terry.core.dynamic_workflow import DynamicWorkflow
 
         data = {
             "id": "wf_test",
@@ -146,7 +144,7 @@ class TestDynamicWorkflow:
 
     def test_execute_workflow_no_agent(self):
         """Test executing workflow without agent factory."""
-        from terry.core.dynamic_workflow import DynamicWorkflowEngine, DynamicWorkflow, WorkflowPattern
+        from terry.core.dynamic_workflow import DynamicWorkflowEngine, DynamicWorkflow
 
         engine = DynamicWorkflowEngine()
         wf = DynamicWorkflow(name="test", goal="Test goal")
@@ -157,7 +155,7 @@ class TestDynamicWorkflow:
 
     def test_checkpoint_workflow(self):
         """Test workflow checkpointing."""
-        from terry.core.dynamic_workflow import DynamicWorkflowEngine, DynamicWorkflow, WorkflowPattern
+        from terry.core.dynamic_workflow import DynamicWorkflowEngine, DynamicWorkflow
 
         engine = DynamicWorkflowEngine()
         wf = DynamicWorkflow(name="test", goal="Test goal")
@@ -176,7 +174,8 @@ class TestAutonomousAgent:
         """Test autonomous agent initialization with agent_factory."""
         from terry.core.autonomous_agent import AutonomousAgent
 
-        factory = lambda: MagicMock()
+        def factory():
+            return MagicMock()
         agent = AutonomousAgent(agent_factory=factory)
         assert agent.max_concurrent == 2
         assert agent._running is False
@@ -186,7 +185,8 @@ class TestAutonomousAgent:
         """Test starting and stopping autonomous agent."""
         from terry.core.autonomous_agent import AutonomousAgent
 
-        factory = lambda: MagicMock()
+        def factory():
+            return MagicMock()
         agent = AutonomousAgent(agent_factory=factory)
         agent.start()
         assert agent._running is True
@@ -200,7 +200,8 @@ class TestAutonomousAgent:
         """Test submitting a task to autonomous agent."""
         from terry.core.autonomous_agent import AutonomousAgent
 
-        factory = lambda: MagicMock()
+        def factory():
+            return MagicMock()
         agent = AutonomousAgent(agent_factory=factory)
         task_id = agent.submit_task("Test task")
         assert task_id is not None
@@ -211,7 +212,8 @@ class TestAutonomousAgent:
         """Test executing autonomous task pipeline."""
         from terry.core.autonomous_agent import AutonomousAgent, AutonomousTask
 
-        factory = lambda: MagicMock()
+        def factory():
+            return MagicMock()
         agent = AutonomousAgent(agent_factory=factory)
 
         task = AutonomousTask("test_001", "Fix a bug", "")
@@ -226,7 +228,8 @@ class TestAutonomousAgent:
         """Test executing task with error scenario (no repo URL)."""
         from terry.core.autonomous_agent import AutonomousAgent, AutonomousTask
 
-        factory = lambda: MagicMock()
+        def factory():
+            return MagicMock()
         agent = AutonomousAgent(agent_factory=factory)
 
         task = AutonomousTask("test_err", "Invalid task", "")
@@ -242,7 +245,8 @@ class TestAutonomousAgent:
         """Test getting overall autonomous agent status."""
         from terry.core.autonomous_agent import AutonomousAgent
 
-        factory = lambda: MagicMock()
+        def factory():
+            return MagicMock()
         agent = AutonomousAgent(agent_factory=factory)
         agent.submit_task("Test task")
 
@@ -254,7 +258,8 @@ class TestAutonomousAgent:
         """Test getting queue and completed tasks."""
         from terry.core.autonomous_agent import AutonomousAgent
 
-        factory = lambda: MagicMock()
+        def factory():
+            return MagicMock()
         agent = AutonomousAgent(agent_factory=factory)
         agent.submit_task("Task 1")
         agent.submit_task("Task 2")
@@ -355,7 +360,6 @@ class TestHarness:
 
     def test_stop(self):
         """Test async harness lifecycle (_running flag)."""
-        import asyncio
         from terry.core.async_harness import AsyncHarnessEngine
 
         async def _stop_test():
@@ -459,7 +463,6 @@ class TestPlanner:
 
     def test_save_and_load_plan(self):
         """Test plan is JSON-serializable (for persistence)."""
-        import json
         from terry.core.planner import Planner
 
         planner = Planner()
@@ -586,7 +589,6 @@ class TestSubAgent:
 
     def test_stop(self):
         """Test stopping async sub-agent manager."""
-        import asyncio
         from terry.core.async_subagent import AsyncSubAgentManager
 
         async def _stop_test():

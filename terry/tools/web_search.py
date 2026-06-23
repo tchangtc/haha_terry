@@ -12,6 +12,8 @@ from . import BaseTool, tool_registry
 
 class WebSearchTool(BaseTool):
     """Search the web for information."""
+    risk_level = "read_only"
+    category = "web"
 
     name = "web_search"
     description = "Search the web for current information. Returns search results with titles, URLs, and snippets."

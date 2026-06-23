@@ -1,9 +1,6 @@
 """Comprehensive tests for core modules with low coverage."""
 
 import asyncio
-import json
-import tempfile
-from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest

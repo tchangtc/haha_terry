@@ -10,6 +10,8 @@ from .. import BaseTool, tool_registry
 
 class GitBranchTool(BaseTool):
     """List, create, and switch git branches."""
+    risk_level = "read_only"
+    category = "git"
 
     name = "git_branch"
     description = (

@@ -12,6 +12,8 @@ from . import BaseTool, tool_registry
 
 class NotesTool(BaseTool):
     """Manage quick notes and memos."""
+    risk_level = "safe"
+    category = "task"
 
     name = "notes"
     description = "Create, list, search, and manage quick notes. Supports tags and categories."

@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-import tempfile, json, subprocess, time
+import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, patch
 
-import pytest
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -74,7 +72,7 @@ class TestMultiEdit:
             p.write_text("def a():\n    return 1\n\ndef b():\n    return 2\n")
             from terry.tools.edit_file import MultiEditTool
             tool = MultiEditTool(workdir=Path(d))
-            result = tool.execute(path="code.py", edits=[
+            tool.execute(path="code.py", edits=[
                 {"old_text": "return 1", "new_text": "return 10"},
                 {"old_text": "return 2", "new_text": "return 20"},
             ])
@@ -119,7 +117,7 @@ class TestWriteFile:
         with tempfile.TemporaryDirectory() as d:
             from terry.tools.write_file import WriteFileTool
             tool = WriteFileTool(workdir=Path(d))
-            result = tool.execute(path="sub/dir/file.txt", content="data")
+            tool.execute(path="sub/dir/file.txt", content="data")
             assert (Path(d) / "sub" / "dir" / "file.txt").exists()
 
     def test_write_overwrite(self):
@@ -219,7 +217,7 @@ class TestLsTool:
 class TestPermissionHooks:
     def test_deny_fork_bomb(self):
         from terry.hooks.permission import check_deny_list
-        assert check_deny_list(":(){ :|:& };:") is not None
+        assert check_deny_list(":(){ :|:& };") is not None
 
     def test_deny_rm_rf_root(self):
         from terry.hooks.permission import check_deny_list
@@ -294,8 +292,8 @@ class TestErrorRecoveryMore:
     def test_model_fallback_anthropic(self):
         from terry.core.error_recovery import ErrorRecovery
         er = ErrorRecovery(model_fallback=True)
-        fb = er.should_fallback_model("anthropic", "claude-sonnet-4-20250514")
-        fb2 = er.should_fallback_model("anthropic", "claude-sonnet-4-20250514")
+        er.should_fallback_model("anthropic", "claude-sonnet-4-20250514")
+        er.should_fallback_model("anthropic", "claude-sonnet-4-20250514")
         fb3 = er.should_fallback_model("anthropic", "claude-sonnet-4-20250514")
         assert fb3 is not None  # 3rd consecutive should trigger fallback
 
@@ -337,7 +335,8 @@ class TestMemoryMore:
             from terry.core.memory import Memory
             m = Memory(memory_dir=Path(d))
             m.add("newer", "content")
-            import time; time.sleep(0.1)
+            import time
+            time.sleep(0.1)
             m.add("older", "content")
             recent = m.list_by_recency(limit=1)
             assert recent[0]["name"] == "older"  # Most recently added

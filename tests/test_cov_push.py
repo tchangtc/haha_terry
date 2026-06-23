@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import tempfile, json, os
+import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock
 
@@ -179,7 +179,9 @@ class TestSWEBenchDeep:
 class TestSubagentDeep:
     def test_list_tasks(self):
         from terry.core.config import TerryConfig
-        config = TerryConfig(); config.model.api_key = "test"
+        config = TerryConfig()
+
+        config.model.api_key = "test"
         from terry.core.subagent import SubAgentManager
         mgr = SubAgentManager(config, Path.cwd(), MagicMock(), use_worktree=False)
         tasks = mgr.list_tasks()
@@ -187,9 +189,10 @@ class TestSubagentDeep:
 
     def test_wait_unknown(self):
         from terry.core.config import TerryConfig
-        config = TerryConfig(); config.model.api_key = "test"
+        config = TerryConfig()
+
+        config.model.api_key = "test"
         from terry.core.subagent import SubAgentManager
-        import pytest
         mgr = SubAgentManager(config, Path.cwd(), MagicMock(), use_worktree=False)
         with pytest.raises(ValueError):
             mgr.wait("nonexistent_task_id")
@@ -209,7 +212,8 @@ class TestCacheDeep:
             from terry.core.cache import Cache
             cache = Cache(cache_dir=Path(d), default_ttl=0)
             cache.set("key", "val")
-            import time; time.sleep(0.01)
+            import time
+            time.sleep(0.01)
             # Force disk read by clearing memory
             cache.memory_cache.clear()
             assert cache.get("key") is None
@@ -251,7 +255,9 @@ class TestI18nDeep:
 
 def _agent():
     from terry.core.config import TerryConfig
-    c = TerryConfig(); c.model.api_key = "test"
+    c = TerryConfig()
+
+    c.model.api_key = "test"
     from terry.core.agent import Agent
     return Agent(c, enable_subagents=False, enable_skills=False,
                  enable_memory=False, enable_session=False,

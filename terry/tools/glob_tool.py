@@ -10,6 +10,8 @@ from . import BaseTool, tool_registry
 
 class GlobTool(BaseTool):
     """Find files matching a glob pattern."""
+    risk_level = "read_only"
+    category = "file"
 
     name = "glob"
     description = "Find files matching a glob pattern (e.g., '**/*.py', 'src/*.md')."

@@ -8,12 +8,8 @@
 
 from __future__ import annotations
 
-import json
-import tempfile
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -392,7 +388,6 @@ class TestWebUISSEConnection:
 
     def test_send_event(self):
         from terry.webui.server import SSEConnection
-        import queue
 
         conn = SSEConnection()
         conn.send("test_event", {"key": "value"})
@@ -503,7 +498,8 @@ class TestTelegramGateway:
     def test_init_with_agent_factory(self):
         from terry.server.gateways.telegram_gateway import TelegramGateway
 
-        factory = lambda: MagicMock()
+        def factory():
+            return MagicMock()
         gw = TelegramGateway(token="test_token", agent_factory=factory)
         assert gw.token == "test_token"
         assert gw.agent_factory is factory

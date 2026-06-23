@@ -10,6 +10,8 @@ from . import BaseTool, tool_registry
 
 class EditFileTool(BaseTool):
     """Edit file by replacing exact text matches."""
+    risk_level = "destructive"
+    category = "file"
 
     name = "edit_file"
     description = "Replace exact text in a file. The old_text must appear exactly once in the file."
@@ -79,6 +81,8 @@ class EditFileTool(BaseTool):
 
 class MultiEditTool(BaseTool):
     """Edit file at multiple locations in a single call with rollback on failure."""
+    risk_level = "destructive"
+    category = "file"
 
     name = "multi_edit"
     description = (

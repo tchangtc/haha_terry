@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-import tempfile, json
+import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
-import pytest
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -16,7 +15,9 @@ import pytest
 class TestAgentHooks:
     def test_pre_process_fts_index(self):
         from terry.core.config import TerryConfig
-        config = TerryConfig(); config.model.api_key = "test"
+        config = TerryConfig()
+
+        config.model.api_key = "test"
         from terry.core.agent import Agent
         agent = Agent(config, enable_subagents=False, enable_skills=False,
                       enable_memory=False, enable_session=False,
@@ -28,7 +29,9 @@ class TestAgentHooks:
 
     def test_post_process(self):
         from terry.core.config import TerryConfig
-        config = TerryConfig(); config.model.api_key = "test"
+        config = TerryConfig()
+
+        config.model.api_key = "test"
         from terry.core.agent import Agent
         agent = Agent(config, enable_subagents=False, enable_skills=False,
                       enable_memory=False, enable_session=False,
@@ -78,7 +81,9 @@ class TestSkillSystem:
     def test_skill_executor(self):
         from terry.core.skill import SkillManager, SkillExecutor
         from terry.core.config import TerryConfig
-        config = TerryConfig(); config.model.api_key = "test"
+        config = TerryConfig()
+
+        config.model.api_key = "test"
         from terry.core.agent import Agent
         agent = Agent(config, enable_subagents=False, enable_skills=False,
                       enable_memory=False, enable_session=False,
@@ -244,7 +249,9 @@ class TestSkillMarketFull:
 class TestSubagent:
     def test_manager_spawn_no_agent(self):
         from terry.core.config import TerryConfig
-        config = TerryConfig(); config.model.api_key = "test"
+        config = TerryConfig()
+
+        config.model.api_key = "test"
         from terry.tools import discover_tools, tool_registry
         discover_tools()
         from terry.core.subagent import SubAgentManager
@@ -254,7 +261,9 @@ class TestSubagent:
 
     def test_manager_get_status_unknown(self):
         from terry.core.config import TerryConfig
-        config = TerryConfig(); config.model.api_key = "test"
+        config = TerryConfig()
+
+        config.model.api_key = "test"
         from terry.core.subagent import SubAgentManager
         mgr = SubAgentManager(config, Path.cwd(), MagicMock(), use_worktree=False)
         assert mgr.get_status("nonexistent") == "unknown"
@@ -262,7 +271,9 @@ class TestSubagent:
     def test_orchestrator_exists(self):
         from terry.core.subagent import Orchestrator
         from terry.core.config import TerryConfig
-        config = TerryConfig(); config.model.api_key = "test"
+        config = TerryConfig()
+
+        config.model.api_key = "test"
         from terry.core.subagent import SubAgentManager
         mgr = SubAgentManager(config, Path.cwd(), MagicMock(), use_worktree=False)
         orch = Orchestrator(mgr)
@@ -311,7 +322,7 @@ class TestRAGFull:
             from terry.core.rag import ProjectRAG
             rag = ProjectRAG(workdir=Path(d), index_dir=Path(d) / "idx")
             rag.add_document("test.py", "hello world")
-            path = rag.save_index()
+            rag.save_index()
             rag2 = ProjectRAG(workdir=Path(d), index_dir=Path(d) / "idx")
             loaded = rag2.load_index()
             assert loaded >= 1
@@ -410,7 +421,8 @@ class TestSpecExecFull:
             from terry.core.spec_exec import SpeculativeExecutor
             se = SpeculativeExecutor()
             se.prefetch_files(Path(d), ["test.py"])
-            import time; time.sleep(0.1)
+            import time
+            time.sleep(0.1)
             content = se.get_prefetched("test.py")
             assert content is not None
 

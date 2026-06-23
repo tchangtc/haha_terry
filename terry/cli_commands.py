@@ -134,8 +134,11 @@ def _cmd_effort(cmd: str, args: str | None, agent: AgentLike) -> bool:
         console.print(f"[dim]Usage: /effort {'|'.join(valid)}[/dim]")
         return True
     level = args.strip().lower()
-    if level not in valid: console.print(f"[red]Invalid. Use: {', '.join(valid)}[/red]"); return True
-    if hasattr(agent, "set_effort") and agent.set_effort(level): console.print(f"[green]Effort: {level}[/green]")
+    if level not in valid:
+        console.print(f"[red]Invalid. Use: {', '.join(valid)}[/red]")
+        return True
+    if hasattr(agent, "set_effort") and agent.set_effort(level):
+        console.print(f"[green]Effort: {level}[/green]")
     return True
 
 def _cmd_mode(cmd: str, args: str | None, agent: AgentLike) -> bool:
@@ -516,7 +519,8 @@ def _cmd_reload_skills(cmd: str, args: str | None, agent: AgentLike) -> bool:
     if agent.skill_manager:
         agent.skill_manager.reload()
         console.print(f"[green]Skills reloaded ({len(agent.skill_manager.list_skills())} skills)[/green]")
-    else: console.print("[yellow]Skill system not enabled[/yellow]")
+    else:
+        console.print("[yellow]Skill system not enabled[/yellow]")
     return True
 
 def _cmd_auto_skills(cmd: str, args: str | None, agent: AgentLike) -> bool:
@@ -751,8 +755,11 @@ def _cmd_goal(cmd: str, args: str | None, agent: AgentLike) -> bool:
 
 def _cmd_doctor(cmd: str, args: str | None, agent: AgentLike) -> bool:
     from .core.doctor import Doctor
-    doctor = Doctor(agent); results = doctor.run_all()
-    if not results: console.print("[yellow]No results[/yellow]"); return True
+    doctor = Doctor(agent)
+    results = doctor.run_all()
+    if not results:
+        console.print("[yellow]No results[/yellow]")
+        return True
     from rich.table import Table
     table = Table(title="Diagnostic Report", border_style="cyan")
     table.add_column("Check", style="bold", width=18)
@@ -770,17 +777,26 @@ def _cmd_workflow(cmd: str, args: str | None, agent: AgentLike) -> bool:
     """Run a WorkflowScript. /workflow <path.py>"""
     from pathlib import Path
     if not args:
-        console.print("[yellow]Usage: /workflow <path.py>[/yellow]"); return True
+        console.print("[yellow]Usage: /workflow <path.py>[/yellow]")
+        return True
     path = Path(args.strip())
-    if not path.exists(): console.print(f"[red]Not found: {path}[/red]"); return True
+    if not path.exists():
+        console.print(f"[red]Not found: {path}[/red]")
+        return True
     ns: dict = {"__builtins__": {k: v for k, v in __builtins__.items()
                                    if k not in ("exec", "eval", "compile", "open", "__import__")}}
-    try: exec(path.read_text(encoding="utf-8"), ns)
-    except Exception as e: console.print(f"[red]Error: {e}[/red]"); return True
+    try:
+        exec(path.read_text(encoding="utf-8"), ns)
+    except Exception as e:
+        console.print(f"[red]Error: {e}[/red]")
+        return True
     from .core.workflow_script import WorkflowScript
     wf = ns.get("wf")
-    if not isinstance(wf, WorkflowScript): console.print("[red]Script must define 'wf' as WorkflowScript[/red]"); return True
-    with console.status("[green]Running..."): results = wf.run(agent_factory=lambda: agent)
+    if not isinstance(wf, WorkflowScript):
+        console.print("[red]Script must define 'wf' as WorkflowScript[/red]")
+        return True
+    with console.status("[green]Running..."):
+        results = wf.run(agent_factory=lambda: agent)
     for sid, r in results.items():
         ok = not str(r).startswith("Error")
         console.print(f"  {'[green]OK[/green]' if ok else '[red]FAIL[/red]'} {sid}: {str(r)[:120]}")
@@ -791,17 +807,22 @@ def _cmd_agents(cmd: str, args: str | None, agent: AgentLike) -> bool:
     """Show agent dashboard. /agents [--tree]"""
     from .core.background_registry import get_background_registry
     tasks = get_background_registry().list(limit=100)
-    if not tasks: console.print("[yellow]No agents[/yellow]"); return True
+    if not tasks:
+        console.print("[yellow]No agents[/yellow]")
+        return True
     from rich.table import Table
     use_tree = args and "--tree" in args
     if use_tree:
         from rich.tree import Tree
         t = Tree("[bold]Agent Tree[/bold]")
-        by_parent: dict = {}; roots = []
+        by_parent: dict = {}
+        roots = []
         for tk in tasks:
             tk.children = by_parent.setdefault(tk.id, [])
-            if tk.parent_id: by_parent.setdefault(tk.parent_id, []).append(tk)
-            else: roots.append(tk)
+            if tk.parent_id:
+                by_parent.setdefault(tk.parent_id, []).append(tk)
+            else:
+                roots.append(tk)
         def _add(n, tree):
             for c in n.children:
                 label = f"{c.id[:8]} [{c.status}] {c.description[:40]}"
@@ -811,7 +832,12 @@ def _cmd_agents(cmd: str, args: str | None, agent: AgentLike) -> bool:
             _add(r, node)
         console.print(t)
     else:
-        table = Table(title="Agents Dashboard"); table.add_column("ID"); table.add_column("Description"); table.add_column("System"); table.add_column("Depth"); table.add_column("Status")
+        table = Table(title="Agents Dashboard")
+        table.add_column("ID")
+        table.add_column("Description")
+        table.add_column("System")
+        table.add_column("Depth")
+        table.add_column("Status")
         for t in tasks[:50]:
             c = {"completed":"green","running":"yellow","failed":"red","cancelled":"dim"}.get(t.status,"white")
             table.add_row(t.id[:10], t.description[:50], t.system or "-", str(t.depth or 0), f"[{c}]{t.status}[/{c}]")
@@ -823,18 +849,24 @@ def _cmd_agents(cmd: str, args: str | None, agent: AgentLike) -> bool:
 
 def _cmd_ultrareview(cmd: str, args: str | None, agent: AgentLike) -> bool:
     """Adversarial code review. /ultrareview [file_path|code]"""
-    if not args: console.print("[yellow]Usage: /ultrareview <file_path|code>[/yellow]"); return True
+    if not args:
+        console.print("[yellow]Usage: /ultrareview <file_path|code>[/yellow]")
+        return True
     from pathlib import Path
     path = Path(args.strip())
     if path.exists():
-        code = path.read_text(encoding="utf-8"); file_path = str(path)
+        code = path.read_text(encoding="utf-8")
+        file_path = str(path)
     else:
-        code = args; file_path = "<inline>"
+        code = args
+        file_path = "<inline>"
     from .core.ultrareview import Ultrareview
     with console.status("[green]Reviewing..."):
         result = Ultrareview(agent_factory=lambda: agent).review(code, file_path)
     from rich.table import Table
-    table = Table(title="Ultrareview"); table.add_column("Dimension"); table.add_column("Score")
+    table = Table(title="Ultrareview")
+    table.add_column("Dimension")
+    table.add_column("Score")
     for d, s in result.scores.items():
         c = "green" if s >= 0.8 else "yellow" if s >= 0.5 else "red"
         table.add_row(d, f"[{c}]{s:.0%}[/{c}]")
@@ -887,14 +919,22 @@ def _cmd_routine(cmd: str, args: str | None, agent: AgentLike) -> bool:
     """Manage routines. /routine list|add|trigger|remove"""
     from .core.scheduler import CronScheduler
     s = CronScheduler()
-    if not args: args = "list"
+    if not args:
+        args = "list"
     parts = args.strip().split(maxsplit=2)
     sub = parts[0].lower()
     if sub == "list":
         tasks = s.list_tasks()
-        if not tasks: console.print("[yellow]No routines[/yellow]"); return True
+        if not tasks:
+            console.print("[yellow]No routines[/yellow]")
+            return True
         from rich.table import Table
-        t = Table(title="Routines"); t.add_column("ID"); t.add_column("Name"); t.add_column("Type"); t.add_column("Next"); t.add_column("Runs")
+        t = Table(title="Routines")
+        t.add_column("ID")
+        t.add_column("Name")
+        t.add_column("Type")
+        t.add_column("Next")
+        t.add_column("Runs")
         for r in tasks:
             t.add_row(str(r.get("id","?")), r.get("name",r.get("type","?"))[:30], r.get("trigger","cron"), (r.get("next_run") or "-")[:16], str(r.get("run_count",0)))
         console.print(t)
@@ -902,10 +942,13 @@ def _cmd_routine(cmd: str, args: str | None, agent: AgentLike) -> bool:
         s.schedule(name=parts[1], task_type="routine", params={}, trigger="cron" if len(parts) < 3 else parts[2])
         console.print(f"[green]Added: {parts[1]}[/green]")
     elif sub == "trigger" and len(parts) >= 2:
-        r = s.trigger_api(parts[1]); console.print(f"[green]Triggered: {r[:200]}[/green]")
+        r = s.trigger_api(parts[1])
+        console.print(f"[green]Triggered: {r[:200]}[/green]")
     elif sub == "remove" and len(parts) >= 2:
-        s.cancel(int(parts[1])); console.print("[green]Removed[/green]")
-    else: console.print("[yellow]Usage: /routine list|add|trigger|remove[/yellow]")
+        s.cancel(int(parts[1]))
+        console.print("[green]Removed[/green]")
+    else:
+        console.print("[yellow]Usage: /routine list|add|trigger|remove[/yellow]")
     return True
 
 

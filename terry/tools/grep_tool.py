@@ -10,6 +10,8 @@ from . import BaseTool, tool_registry
 
 class GrepTool(BaseTool):
     """Search file contents using regex patterns (cross-platform, pure Python)."""
+    risk_level = "read_only"
+    category = "file"
 
     name = "grep"
     description = "Search for text patterns in files using regex. Pure Python implementation (no external grep needed)."

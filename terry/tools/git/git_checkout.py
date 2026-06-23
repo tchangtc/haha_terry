@@ -10,6 +10,8 @@ from .. import BaseTool, tool_registry
 
 class GitCheckoutTool(BaseTool):
     """Switch branches or restore files."""
+    risk_level = "destructive"
+    category = "git"
 
     name = "git_checkout"
     description = (

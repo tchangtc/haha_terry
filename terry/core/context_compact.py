@@ -327,8 +327,10 @@ class ContextCompactor:
             tokens_saved=max(0, before_tokens - self.estimate_tokens(messages)),
         )
         for hook in _compaction_hooks:
-            try: hook(event)
-            except Exception: pass
+            try:
+                hook(event)
+            except Exception:
+                logger.debug("Compaction hook failed", exc_info=True)
 
         if on_warning:
             on_warning(

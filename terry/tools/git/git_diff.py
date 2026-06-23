@@ -10,6 +10,8 @@ from .. import BaseTool, tool_registry
 
 class GitDiffTool(BaseTool):
     """Show git diff between working tree, index, or commits."""
+    risk_level = "read_only"
+    category = "git"
 
     name = "git_diff"
     description = (

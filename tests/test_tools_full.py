@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-import tempfile, json, os, subprocess
+import tempfile
+import json
+import os
+import subprocess
 from pathlib import Path
-from unittest.mock import patch
 
-import pytest
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -20,7 +21,8 @@ class TestReadImage:
             p.write_bytes(b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x02\x00\x00\x00\x90wS\xde\x00\x00\x00\x0cIDATx\x9cc\xf8\x0f\x00\x00\x01\x01\x00\x05\x18\xd8N\x00\x00\x00\x00IEND\xaeB`\x82')
             from terry.tools.read_image import ReadImageTool
             result = ReadImageTool(workdir=Path(d)).execute(path="img.png")
-            assert "Image" in result or "PNG" in result.lower() or "base64" in result.lower() or "media" in result.lower()
+            long_check = "Image" in result or "PNG" in result.lower()
+            assert long_check or "base64" in result.lower() or "media" in result.lower()
 
     def test_unsupported_ext(self):
         from terry.tools.read_image import ReadImageTool
@@ -114,7 +116,12 @@ class TestWebSearch:
 class TestNotebook:
     def test_replace_cell(self):
         with tempfile.TemporaryDirectory() as d:
-            nb = {"cells": [{"cell_type": "code", "source": "print('old')", "metadata": {}, "outputs": [], "execution_count": None}]}
+            nb = {
+                "cells": [{
+                    "cell_type": "code", "source": "print('old')",
+                    "metadata": {}, "outputs": [], "execution_count": None
+                }]
+            }
             (Path(d) / "nb.ipynb").write_text(json.dumps(nb))
             from terry.tools.notebook import NotebookEditTool
             result = NotebookEditTool(workdir=Path(d)).execute(
@@ -228,8 +235,10 @@ class TestWeather:
             result = WeatherTool().execute(location="Beijing")
             assert isinstance(result, str)
         finally:
-            if old_w: os.environ['WEATHER_API_KEY'] = old_w
-            if old_o: os.environ['OPENWEATHERMAP_API_KEY'] = old_o
+            if old_w:
+                os.environ['WEATHER_API_KEY'] = old_w
+            if old_o:
+                os.environ['OPENWEATHERMAP_API_KEY'] = old_o
 
 
 # ═══════════════════════════════════════════════════════════════════

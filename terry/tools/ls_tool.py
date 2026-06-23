@@ -9,6 +9,8 @@ from . import BaseTool, tool_registry
 
 class LsTool(BaseTool):
     """List files and directories in a path."""
+    risk_level = "read_only"
+    category = "file"
 
     name = "ls"
     description = "List files and directories. Shows file sizes, permissions, and modification times."

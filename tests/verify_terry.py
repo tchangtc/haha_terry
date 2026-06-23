@@ -98,7 +98,7 @@ try:
     assert "Terry" in system_prompt
     assert "coding agent" in system_prompt.lower()
 
-    print(f"   ✅ Agent 初始化成功")
+    print("   ✅ Agent 初始化成功")
     print(f"   ✅ System prompt 生成正常 ({len(system_prompt)} 字符)\n")
 except Exception as e:
     print(f"   ❌ Agent 测试失败: {e}\n")
@@ -118,9 +118,9 @@ try:
     assert check_destructive("chmod 777 file") is not None  # 应该返回确认原因
     assert check_destructive("cat file.txt") is None  # 应该返回 None (允许)
 
-    print(f"   ✅ 权限检查逻辑正确")
-    print(f"      - 硬拒绝列表: 3/3 测试通过")
-    print(f"      - 破坏性模式: 3/3 测试通过\n")
+    print("   ✅ 权限检查逻辑正确")
+    print("      - 硬拒绝列表: 3/3 测试通过")
+    print("      - 破坏性模式: 3/3 测试通过\n")
 except Exception as e:
     print(f"   ❌ 权限检查测试失败: {e}\n")
 

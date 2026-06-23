@@ -13,6 +13,8 @@ from . import BaseTool, tool_registry
 
 class CalculatorTool(BaseTool):
     """Perform mathematical calculations and conversions."""
+    risk_level = "safe"
+    category = "general"
 
     name = "calculator"
     description = "Perform mathematical calculations, unit conversions, and formula evaluations."

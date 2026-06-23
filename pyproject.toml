@@ -95,11 +95,11 @@ asyncio_mode = "auto"
 "terry/cli_commands.py" = ["E501"]
 "terry/cli.py" = ["E501"]
 "terry/tui/app.py" = ["E501"]
-"terry/core/security/__init__.py" = ["F401"]
-"terry/core/ai/__init__.py" = ["F401"]
-"terry/core/infra/__init__.py" = ["F401"]
-"terry/core/scheduling/__init__.py" = ["F401"]
-"terry/core/storage/__init__.py" = ["F401"]
+"terry/core/security/__init__.py" = ["F401", "E402"]
+"terry/core/ai/__init__.py" = ["F401", "E402"]
+"terry/core/infra/__init__.py" = ["F401", "E402"]
+"terry/core/scheduling/__init__.py" = ["F401", "E402"]
+"terry/core/storage/__init__.py" = ["F401", "E402"]
 
 [tool.hatch.build.targets.sdist]
 include = [

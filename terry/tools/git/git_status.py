@@ -10,6 +10,8 @@ from .. import BaseTool, tool_registry
 
 class GitStatusTool(BaseTool):
     """Show the working tree status."""
+    risk_level = "read_only"
+    category = "git"
 
     name = "git_status"
     description = (

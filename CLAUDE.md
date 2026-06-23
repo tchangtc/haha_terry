@@ -3,7 +3,7 @@
 > **Agency comes from the model. Terry is the harness.**
 >
 > Terry is an AI coding agent supporting Terminal · Web · Desktop · Mobile interfaces.  
-> Version: **v1.0.2** | Python 3.11+ | MIT License | 127 modules | 29 tools | ~26,900 LOC
+> Version: **v1.0.2** | Python 3.11+ | MIT License | 127 modules | 27 tools | ~26,900 LOC
 >
 > **v1.0.0**: GA release — stable API, documentation, community governance
 > **v0.9.0**: design system, Textual TUI, voice mode, WebUI polish
@@ -100,7 +100,7 @@ haha_terry/
 │   │   ├── scheduling/              # Scheduling subsystem
 │   │   └── storage/                 # Storage subsystem
 │   │
-│   ├── tools/                       # 🔧 29 built-in tools
+│   ├── tools/                       # 🔧 27 built-in tools
 │   │   ├── bash.py, read_file.py, write_file.py, edit_file.py
 │   │   ├── grep_tool.py, glob_tool.py, find_tool.py, ls_tool.py
 │   │   ├── web_search.py, web_fetch.py
@@ -126,7 +126,7 @@ haha_terry/
 │   │   └── logging_hook.py          # Logging hook
 │   │
 │   ├── lsp/                         # Language Server Protocol client (227 lines)
-│   ├── mcp/                         # Model Context Protocol client (191 lines)
+│   ├── mcp/                         # Model Context Protocol client (192 lines)
 │   └── locale/                      # i18n resources
 │
 ├── skills/                          # 📦 Bundled skills (marketplace)
@@ -293,7 +293,7 @@ python -m pytest tests/ -k "not e2e"
 | `server/async_server.py` | 457 | ⚠️ Untested |
 | `server/gateways/` | 481 | ⚠️ Untested |
 | `lsp/__init__.py` | 227 | ⚠️ Untested |
-| `mcp/__init__.py` | 191 | ⚠️ Untested |
+| `mcp/__init__.py` | 192 | ⚠️ Untested |
 | `desktop.py` | 136 | ⚠️ Untested |
 
 ---
@@ -331,7 +331,7 @@ python -m pytest tests/ -k "not e2e"
 - **Security**: runtime security middleware (RateLimiter, RequestValidator, SecurityMiddleware)
 - **CLI**: 36 commands across 6 categories
 
-- ~26,900 LOC across 127 modules, 29 tools, ~1,189 test assertions
+- ~26,900 LOC across 127 modules, 27 tools, ~1,189 test assertions
 
 ---
 

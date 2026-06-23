@@ -12,6 +12,8 @@ from . import BaseTool, tool_registry
 
 class BashTool(BaseTool):
     """Execute shell commands with security controls (cross-platform)."""
+    risk_level = "destructive"
+    category = "shell"
 
     name = "bash"
     description = "Run a shell command in the working directory (Windows: cmd.exe, Unix: sh/bash)."

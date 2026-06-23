@@ -10,6 +10,8 @@ from . import BaseTool, tool_registry
 
 class TodoWriteTool(BaseTool):
     """Create and manage todo lists for tracking tasks."""
+    risk_level = "safe"
+    category = "task"
 
     name = "todo_write"
     description = "Create or update a todo list. Use this to track tasks and their status."

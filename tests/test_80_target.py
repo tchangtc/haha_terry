@@ -2,16 +2,18 @@
 
 from __future__ import annotations
 
-import tempfile, json, io, os, subprocess, time
+import tempfile
+import subprocess
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
-import pytest
 
 
 def _agent():
     from terry.core.config import TerryConfig
-    c = TerryConfig(); c.model.api_key = "test"
+    c = TerryConfig()
+
+    c.model.api_key = "test"
     from terry.core.agent import Agent
     return Agent(c, enable_subagents=False, enable_skills=False,
                  enable_memory=False, enable_session=False,
@@ -83,7 +85,6 @@ class TestAgentRemaining:
         assert len(modes) == 3
 
     def test_list_skills_none(self):
-        from terry.core.agent import Agent
         a = _agent()
         assert a.list_skills() == []
 
@@ -206,7 +207,7 @@ class TestToolsEdge:
     def test_write_file_creates_parent(self):
         with tempfile.TemporaryDirectory() as d:
             from terry.tools.write_file import WriteFileTool
-            result = WriteFileTool(workdir=Path(d)).execute(path="a/b/c/test.txt", content="x")
+            WriteFileTool(workdir=Path(d)).execute(path="a/b/c/test.txt", content="x")
             assert (Path(d) / "a" / "b" / "c" / "test.txt").exists()
 
     def test_git_diff_with_pathspec(self):
@@ -253,7 +254,9 @@ class TestThinkingEdge:
     def test_estimate_system_tokens(self):
         from terry.core.thinking import ExtendedThinking
         et = ExtendedThinking()
-        tokens = et.estimate_system_prompt_tokens("System", [{"name": "bash", "description": "run", "input_schema": {}}])
+        tokens = et.estimate_system_prompt_tokens(
+            "System", [{"name": "bash", "description": "run", "input_schema": {}}]
+        )
         assert tokens >= 0
 
 

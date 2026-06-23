@@ -51,9 +51,12 @@ class AutoModeClassifier:
     def get_trust_level(self, tool_name: str, args: dict[str, Any], workdir: Path) -> TrustLevel:
         score = self._score(tool_name, args, workdir)
         self._decision_count += 1
-        if score >= self.threshold: return TrustLevel.HIGH_TRUST
-        elif score >= self.threshold * 0.4: return TrustLevel.LOW_TRUST
-        else: return TrustLevel.NO_TRUST
+        if score >= self.threshold:
+            return TrustLevel.HIGH_TRUST
+        elif score >= self.threshold * 0.4:
+            return TrustLevel.LOW_TRUST
+        else:
+            return TrustLevel.NO_TRUST
 
     def record_approval(self, tool_name: str, command_or_path: str) -> None:
         self._approved.add(f"{tool_name}:{command_or_path}")
@@ -63,18 +66,24 @@ class AutoModeClassifier:
         if tool_name == "bash":
             command = args.get("command", "")
             for pattern in _DANGER_PATTERNS:
-                if pattern in command: score -= 0.2
-            if len(command) > 200: score -= 0.1
+                if pattern in command:
+                    score -= 0.2
+            if len(command) > 200:
+                score -= 0.1
         if tool_name in ("read_file", "write_file", "edit_file", "multi_edit"):
             path_str = args.get("path", args.get("file_path", ""))
             if path_str:
                 try:
                     resolved = (workdir / path_str).resolve()
-                    if resolved.is_relative_to(workdir.resolve()): score += 0.15
-                    else: score -= 0.3
-                except (ValueError, OSError): score -= 0.1
+                    if resolved.is_relative_to(workdir.resolve()):
+                        score += 0.15
+                    else:
+                        score -= 0.3
+                except (ValueError, OSError):
+                    score -= 0.1
         ident = self._make_identifier(tool_name, args)
-        if ident in self._approved: score += 0.2
+        if ident in self._approved:
+            score += 0.2
         return max(0.0, min(1.0, score))
 
     def get_decision_count(self) -> int:

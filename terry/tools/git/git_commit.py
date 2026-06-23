@@ -10,6 +10,8 @@ from .. import BaseTool, tool_registry
 
 class GitCommitTool(BaseTool):
     """Create git commits with descriptive messages."""
+    risk_level = "destructive"
+    category = "git"
 
     name = "git_commit"
     description = (

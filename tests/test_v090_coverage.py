@@ -1,5 +1,6 @@
 """Coverage tests for previously uncovered v0.7-v0.9 modules."""
-import pytest, tempfile, os
+import pytest
+import os
 from pathlib import Path
 import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
@@ -89,7 +90,9 @@ class TestTeleport:
         from terry.core.config import TerryConfig
         from terry.core.agent import Agent
         from terry.core.teleport import TeleportExporter
-        cfg = TerryConfig(); cfg.model.api_key = "test"
+        cfg = TerryConfig()
+
+        cfg.model.api_key = "test"
         agent = Agent(cfg, enable_subagents=False, enable_skills=False,
                       enable_memory=False, enable_session=False,
                       enable_metrics=False, enable_cache=False,
@@ -104,7 +107,9 @@ class TestTeleport:
         from terry.core.config import TerryConfig
         from terry.core.agent import Agent
         from terry.core.teleport import TeleportExporter, TeleportImporter
-        cfg = TerryConfig(); cfg.model.api_key = "test"
+        cfg = TerryConfig()
+
+        cfg.model.api_key = "test"
         agent = Agent(cfg, enable_subagents=False, enable_skills=False,
                       enable_memory=False, enable_session=False,
                       enable_metrics=False, enable_cache=False,
@@ -121,7 +126,9 @@ class TestTeleport:
         from terry.core.config import TerryConfig
         from terry.core.agent import Agent
         from terry.core.teleport import TeleportImporter
-        cfg = TerryConfig(); cfg.model.api_key = "test"
+        cfg = TerryConfig()
+
+        cfg.model.api_key = "test"
         agent = Agent(cfg, enable_subagents=False, enable_skills=False,
                       enable_memory=False, enable_session=False,
                       enable_metrics=False, enable_cache=False,
@@ -153,7 +160,7 @@ class TestSkillRegistry:
         assert results == []
 
     def test_search_with_data(self):
-        from terry.core.skill_registry import SkillRegistry, SkillInfo
+        from terry.core.skill_registry import SkillRegistry
         sr = SkillRegistry()
         sr._index = {"skills": [
             {"name": "terry-code-review", "description": "Code review skill", "repo": "https://github.com/x/y"}
@@ -225,7 +232,10 @@ class TestUltrareview:
     def test_parse_findings_json(self):
         from terry.core.ultrareview import Ultrareview
         ur = Ultrareview()
-        findings = ur._parse_findings("correctness", '[{"severity":"major","location":"L1","description":"bug","suggestion":"fix"}]')
+        findings = ur._parse_findings(
+            "correctness",
+            '[{"severity":"major","location":"L1","description":"bug","suggestion":"fix"}]'
+        )
         assert len(findings) == 1
         assert findings[0].severity == "major"
 

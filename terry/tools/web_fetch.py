@@ -44,6 +44,8 @@ def _is_private_hostname(hostname: str) -> bool:
 
 class WebFetchTool(BaseTool):
     """Fetch content from a URL with SSRF protection."""
+    risk_level = "read_only"
+    category = "web"
 
     name = "web_fetch"
     description = "Fetch text content from a URL. Useful for reading documentation or web pages."

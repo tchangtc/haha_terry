@@ -10,6 +10,8 @@ from .. import BaseTool, tool_registry
 
 class GitLogTool(BaseTool):
     """View git commit history."""
+    risk_level = "read_only"
+    category = "git"
 
     name = "git_log"
     description = (

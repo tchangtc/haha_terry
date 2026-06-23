@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
-import pytest
 
 from terry.core.config import TerryConfig
 from terry.core.agent import Agent
@@ -127,7 +125,7 @@ class TestE2EAgentLoop:
             return MockLLMResponse.tool_response("read_file", {"path": "file.py"})
 
         with patch.object(agent.llm, "chat", side_effect=infinite_tools):
-            response = agent.run("Read everything")
+            agent.run("Read everything")
 
         # Should have wrapped up after max_tool_calls
         assert agent.tool_call_count <= 3  # max_tool_calls=2 + wrap_up

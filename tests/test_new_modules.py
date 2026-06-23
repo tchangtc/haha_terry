@@ -3,7 +3,6 @@
 import tempfile
 from pathlib import Path
 
-import pytest
 
 
 class TestHarness:
@@ -60,7 +59,7 @@ class TestFeedback:
 
 class TestDynamicWorkflow:
     def test_create_workflow(self):
-        from terry.core.dynamic_workflow import DynamicWorkflow, WorkflowPattern
+        from terry.core.dynamic_workflow import DynamicWorkflow
         wf = DynamicWorkflow("test", "goal")
         wf.add_stage("s1", "do something")
         assert len(wf.stages) == 1

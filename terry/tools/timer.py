@@ -13,6 +13,8 @@ from . import BaseTool, tool_registry
 
 class TimerTool(BaseTool):
     """Manage timers and Pomodoro sessions."""
+    risk_level = "safe"
+    category = "task"
 
     name = "timer"
     description = "Start timers, Pomodoro sessions, and track time."

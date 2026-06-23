@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-import tempfile, json, io, os, sys, subprocess, time
+import tempfile
+import json
+import os
+import time
 from pathlib import Path
-from unittest.mock import MagicMock, patch
 
-import pytest
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -284,7 +285,7 @@ class TestBugHuntMetrics:
             from terry.core.metrics import Metrics
             m = Metrics(metrics_dir=Path(d))
             m.increment("test", 5)
-            path = m.save("test_metrics.json")
+            m.save("test_metrics.json")
             m2 = Metrics(metrics_dir=Path(d))
             assert m2.load("test_metrics.json")
             assert m2.get_counter("test") == 5
@@ -455,7 +456,9 @@ class TestBugFixVerification:
     def test_cli_t_variable_shadowing_fixed(self):
         """Verify the 't' variable shadowing bug is fixed in handle_command."""
         from terry.core.config import TerryConfig
-        c = TerryConfig(); c.model.api_key = "test"
+        c = TerryConfig()
+
+        c.model.api_key = "test"
         from terry.core.agent import Agent
         a = Agent(c, enable_subagents=False, enable_skills=False,
                   enable_memory=False, enable_session=False,

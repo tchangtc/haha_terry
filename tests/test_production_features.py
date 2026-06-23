@@ -2,14 +2,13 @@
 """Production features test suite."""
 
 import sys
-import os
 import tempfile
 from pathlib import Path
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from terry.core.config import TerryConfig, ModelConfig
+from terry.core.config import TerryConfig
 from terry.core.memory import Memory
 from terry.core.session import Session
 from terry.core.metrics import Metrics
@@ -242,7 +241,7 @@ def test_new_tools():
     """Test newly added tools."""
     print("\n6️⃣  Testing New Tools...")
 
-    from terry.tools import tool_registry, discover_tools
+    from terry.tools import tool_registry
     from terry.tools.find_tool import FindTool
     from terry.tools.ls_tool import LsTool
 

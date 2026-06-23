@@ -10,6 +10,8 @@ from . import BaseTool, tool_registry
 
 class HarnessTool(BaseTool):
     """Exposes the HarnessEngine as an Agent tool.
+    risk_level = "safe"
+    category = "general"
 
     Lets the LLM programmatically orchestrate sub-agents using
     8 patterns directly from conversation.

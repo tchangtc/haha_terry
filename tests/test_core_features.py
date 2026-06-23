@@ -3,7 +3,6 @@
 import tempfile
 from pathlib import Path
 
-import pytest
 
 from terry.core.memory import Memory
 from terry.core.session import Session
@@ -102,7 +101,7 @@ class TestMetricsSystem:
         with tempfile.TemporaryDirectory() as tmpdir:
             metrics = Metrics(metrics_dir=Path(tmpdir))
             start = metrics.timer_start()
-            duration = metrics.timer_stop("test_op", start)
+            metrics.timer_stop("test_op", start)
             stats = metrics.get_timer_stats("test_op")
             assert stats["count"] == 1
             assert stats["total"] >= 0

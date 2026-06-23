@@ -10,6 +10,8 @@ from . import BaseTool, tool_registry
 
 class FindTool(BaseTool):
     """Find files by name or path pattern."""
+    risk_level = "read_only"
+    category = "file"
 
     name = "find"
     description = "Search for files by name or path pattern. Supports glob patterns and recursive search."

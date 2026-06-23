@@ -1,11 +1,9 @@
 """Comprehensive tests for server modules."""
 
 import json
-import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, AsyncMock, patch
+from unittest.mock import MagicMock
 import pytest
-import asyncio
 
 
 class TestTerryServer:

@@ -12,6 +12,8 @@ from . import BaseTool, tool_registry
 
 class WeatherTool(BaseTool):
     """Get weather information for a location."""
+    risk_level = "read_only"
+    category = "web"
 
     name = "weather"
     description = "Get current weather and forecast for a location."

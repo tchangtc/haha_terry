@@ -10,6 +10,8 @@ from .. import BaseTool, tool_registry
 
 class GitMergeTool(BaseTool):
     """Merge a branch into the current branch."""
+    risk_level = "destructive"
+    category = "git"
 
     name = "git_merge"
     description = (

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import asyncio
+import inspect
 
 import pytest
 
@@ -62,7 +62,7 @@ class TestAsyncAgent:
         )
 
         assert hasattr(agent, "run")
-        assert asyncio.iscoroutinefunction(agent.run)
+        assert inspect.iscoroutinefunction(agent.run)
 
 
 class TestAsyncHarness:
@@ -104,7 +104,7 @@ class TestAsyncHarness:
         )
 
         assert hasattr(engine, "execute")
-        assert asyncio.iscoroutinefunction(engine.execute)
+        assert inspect.iscoroutinefunction(engine.execute)
 
 
 class TestAsyncSubAgentManager:
@@ -128,7 +128,7 @@ class TestAsyncSubAgentManager:
         )
 
         assert hasattr(manager, "spawn")
-        assert asyncio.iscoroutinefunction(manager.spawn)
+        assert inspect.iscoroutinefunction(manager.spawn)
 
     @pytest.mark.asyncio
     async def test_wait_method_is_async(self):
@@ -142,7 +142,7 @@ class TestAsyncSubAgentManager:
         )
 
         assert hasattr(manager, "wait")
-        assert asyncio.iscoroutinefunction(manager.wait)
+        assert inspect.iscoroutinefunction(manager.wait)
 
 
 class TestAsyncServer:
@@ -168,7 +168,7 @@ class TestAsyncServer:
             server = AsyncTerryServer(config=config)
 
             assert hasattr(server, "start")
-            assert asyncio.iscoroutinefunction(server.start)
+            assert inspect.iscoroutinefunction(server.start)
         except ImportError:
             pytest.skip("FastAPI not installed")
 

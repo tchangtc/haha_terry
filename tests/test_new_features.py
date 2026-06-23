@@ -6,7 +6,7 @@ from pathlib import Path
 # Add project root directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from terry.core.config import TerryConfig, ModelConfig
+from terry.core.config import TerryConfig
 from terry.core.context_compact import ContextCompactor
 from terry.core.error_recovery import ErrorRecovery
 from terry.tools.grep_tool import GrepTool

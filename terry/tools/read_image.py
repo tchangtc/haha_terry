@@ -10,6 +10,8 @@ from . import BaseTool, tool_registry
 
 class ReadImageTool(BaseTool):
     """Read image and PDF files, returning base64-encoded data for multimodal models."""
+    risk_level = "read_only"
+    category = "file"
 
     name = "read_image"
     description = (

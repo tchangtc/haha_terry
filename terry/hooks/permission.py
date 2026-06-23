@@ -224,11 +224,13 @@ def permission_hook(
             from ..core.auto_classifier import AutoModeClassifier, TrustLevel
             classifier = AutoModeClassifier(threshold=0.6)
             trust = classifier.get_trust_level(tool_name, args, workdir)
-            if trust == TrustLevel.HIGH_TRUST: return None
+            if trust == TrustLevel.HIGH_TRUST:
+                return None
             elif trust == TrustLevel.NO_TRUST:
                 logger.warning("[auto-classifier] Denied risky operation")
                 return "Permission denied by auto classifier"
-        except ImportError: pass
+        except ImportError:
+            logger.debug("AutoModeClassifier not available")
 
 
     # ── Gate 2: Destructive (level-dependent) ────────────────────

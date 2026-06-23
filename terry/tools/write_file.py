@@ -9,6 +9,8 @@ from . import BaseTool, tool_registry
 
 class WriteFileTool(BaseTool):
     """Write content to a file (create or overwrite)."""
+    risk_level = "destructive"
+    category = "file"
 
     name = "write_file"
     description = "Write content to a file. Creates the file if it doesn't exist, overwrites if it does."

@@ -6,7 +6,6 @@ import tempfile
 import json
 from pathlib import Path
 
-import pytest
 
 
 # ── Core: store.py ─────────────────────────────────────────────────
@@ -221,14 +220,14 @@ class TestThinkingMore:
 
 class TestTaskDAGMore:
     def test_mark_status(self):
-        from terry.core.task_dag import TaskDAG, TaskNode
+        from terry.core.task_dag import TaskDAG
         dag = TaskDAG()
         tid = dag.add_task("Test")
         assert dag.mark_status(tid, "completed")
         assert dag.mark_status("nonexistent", "done") is False
 
     def test_get_blocked(self):
-        from terry.core.task_dag import TaskDAG, TaskNode
+        from terry.core.task_dag import TaskDAG
         dag = TaskDAG()
         t1 = dag.add_task("Task 1")
         t2 = dag.add_task("Task 2", depends_on=[t1])
@@ -471,7 +470,7 @@ class TestTodoWriteTool:
 
 class TestWeatherTool:
     def test_no_api_key(self):
-        os_unset = __import__('os').environ.pop
+        __import__('os').environ.pop
         old = __import__('os').environ.get('WEATHER_API_KEY')
         try:
             __import__('os').environ.pop('WEATHER_API_KEY', None)
@@ -536,7 +535,7 @@ class TestGitTools:
 
 class TestAdapter:
     def test_get_provider(self):
-        from terry.core.adapter import get_provider, PROVIDERS
+        from terry.core.adapter import get_provider
         assert get_provider("anthropic") is not None
         assert get_provider("nonexistent") is None
 
@@ -621,7 +620,8 @@ class TestCacheMore:
             from terry.core.cache import Cache
             cache = Cache(cache_dir=Path(d), default_ttl=0)
             cache.set("key", "value", ttl=0)
-            import time; time.sleep(0.1)
+            import time
+            time.sleep(0.1)
             removed = cache.cleanup_expired()
             assert removed >= 1
             assert cache.get("key") is None

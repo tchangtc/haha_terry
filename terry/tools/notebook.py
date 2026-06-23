@@ -10,6 +10,8 @@ from . import BaseTool, tool_registry
 
 class NotebookEditTool(BaseTool):
     """Edit Jupyter notebook cells with replace, insert, or delete operations."""
+    risk_level = "destructive"
+    category = "file"
 
     name = "notebook_edit"
     description = (

@@ -3,7 +3,7 @@
 > **Agency comes from the model. Terry is the harness.**
 >
 > Terry is an AI coding agent supporting Terminal · Web · Desktop · Mobile interfaces.  
-> Version: **v1.0.2** | Python 3.11+ | MIT License | 127 modules | 27 tools | ~26,900 LOC
+> Version: **v1.0.3** | Python 3.11+ | MIT License | 127 modules | 27 tools | ~27,100 LOC
 >
 > **v1.0.0**: GA release — stable API, documentation, community governance
 > **v0.9.0**: design system, Textual TUI, voice mode, WebUI polish
@@ -205,6 +205,26 @@ All in `terry/core/security/__init__.py` (184 lines).
 - Test files: `test_<feature>.py`
 - Test classes: `Test<Feature>`
 - Test methods: `test_<specific_behavior>`
+
+### Commits
+
+Follow [Conventional Commits](https://www.conventionalcommits.org/) `<type>: <description>`:
+
+| Prefix | Purpose | Example |
+|:--|:--|:--|
+| `feat:` | New feature | `feat: add ACP protocol support` |
+| `fix:` | Bug fix | `fix: resolve race condition in subagent` |
+| `docs:` | Documentation only | `docs: update CLAUDE.md line counts` |
+| `style:` | Code style (no logic change) | `style: split multi-statement lines` |
+| `refactor:` | Restructure (no fix/feature) | `refactor: extract ToolExecutor class` |
+| `test:` | Tests only | `test: add error path assertions` |
+| `chore:` | Maintenance / tooling | `chore: bump version to v1.0.3` |
+
+**Rules:**
+- Version number in description for version-bump commits (`bump version to vX.Y.Z`)
+- `Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>` trailer on every commit
+- Never use generic messages like "Fix a bug" or "Update code"
+- Patch version bumps use `chore:`, feature releases use `feat:`, bugfix releases use `fix:`
 
 ### Error Handling
 - Use `try/except` with specific exception types (never bare `except:`)

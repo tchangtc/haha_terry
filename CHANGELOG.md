@@ -5,6 +5,30 @@ All notable changes to Terry will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.3] - 2026-06-23
+
+### Fixed
+- Ruff: 245 → 0 errors across `terry/` and `tests/` (E701/E702/E402/F401/E741 all resolved)
+- `hooks/permission.py`: bare `except ImportError: pass` → `logger.debug(...)` in auto-classifier gate
+- `context_compact.py`: bare `except Exception: pass` → `logger.debug(...)` in compaction hooks
+- `hooks/__init__.py`: removed unused `import sys`
+
+### Changed
+- Tools: added `risk_level` (destructive/read_only/safe) and `category` (file/shell/git/web/task/general) to all 27 tools
+- `pyproject.toml`: added `E402` per-file-ignores for 5 `__init__.py` subpackages (docstring between `from __future__` and other imports)
+- All single-line compound statements (E701/E702) split to multi-line blocks across 4 source files
+
+### Deprecated
+- `tests/test_async.py`: replaced `asyncio.iscoroutinefunction` → `inspect.iscoroutinefunction` (5 sites, Python 3.16 compatibility)
+
+### Documentation
+- `CLAUDE.md`: tool count 29→27, `mcp/__init__.py` 191→192 lines, stale tree counts
+
+### Infrastructure
+- `.claude/settings.json`: disabled auto-commit via `includeGitInstructions: false` + deny `git commit/push/tag`
+- `scripts/terry-dev-cycle.sh`: v3 — added kimi-code competitor tracking
+- `.claude/skills/terry-competitive-analysis/`: added kimi-code deep analysis + new-competitor onboarding checklist
+
 ## [1.0.2] - 2026-06-18
 
 ### Fixed

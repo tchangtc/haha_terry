@@ -670,6 +670,37 @@ def init_cmd(path: str = typer.Argument(".", help="Project path")):
     console.print(f"[green]Created config: {config_path}[/green]")
 
 
+@app.command("login")
+def login_cmd(
+    provider: str = typer.Option("anthropic", "--provider", "-p", help="OAuth provider (anthropic, moonshot)"),
+):
+    """Log in to an AI provider via OAuth device flow (no API key needed)."""
+    from terry.oauth import login
+    success = login(provider)
+    if not success:
+        raise typer.Exit(1)
+
+
+@app.command("logout")
+def logout_cmd(
+    provider: str = typer.Option("anthropic", "--provider", "-p", help="OAuth provider"),
+):
+    """Log out from an AI provider (remove stored OAuth token)."""
+    from terry.oauth import logout
+    logout(provider)
+
+
+@app.command("acp")
+def acp_cmd():
+    """Start Terry in ACP mode (Agent Client Protocol for editor integration).
+
+    Use this to connect Zed, JetBrains, or any ACP-compatible editor to Terry.
+    The editor drives the agent session over stdio JSON-RPC.
+    """
+    from terry.acp import run_acp
+    run_acp()
+
+
 @app.command("tui")
 def tui_cmd():
     """Start Terry with the Textual TUI (modern terminal interface)."""

@@ -5,6 +5,22 @@ All notable changes to Terry will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-06-25
+
+### Added
+- **Single-binary distribution** — PyInstaller build producing a standalone `terry` binary. No Python required.
+  - `scripts/build-binary.sh`: automated PyInstaller build script
+  - `scripts/install.sh`: `curl \| bash` installer for end users
+  - `terry/__main__.py`: `python -m terry` entry point
+- **ACP (Agent Client Protocol)** — `terry acp` subcommand + `terry/acp.py` server. Connect Zed, JetBrains, or any ACP-compatible editor over stdio JSON-RPC.
+- **OAuth 2.0 login** — `terry login` / `terry logout` CLI commands + `/login` / `/logout` slash commands. Device authorization flow (RFC 8628) for Anthropic and Moonshot providers. No API key needed.
+- **SDK** — `terry/sdk.py` public API facade: `TerryConfig`, `Agent`, `BaseTool`, `ToolRegistry`, `LLMClient`, `Session`, `Memory`, `CheckpointManager`.
+- **Documentation site** — MkDocs + Material theme with Getting Started, SDK, and Installation guides.
+
+### Infrastructure
+- `.claude/settings.json`: disabled auto-commit (dual lock: `disableAutoMode` + `includeGitInstructions: false` + deny git Bash rules). Tracked in git for team enforcement.
+- `.gitignore`: exclude PyInstaller artifacts (`*.spec`, `build/pyinstaller/`, `dist/binary/`), preserve `.claude/settings.json`
+
 ## [1.0.3] - 2026-06-23
 
 ### Fixed

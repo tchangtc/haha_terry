@@ -1,0 +1,42 @@
+site_name: Terry
+site_description: An open-source AI coding agent — Terminal · Web · Desktop · Mobile
+site_author: Terry Contributors
+repo_url: https://github.com/tchangtc/haha_terry
+edit_uri: edit/master/docs/
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - search.suggest
+    - content.code.copy
+markdown_extensions:
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - admonition
+  - toc:
+      permalink: true
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Quick Start: getting-started.md
+    - Installation: installation.md
+  - SDK:
+    - Overview: sdk.md
+    - API Reference: api.md
+  - Tools:
+    - Overview: tools.md
+  - Architecture: architecture.md
+  - Changelog: changelog.md
+plugins:
+  - search

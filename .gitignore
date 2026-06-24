@@ -37,7 +37,13 @@ Thumbs.db
 .terry/
 .terry_todos.json
 .trajectories/
-scripts/
+# Internal dev tools — DO NOT COMMIT
+scripts/terry-dev-cycle.sh
+
+# PyInstaller build artifacts
+*.spec
+build/pyinstaller/
+dist/binary/
 *.db
 *.sqlite
 feedback.jsonl
@@ -73,7 +79,8 @@ htmlcov/
 # Type checking
 .mypy_cache/
 .pyre/
-.claude/
+.claude/**
+!.claude/settings.json
 
 # Package manager locks (use pyproject.toml + requirements.txt)
 uv.lock

@@ -157,6 +157,21 @@ def _cmd_mode(cmd: str, args: str | None, agent: AgentLike) -> bool:
     return True
 
 
+def _cmd_login(cmd: str, args: str | None, agent: AgentLike) -> bool:
+    provider = (args or "anthropic").strip()
+    console.print(f"Starting OAuth login for [bold]{provider}[/bold]...")
+    from terry.oauth import login
+    login(provider)
+    return True
+
+
+def _cmd_logout(cmd: str, args: str | None, agent: AgentLike) -> bool:
+    provider = (args or "anthropic").strip()
+    from terry.oauth import logout
+    logout(provider)
+    return True
+
+
 def _cmd_permissions(cmd: str, args: str | None, agent: AgentLike) -> bool:
     rules = agent.permission_store.list_rules()
     if rules:
@@ -987,6 +1002,8 @@ def register_all_commands():
     register_cli_command("/effort", _cmd_effort, "Set effort level", "basic")
     register_cli_command("/mode", _cmd_mode, "Change mode", "safety")
     register_cli_command("/permissions", _cmd_permissions, "Show permissions", "safety")
+    register_cli_command("/login", _cmd_login, "OAuth login to AI provider", "safety")
+    register_cli_command("/logout", _cmd_logout, "Logout from AI provider", "safety")
     register_cli_command("/undo", _cmd_undo, "Undo change", "safety")
     register_cli_command("/checkpoints", _cmd_checkpoints, "List checkpoints", "safety")
 

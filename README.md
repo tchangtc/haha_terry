@@ -36,6 +36,7 @@
 
 **2026-06**
 
+- **v1.1.0** — **Distribution & Integration** — single-binary build (`curl \| bash`), ACP editor protocol (Zed/JetBrains), OAuth login (`terry login`), public SDK (`terry/sdk.py`), MkDocs documentation site.
 - **v1.0.0** — **GA Release** — stable API, `pip install terry`, community governance, CI/CD pipeline, 128K output, full documentation.
 - **v0.9.0** — **Design System** with unified color palette. **Textual TUI** with multi-panel layout and Vim keybindings. **Voice Mode** via Web Speech API. **WebUI** code highlighting and animations.
 - **v0.8.0** — **Agentic Task Loop** with automatic plan execution and progress tracking. **Session Teleportation** for cross-machine migration. **Skill Marketplace** for community skill discovery. **Slash Command tool** for LLM-driven CLI interaction.

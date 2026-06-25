@@ -32,6 +32,7 @@
 
 **2026-06**
 
+- **v1.1.0** — **分发与集成** — 单二进制构建 (`curl \| bash`)、ACP 编辑器协议 (Zed/JetBrains)、OAuth 登录 (`terry login`)、公开 SDK (`terry/sdk.py`)、MkDocs 文档站。
 - **v1.0.0** — **GA 发布** — 稳定 API、`pip install terry`、社区治理、CI/CD、128K 输出、完整文档。
 - **v0.9.0** — **设计系统** 统一配色体系。**Textual TUI** 多面板布局与 Vim 键位。**语音模式** Web Speech API。**WebUI** 代码高亮与动画。
 - **v0.8.0** — **Agentic Task Loop** 自动规划执行与进度追踪。**Session Teleportation** 跨机器会话迁移。**Skill Marketplace** 社区技能市场。**Slash Command 工具** LLM 驱动 CLI 交互。

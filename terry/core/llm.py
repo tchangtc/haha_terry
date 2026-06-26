@@ -71,14 +71,19 @@ class LLMClient:
         system: str | None = None,
         tools: list[dict[str, Any]] | None = None,
         max_tokens: int | None = None,
+        json_mode: bool = False,
     ) -> dict[str, Any]:
-        """Send a chat request and return the response."""
+        """Send a chat request and return the response.
+
+        Args:
+            json_mode: If True, request JSON output (OpenAI: response_format, Anthropic: tool_use)
+        """
         max_tokens = max_tokens or self.config.max_tokens
 
         if self.provider_type == "anthropic":
-            return self._chat_anthropic(messages, system, tools, max_tokens)
+            return self._chat_anthropic(messages, system, tools, max_tokens, json_mode)
         else:
-            return self._chat_openai(messages, system, tools, max_tokens)
+            return self._chat_openai(messages, system, tools, max_tokens, json_mode)
 
     def chat_stream(
         self,
@@ -142,15 +147,19 @@ class LLMClient:
         system: str | None,
         tools: list[dict[str, Any]] | None,
         max_tokens: int,
+        json_mode: bool = False,
     ) -> dict[str, Any]:
         """Anthropic API call."""
-        kwargs = {
+        kwargs: dict[str, Any] = {
             "model": self.config.model,
             "messages": messages,
             "max_tokens": max_tokens,
         }
-        if system:
-            kwargs["system"] = system
+        effective_system = system or ""
+        if json_mode:
+            effective_system = (effective_system + "\n\nYou MUST respond with valid JSON only. No other text.").strip()
+        if effective_system:
+            kwargs["system"] = effective_system
         if tools:
             kwargs["tools"] = tools
 
@@ -172,6 +181,7 @@ class LLMClient:
         system: str | None,
         tools: list[dict[str, Any]] | None,
         max_tokens: int,
+        json_mode: bool = False,
     ) -> dict[str, Any]:
         """OpenAI-compatible API call."""
         # Convert messages format
@@ -245,6 +255,9 @@ class LLMClient:
                     },
                 })
             kwargs["tools"] = openai_tools
+
+        if json_mode:
+            kwargs["response_format"] = {"type": "json_object"}
 
         response = self.client.chat.completions.create(**kwargs)
         choice = response.choices[0]

@@ -670,6 +670,84 @@ def init_cmd(path: str = typer.Argument(".", help="Project path")):
     console.print(f"[green]Created config: {config_path}[/green]")
 
 
+@app.command("mcp")
+def mcp_cmd(
+    action: str = typer.Argument("list", help="Action: list, add, remove, test, discover"),
+    name: str = typer.Argument("", help="Server name"),
+    command: str = typer.Option("", "--command", "-c", help="Server command"),
+    url: str = typer.Option("", "--url", "-u", help="Server URL (for remote MCP)"),
+):
+    """Manage MCP servers — add, list, test, remove without editing JSON."""
+    from terry.mcp_config import McpConfigManager, McpServerConfig, discover_mcp_json
+
+    mgr = McpConfigManager()
+
+    if action == "list":
+        servers = mgr.list_servers()
+        if servers:
+            console.print(f"\n[bold]MCP Servers ({len(servers)}):[/bold]")
+            for s in servers:
+                src = s.command or s.url or "unconfigured"
+                console.print(f"  🔌 [bold]{s.name}[/bold] → {src[:60]}")
+        else:
+            console.print("[dim]No MCP servers configured.[/dim]")
+            console.print("[dim]Try: terry mcp discover[/dim]")
+
+    elif action == "add":
+        if not name:
+            console.print("[yellow]Usage: terry mcp add <name> --command '...'[/yellow]")
+            return
+        if not command and not url:
+            console.print("[yellow]Need --command or --url[/yellow]")
+            return
+        config = McpServerConfig(
+            name=name,
+            command=command,
+            url=url,
+            args=command.split()[1:] if command else [],
+        )
+        mgr.add_server(config)
+        console.print(f"[green]✅ Added MCP server: {name}[/green]")
+
+    elif action == "remove":
+        if not name:
+            console.print("[yellow]Usage: terry mcp remove <name>[/yellow]")
+            return
+        mgr.remove_server(name)
+        console.print(f"[green]✅ Removed MCP server: {name}[/green]")
+
+    elif action == "test":
+        if not name:
+            console.print("[yellow]Usage: terry mcp test <name>[/yellow]")
+            return
+        console.print(f"Testing {name}...")
+        result = mgr.test_server(name)
+        status_color = {"ok": "green", "error": "red", "warning": "yellow", "timeout": "yellow"}
+        color = status_color.get(result["status"], "dim")
+        console.print(f"  [{color}]{result['status']}[/{color}]: {result['message']}")
+
+    elif action == "discover":
+        discovered = discover_mcp_json()
+        if discovered:
+            servers = discovered.get("mcpServers", discovered.get("servers", {}))
+            if isinstance(servers, dict):
+                console.print(f"\n[bold]Found {len(servers)} MCP server(s) in project:[/bold]")
+                for name, cfg in servers.items():
+                    if isinstance(cfg, dict):
+                        src = cfg.get("command", cfg.get("url", "?"))
+                        console.print(f"  📄 [bold]{name}[/bold] → {str(src)[:60]}")
+                        # Option to auto-import
+                        mgr.add_server(McpServerConfig.from_dict({"name": name, **cfg}))
+                console.print("[green]✅ Imported to Terry config[/green]")
+            else:
+                console.print("[dim]No MCP servers found in project config[/dim]")
+        else:
+            console.print("[dim]No .mcp.json or mcp.json found in this directory[/dim]")
+
+    else:
+        console.print(f"[red]Unknown action: {action}. Use: list, add, remove, test, discover[/red]")
+
+
 @app.command("login")
 def login_cmd(
     provider: str = typer.Option("anthropic", "--provider", "-p", help="OAuth provider (anthropic, moonshot)"),
@@ -688,6 +766,107 @@ def logout_cmd(
     """Log out from an AI provider (remove stored OAuth token)."""
     from terry.oauth import logout
     logout(provider)
+
+
+@app.command("profile")
+def profile_cmd(
+    action: str = typer.Argument("list", help="Action: list, use, create"),
+    name: str = typer.Argument("", help="Profile name"),
+):
+    """Manage agent profiles — switch roles (coder, reviewer, architect, debugger, devops)."""
+    from terry.profile import ProfileManager, BUILTIN_PROFILES
+
+    pm = ProfileManager()
+
+    if action == "list":
+        profiles = pm.list_all()
+        console.print(f"\n[bold]Available profiles ({len(profiles)}):[/bold]")
+        for p in profiles:
+            builtin = "🔧" if p.name in BUILTIN_PROFILES else "👤"
+            active = " [green]◀ active[/green]" if pm._active_profile == p.name else ""
+            console.print(
+                f"  {builtin} [bold]{p.name:12s}[/bold] — {p.description[:60]}{active}"
+            )
+
+    elif action == "use":
+        if not name:
+            console.print("[yellow]Usage: terry profile use <name>[/yellow]")
+            return
+        try:
+            profile = pm.use(name)
+            console.print(f"[green]✅ Now using profile: {profile.name}[/green]")
+            console.print(f"   {profile.description}")
+            console.print(f"   Effort: {profile.effort} | Model: {profile.model_override or 'default'}")
+        except ValueError as e:
+            console.print(f"[red]❌ {e}[/red]")
+
+    else:
+        console.print(f"[red]Unknown action: {action}. Use: list, use[/red]")
+
+
+@app.command("plugin")
+def plugin_cmd(
+    action: str = typer.Argument("list", help="Action: search, install, list, uninstall"),
+    query: str = typer.Argument("", help="Search query or plugin name"),
+):
+    """Manage Terry plugins — search, install, list, or uninstall."""
+    from terry.plugin_market import (
+        PluginRegistry,
+        search_plugins,
+        install_plugin,
+    )
+
+    registry = PluginRegistry()
+
+    if action == "list":
+        installed = registry.list_installed()
+        if installed:
+            console.print(f"\n[bold]Installed plugins ({len(installed)}):[/bold]")
+            for p in installed:
+                trust_color = {"verified": "green", "community": "yellow", "unknown": "dim"}
+                tc = trust_color.get(p.trust_level.value, "dim")
+                console.print(f"  [{tc}]●[/{tc}] {p.name} v{p.version} — {p.description[:60]}")
+        else:
+            console.print("[dim]No plugins installed. Try: terry plugin search <query>[/dim]")
+
+    elif action == "search":
+        if not query:
+            console.print("[yellow]Usage: terry plugin search <query>[/yellow]")
+            return
+        results = search_plugins(query)
+        if results:
+            console.print(f"\n[bold]Found {len(results)} plugin(s) for '{query}':[/bold]")
+            for p in results[:20]:
+                trust_icon = {"verified": "🔒", "community": "👥", "unknown": "❓"}
+                icon = trust_icon.get(p.trust_level.value, "❓")
+                console.print(
+                    f"  {icon} [bold]{p.name}[/bold] v{p.version} "
+                    f"[dim]({p.kind.value}, ★{p.rating:.1f}, {p.downloads}↓)[/dim]"
+                )
+                if p.description:
+                    console.print(f"      {p.description[:100]}")
+        else:
+            console.print(f"[dim]No plugins found for '{query}'[/dim]")
+
+    elif action == "install":
+        if not query:
+            console.print("[yellow]Usage: terry plugin install <name>[/yellow]")
+            return
+        try:
+            manifest = install_plugin(query, registry)
+            console.print(f"[green]✅ Installed {manifest.name} v{manifest.version}[/green]")
+        except ValueError as e:
+            console.print(f"[red]❌ {e}[/red]")
+
+    elif action == "uninstall":
+        if not query:
+            console.print("[yellow]Usage: terry plugin uninstall <name>[/yellow]")
+            return
+        registry.uninstall(query)
+        console.print(f"[green]✅ Uninstalled {query}[/green]")
+
+    else:
+        console.print(f"[red]Unknown action: {action}. Use: search, install, list, uninstall[/red]")
 
 
 @app.command("acp")

@@ -125,4 +125,10 @@ def discover_tools():
     except ImportError:
         pass
 
+    # Optional: video input (requires ffmpeg for frame extraction)
+    try:
+        from . import video_input  # noqa: F401
+    except ImportError:
+        pass
+
     return tool_registry

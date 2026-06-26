@@ -5,6 +5,18 @@ All notable changes to Terry will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-06-26
+
+### Added
+- **Plugin Marketplace** — `terry plugin search|install|list|uninstall` with GitHub/directory sources, trust levels (verified/community/unknown), and local registry.
+- **Video Input** — `read_video` tool with ffmpeg frame extraction (scene detection) and ffprobe metadata (duration, resolution, codec, fps, bitrate).
+- **Profile System** — `terry profile list|use` with 5 built-in agent profiles: coder, reviewer, architect, debugger, devops. Each has tailored system prompts, tool allow/deny lists, and effort levels.
+- **MCP Configuration UI** — `terry mcp add|list|remove|test|discover` for managing MCP servers without hand-editing JSON. Auto-discovers `.mcp.json` from project root.
+- **JSON Mode** — `LLMClient.chat(json_mode=True)` for structured JSON output (OpenAI: `response_format`, Anthropic: system prompt instruction).
+
+### Security
+- `.git/hooks/pre-commit`: blocks auto-generated commit messages — only Conventional Commits allowed.
+
 ## [1.1.0] - 2026-06-25
 
 ### Added

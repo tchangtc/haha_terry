@@ -32,6 +32,7 @@
 
 **2026-06**
 
+- **v1.2.0** — **插件生态与多模态** — 插件市场（GitHub 源 + 信任级别）、视频输入（ffmpeg 帧提取）、5 个内置 Agent 角色配置、对话式 MCP 配置、JSON 模式结构化输出。
 - **v1.1.0** — **分发与集成** — 单二进制构建 (`curl \| bash`)、ACP 编辑器协议 (Zed/JetBrains)、OAuth 登录 (`terry login`)、公开 SDK (`terry/sdk.py`)、MkDocs 文档站。
 - **v1.0.0** — **GA 发布** — 稳定 API、`pip install terry`、社区治理、CI/CD、128K 输出、完整文档。
 - **v0.9.0** — **设计系统** 统一配色体系。**Textual TUI** 多面板布局与 Vim 键位。**语音模式** Web Speech API。**WebUI** 代码高亮与动画。

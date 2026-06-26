@@ -32,6 +32,7 @@
 
 **2026-06**
 
+- **v1.2.0** — **插件生態與多模態** — 插件市場（GitHub 源 + 信任等級）、影片輸入（ffmpeg 幀提取）、5 個內建 Agent 角色設定、對話式 MCP 配置、JSON 模式結構化輸出。
 - **v1.1.0** — **分發與整合** — 單二進位構建 (`curl \| bash`)、ACP 編輯器協議 (Zed/JetBrains)、OAuth 登入 (`terry login`)、公開 SDK (`terry/sdk.py`)、MkDocs 文件站。
 - **v1.0.0** — **GA 發佈** — 穩定 API、`pip install terry`、社群治理、CI/CD、128K 輸出、完整文件。
 - **v0.9.0** — **設計系統** 統一配色體系。**Textual TUI** 多面板佈局與 Vim 鍵位。**語音模式** Web Speech API。**WebUI** 程式碼高亮與動畫。

@@ -36,6 +36,7 @@
 
 **2026-06**
 
+- **v1.4.0** — **Observability & Enterprise** — OpenTelemetry tracing (LLM + tools + agents), Prometheus metrics export (tokens, cost, latency), structured audit logging with JSONL retention, RBAC with 4 roles and 28-tool permission matrix.
 - **v1.3.0** — **Agent Collaboration & Routing** — smart model routing with cost/latency awareness, agent swarm with scatter/gather/broadcast, shared sessions with multi-agent locking and 5 built-in roles, PyPI package renamed to `terry-agent`.
 - **v1.2.0** — **Plugin Ecosystem & Multimodal** — plugin marketplace with GitHub sources and trust levels, video input with ffmpeg frame extraction, 5 built-in agent profiles (coder/reviewer/architect/debugger/devops), conversational MCP configuration, JSON mode for structured output.
 - **v1.1.0** — **Distribution & Integration** — single-binary build (`curl \| bash`), ACP editor protocol (Zed/JetBrains), OAuth login (`terry login`), public SDK (`terry/sdk.py`), MkDocs documentation site.

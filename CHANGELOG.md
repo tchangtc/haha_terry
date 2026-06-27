@@ -5,6 +5,14 @@ All notable changes to Terry will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-06-27
+
+### Added
+- **OpenTelemetry** — zero-overhead tracing (`terry/core/otel.py`). No-op when disabled, OTLP/console exporters. Context managers for LLM calls, tool execution, and agent orchestration.
+- **Prometheus Metrics** — `MetricsCollector` with token usage, cost, tool stats, and Prometheus text format export.
+- **Audit Logging** — structured audit trail (`terry/core/audit.py`) with JSONL persistence, query API, and 90-day retention.
+- **RBAC** — 4 roles (admin/developer/reviewer/viewer) with fine-grained permission matrix for all 28 tools.
+
 ## [1.3.5] - 2026-06-27
 
 ### Fixed

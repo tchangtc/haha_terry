@@ -32,6 +32,7 @@
 
 **2026-06**
 
+- **v1.4.0** — **观测与企业级** — OpenTelemetry 全链路追踪（LLM + 工具 + Agent）、Prometheus 指标导出（token、成本、延迟）、结构化审计日志（JSONL，90 天留存）、RBAC 4 角色权限矩阵覆盖全部 28 个工具。
 - **v1.3.0** — **Agent 协作与路由** — 智能模型路由（成本/延迟感知）、Agent Swarm（scatter/gather/broadcast）、共享会话（多 Agent 锁 + 5 种内置角色）、PyPI 包更名为 `terry-agent`。
 - **v1.2.0** — **插件生态与多模态** — 插件市场（GitHub 源 + 信任级别）、视频输入（ffmpeg 帧提取）、5 个内置 Agent 角色配置、对话式 MCP 配置、JSON 模式结构化输出。
 - **v1.1.0** — **分发与集成** — 单二进制构建 (`curl \| bash`)、ACP 编辑器协议 (Zed/JetBrains)、OAuth 登录 (`terry login`)、公开 SDK (`terry/sdk.py`)、MkDocs 文档站。

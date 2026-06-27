@@ -79,8 +79,7 @@ htmlcov/
 # Type checking
 .mypy_cache/
 .pyre/
-.claude/**
-!.claude/settings.json
+.claude/
 
 # Package manager locks (use pyproject.toml + requirements.txt)
 uv.lock

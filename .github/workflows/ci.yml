@@ -2,6 +2,7 @@ name: CI
 on:
   push:
     branches: [master, main]
+    tags: ['v*']
   pull_request:
     branches: [master, main]
 jobs:
@@ -9,10 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with: {python-version: '3.12'}
-      - run: pip install ruff
-      - run: ruff check terry/ --select F --ignore F401,F541
+      - uses: astral-sh/setup-ruff@v5
+        with: {version: '>=0.5'}
+      - run: ruff check terry/ tests/
   test:
     runs-on: ubuntu-latest
     strategy:
@@ -31,7 +31,7 @@ jobs:
       - name: Secret scan
         run: |
           ! grep -rnE '(api_key|password|secret|token)\s*=\s*"[^"]{12,}"' terry/ --include="*.py" | grep -v 'None\|os.environ\|key_env\|test\|example\|your-\|key_help'
-  build:
+  wheel:
     needs: [lint, test, security]
     runs-on: ubuntu-latest
     steps:
@@ -42,3 +42,35 @@ jobs:
       - run: python -m hatchling build
       - uses: actions/upload-artifact@v4
         with: {name: dist, path: dist/}
+  binary:
+    needs: [lint, test, security]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: pip install pyinstaller && pip install -r requirements.txt
+      - run: |
+          python3 -m PyInstaller --onefile --name terry \
+            --distpath dist/binary --workpath build/pyinstaller \
+            --noconfirm --noupx --log-level ERROR \
+            --hidden-import=terry terry/__main__.py
+      - uses: actions/upload-artifact@v4
+        with: {name: terry-binary, path: dist/binary/terry}
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [wheel, binary]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with: {name: dist, path: dist/}
+      - uses: actions/download-artifact@v4
+        with: {name: terry-binary, path: dist/binary/}
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/terry_agent-*.whl
+            dist/terry_agent-*.tar.gz
+            dist/binary/terry
+          generate_release_notes: true

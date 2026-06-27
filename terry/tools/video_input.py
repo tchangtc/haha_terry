@@ -159,7 +159,10 @@ class VideoInputTool(BaseTool):
         if not frames:
             frames.append({
                 "index": 0,
-                "note": "No frames extracted — install ffmpeg for frame extraction",
+                "note": (
+                    "No frames extracted — install ffmpeg: "
+                    "sudo apt install ffmpeg (Linux) or brew install ffmpeg (macOS)"
+                ),
             })
 
         return frames

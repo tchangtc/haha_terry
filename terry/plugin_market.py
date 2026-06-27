@@ -263,6 +263,11 @@ DEFAULT_SOURCES: list[MarketplaceSource] = [
         url="https://github.com/tchangtc/haha_terry",
         kind="github",
     ),
+    MarketplaceSource(
+        name="terry-local",
+        url=str(Path(__file__).resolve().parent.parent / "marketplace"),
+        kind="directory",
+    ),
 ]
 
 

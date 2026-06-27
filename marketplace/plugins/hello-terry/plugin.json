@@ -1,0 +1,10 @@
+{
+  "name": "hello-terry",
+  "version": "1.0.0",
+  "description": "A simple greeting skill — responds when you say hello",
+  "kind": "skill",
+  "author": "Terry Team",
+  "license": "MIT",
+  "trust_level": "verified",
+  "tags": ["demo", "greeting", "example"]
+}

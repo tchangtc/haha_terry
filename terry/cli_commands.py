@@ -798,12 +798,21 @@ def _cmd_workflow(cmd: str, args: str | None, agent: AgentLike) -> bool:
     if not path.exists():
         console.print(f"[red]Not found: {path}[/red]")
         return True
-    ns: dict = {"__builtins__": {k: v for k, v in __builtins__.items()
-                                   if k not in ("exec", "eval", "compile", "open", "__import__")}}
+    # Sandboxed exec for workflow scripts — restricted builtins + namespace isolation
+    safe_builtins = {
+        k: v for k, v in __builtins__.items()
+        if k not in (
+            "exec", "eval", "compile", "open", "__import__",
+            "input", "breakpoint", "memoryview",
+        )
+    }
+    safe_builtins["print"] = print
+    safe_builtins["__name__"] = "__terry_workflow__"
+    ns = {"__builtins__": safe_builtins}
     try:
         exec(path.read_text(encoding="utf-8"), ns)
     except Exception as e:
-        console.print(f"[red]Error: {e}[/red]")
+        console.print(f"[red]Workflow error: {e}[/red]")
         return True
     from .core.workflow_script import WorkflowScript
     wf = ns.get("wf")

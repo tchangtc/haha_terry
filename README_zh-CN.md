@@ -32,9 +32,10 @@
 
 **2026-06**
 
+- **v1.3.0** — **Agent 协作与路由** — 智能模型路由（成本/延迟感知）、Agent Swarm（scatter/gather/broadcast）、共享会话（多 Agent 锁 + 5 种内置角色）、PyPI 包更名为 `terry-agent`。
 - **v1.2.0** — **插件生态与多模态** — 插件市场（GitHub 源 + 信任级别）、视频输入（ffmpeg 帧提取）、5 个内置 Agent 角色配置、对话式 MCP 配置、JSON 模式结构化输出。
 - **v1.1.0** — **分发与集成** — 单二进制构建 (`curl \| bash`)、ACP 编辑器协议 (Zed/JetBrains)、OAuth 登录 (`terry login`)、公开 SDK (`terry/sdk.py`)、MkDocs 文档站。
-- **v1.0.0** — **GA 发布** — 稳定 API、`pip install terry`、社区治理、CI/CD、128K 输出、完整文档。
+- **v1.0.0** — **GA 发布** — 稳定 API、`pip install terry-agent`、社区治理、CI/CD、128K 输出、完整文档。
 - **v0.9.0** — **设计系统** 统一配色体系。**Textual TUI** 多面板布局与 Vim 键位。**语音模式** Web Speech API。**WebUI** 代码高亮与动画。
 - **v0.8.0** — **Agentic Task Loop** 自动规划执行与进度追踪。**Session Teleportation** 跨机器会话迁移。**Skill Marketplace** 社区技能市场。**Slash Command 工具** LLM 驱动 CLI 交互。
 - **v0.7.0** — **Workflow Script DSL** Python 流式 API。**多层子代理** 5 级递归。**Agent View** 仪表盘实时监控。**Ultrareview** 4 维度对抗审查。**Routines** Webhook + API 触发。
@@ -265,7 +266,7 @@ CLI · WebUI · Desktop · Mobile(PWA) · Telegram · Discord
 
 | 方式 | 命令 | 平台 |
 |--------|---------|----------|
-| **PyPI** | `pip install terry` | 全平台 (x86_64 + arm64) |
+| **PyPI** | `pip install terry-agent` | 全平台 (x86_64 + arm64) |
 | **Docker** | `docker compose up` | 全平台 |
 | **containerd** | `nerdctl compose up` | Linux 服务器 |
 | **Kubernetes** | `kubectl apply -f deploy/kubernetes/terry.yaml` | 集群 |

@@ -36,9 +36,10 @@
 
 **2026-06**
 
+- **v1.3.0** — **Agent Collaboration & Routing** — smart model routing with cost/latency awareness, agent swarm with scatter/gather/broadcast, shared sessions with multi-agent locking and 5 built-in roles, PyPI package renamed to `terry-agent`.
 - **v1.2.0** — **Plugin Ecosystem & Multimodal** — plugin marketplace with GitHub sources and trust levels, video input with ffmpeg frame extraction, 5 built-in agent profiles (coder/reviewer/architect/debugger/devops), conversational MCP configuration, JSON mode for structured output.
 - **v1.1.0** — **Distribution & Integration** — single-binary build (`curl \| bash`), ACP editor protocol (Zed/JetBrains), OAuth login (`terry login`), public SDK (`terry/sdk.py`), MkDocs documentation site.
-- **v1.0.0** — **GA Release** — stable API, `pip install terry`, community governance, CI/CD pipeline, 128K output, full documentation.
+- **v1.0.0** — **GA Release** — stable API, `pip install terry-agent`, community governance, CI/CD pipeline, 128K output, full documentation.
 - **v0.9.0** — **Design System** with unified color palette. **Textual TUI** with multi-panel layout and Vim keybindings. **Voice Mode** via Web Speech API. **WebUI** code highlighting and animations.
 - **v0.8.0** — **Agentic Task Loop** with automatic plan execution and progress tracking. **Session Teleportation** for cross-machine migration. **Skill Marketplace** for community skill discovery. **Slash Command tool** for LLM-driven CLI interaction.
 - **v0.7.0** — **Workflow Script DSL** with fluent Python API. **Multi-tier subagents** with 5-level depth. **Agent View** dashboard with live monitoring. **Ultrareview** 4-dimension adversarial code review. **Routines** with webhook and API triggers.
@@ -306,7 +307,7 @@ CLI · WebUI · Desktop · Mobile(PWA) · Telegram · Discord
 
 | Method | Command | Platform |
 |--------|---------|----------|
-| **PyPI** | `pip install terry` | All (x86_64 + arm64) |
+| **PyPI** | `pip install terry-agent` | All (x86_64 + arm64) |
 | **Docker** | `docker compose up` | All |
 | **containerd** | `nerdctl compose up` | Linux servers |
 | **Kubernetes** | `kubectl apply -f deploy/kubernetes/terry.yaml` | Clusters |

@@ -5,7 +5,7 @@ The Terry SDK provides a clean, stable Python API for embedding Terry in your ow
 ## Installation
 
 ```bash
-pip install terry
+pip install terry-agent
 ```
 
 ## Quick Start

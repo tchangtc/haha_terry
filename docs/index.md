@@ -11,7 +11,7 @@ Terry is an open-source AI coding agent. It reads your codebase, runs commands, 
 curl -fsSL https://github.com/tchangtc/haha_terry/releases/latest/download/install.sh | bash
 
 # Option 2: pip
-pip install terry
+pip install terry-agent
 
 # Set your API key
 export ANTHROPIC_API_KEY="sk-ant-..."

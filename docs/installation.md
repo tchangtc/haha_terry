@@ -20,7 +20,7 @@ terry
 Requires Python 3.11+.
 
 ```bash
-pip install terry
+pip install terry-agent
 ```
 
 ## From Source

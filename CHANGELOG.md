@@ -5,6 +5,17 @@ All notable changes to Terry will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-06-27
+
+### Added
+- **Smart Routing v2** — `ModelRouterV2` with 5 model profiles, 6 task type classifiers, cost/latency/task-aware dynamic model selection, tier fallback, and budget tracking.
+- **Agent Swarm** — `AgentSwarm` with scatter (parallel N-agent dispatch), gather (divide-and-conquer), broadcast (peer notification), consensus scoring, and task tracking.
+- **Shared Sessions** — `SharedSession` with 5 agent roles (architect/developer/reviewer/debugger/coordinator), concurrent message locking, shared context injection, and per-agent context isolation.
+
+### Fixed
+- `pyproject.toml`: package renamed to `terry-agent` (PyPI `terry` occupied by third-party), repo URLs corrected to `github.com/tchangtc/haha_terry`.
+- README/docs: all `pip install terry` references updated to `pip install terry-agent`.
+
 ## [1.2.0] - 2026-06-26
 
 ### Added

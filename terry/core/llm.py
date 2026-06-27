@@ -7,9 +7,6 @@ import logging
 import os
 from typing import Any
 
-from anthropic import Anthropic
-from openai import OpenAI
-
 from .adapter import ProviderAdapter, get_provider
 from .config import ModelConfig
 
@@ -17,27 +14,31 @@ logger = logging.getLogger(__name__)
 
 
 class LLMClient:
-    """Unified LLM client — uses adapter registry for provider discovery."""
+    """Unified LLM client — uses adapter registry for provider discovery.
+
+    SDK clients (Anthropic/OpenAI) are created lazily on first use,
+    saving ~500ms at init time.
+    """
 
     def __init__(self, config: ModelConfig):
         self.config = config
         self.adapter = self._resolve_adapter()
         self.provider_type = self._detect_provider_type()
-        self.client = self._create_client()
+        self._client = None
+
+    @property
+    def client(self):
+        """Lazy SDK client — created on first access (~500ms saving at init)."""
+        if self._client is None:
+            self._client = self._create_client()
+        return self._client
 
     def reconfigure(self, new_config: ModelConfig) -> None:
-        """Reconfigure the LLM client with new model settings at runtime.
-
-        Recreates the internal SDK client and adapter so changes to
-        provider, model, temperature, or base_url take effect immediately.
-
-        Args:
-            new_config: New ModelConfig to apply.
-        """
+        """Reconfigure the LLM client with new model settings at runtime."""
         self.config = new_config
         self.adapter = self._resolve_adapter()
         self.provider_type = self._detect_provider_type()
-        self.client = self._create_client()
+        self._client = self._create_client()
 
     def _resolve_adapter(self) -> ProviderAdapter | None:
         """Find the matching provider adapter from the registry."""
@@ -47,11 +48,10 @@ class LLMClient:
         """Detect if we should use Anthropic or OpenAI SDK."""
         if self.adapter and self.adapter.protocol == "anthropic":
             return "anthropic"
-        # All other providers use OpenAI-compatible protocol
         return "openai"
 
-    def _create_client(self) -> Anthropic | OpenAI:
-        """Create the appropriate SDK client."""
+    def _create_client(self):
+        """Create the appropriate SDK client (imports deferred until first use)."""
         base_url = self.config.base_url
         if not base_url and self.adapter:
             base_url = self.adapter.base_url
@@ -61,8 +61,10 @@ class LLMClient:
             api_key = os.environ.get(self.adapter.key_env, "")
 
         if self.provider_type == "anthropic":
+            from anthropic import Anthropic
             return Anthropic(api_key=api_key, base_url=base_url)
         else:
+            from openai import OpenAI
             return OpenAI(api_key=api_key, base_url=base_url)
 
     def chat(

@@ -11,27 +11,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from .autonomous_agent import AutonomousAgent
-from .skill_auto_create import SkillAutoCreator
-from .code_index import CodeSemanticIndex
-from .curator import SkillsCurator
-from .docker_sandbox import DockerSandbox
-from .dynamic_workflow import DynamicWorkflowEngine
-from .fts_search import FTSSearch
-from .knowledge_graph import KnowledgeGraph
-from .local_embed import LocalEmbedder
-from .memory_sync import MemorySync
-from .model_router import ModelRouter
-from .prompt_cache import PromptCache
-from .rag import ProjectRAG
-from .scheduler import CronScheduler
-from .skill_market import SkillMarket
-from .spec_exec import SpeculativeExecutor
-from .suggester import ProactiveSuggester
-from .task_dag import TaskDAG
-from .thinking import ExtendedThinking
-from .workflow import WorkflowEngine
-
 logger = logging.getLogger(__name__)
 
 
@@ -39,43 +18,64 @@ logger = logging.getLogger(__name__)
 class AgentSubsystems:
     """Holds advanced/optional subsystems to keep Agent.__init__ slim.
 
-    Each field is lazily evaluated — subsystems that fail to initialize
-    don't prevent the rest from working.
+    All subsystem imports are lazy — deferred into create() so that
+    importing this module stays fast (~5ms vs ~95ms).
     """
 
     workdir: Path = field(default_factory=Path.cwd)
     agent_factory: Any = None
 
     # ── Intelligence ──
-    extended_thinking: ExtendedThinking | None = None
-    task_dag: TaskDAG | None = None
-    knowledge_graph: KnowledgeGraph | None = None
-    code_index: CodeSemanticIndex | None = None
-    project_rag: ProjectRAG | None = None
-    local_embedder: LocalEmbedder | None = None
+    extended_thinking: Any = None
+    task_dag: Any = None
+    knowledge_graph: Any = None
+    code_index: Any = None
+    project_rag: Any = None
+    local_embedder: Any = None
 
     # ── Automation ──
-    scheduler: CronScheduler | None = None
-    skills_curator: SkillsCurator | None = None
-    spec_exec: SpeculativeExecutor | None = None
-    suggester: ProactiveSuggester | None = None
-    workflow_engine: WorkflowEngine | None = None
-    dynamic_workflow: DynamicWorkflowEngine | None = None
+    scheduler: Any = None
+    skills_curator: Any = None
+    spec_exec: Any = None
+    suggester: Any = None
+    workflow_engine: Any = None
+    dynamic_workflow: Any = None
 
     # ── Tools ──
-    prompt_cache: PromptCache | None = None
-    fts_search: FTSSearch | None = None
-    skill_market: SkillMarket | None = None
-    model_router: ModelRouter | None = None
-    docker_sandbox: DockerSandbox | None = None
+    prompt_cache: Any = None
+    fts_search: Any = None
+    skill_market: Any = None
+    model_router: Any = None
+    docker_sandbox: Any = None
 
     # ── Agent-of-agents ──
-    autonomous_agent: AutonomousAgent | None = None
-    skill_auto_creator: SkillAutoCreator | None = None
+    autonomous_agent: Any = None
+    skill_auto_creator: Any = None
 
     @classmethod
     def create(cls, workdir: Path, model: str, agent_factory: Any = None) -> AgentSubsystems:
-        """Factory: initialize all subsystems with graceful degradation."""
+        """Factory: initialize all subsystems with lazy imports."""
+        from .autonomous_agent import AutonomousAgent
+        from .code_index import CodeSemanticIndex
+        from .curator import SkillsCurator
+        from .docker_sandbox import DockerSandbox
+        from .dynamic_workflow import DynamicWorkflowEngine
+        from .fts_search import FTSSearch
+        from .knowledge_graph import KnowledgeGraph
+        from .local_embed import LocalEmbedder
+        from .memory_sync import MemorySync
+        from .model_router import ModelRouter
+        from .prompt_cache import PromptCache
+        from .rag import ProjectRAG
+        from .scheduler import CronScheduler
+        from .skill_auto_create import SkillAutoCreator
+        from .skill_market import SkillMarket
+        from .spec_exec import SpeculativeExecutor
+        from .suggester import ProactiveSuggester
+        from .task_dag import TaskDAG
+        from .thinking import ExtendedThinking
+        from .workflow import WorkflowEngine
+
         subsystems = cls(workdir=workdir, agent_factory=agent_factory)
 
         try:

@@ -5,6 +5,28 @@ All notable changes to Terry will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.5] - 2026-06-27
+
+### Fixed
+- CI: restored full `ruff check terry/ tests/` (was `--select F` only)
+- CI: PyInstaller binary build + GitHub Release auto-publish on tag push
+- `plugin_market.py`: local `marketplace/` directory registered as default source
+- `video_input.py`: friendly ffmpeg install hint instead of silent failure
+- `.gitignore`: restored `.claude/` exclusion for internal dev files
+- `.claude/settings.json`: removed from git tracking (Claude Code internal)
+
+### Added
+- `marketplace/marketplace.json` — official plugin marketplace index
+- `marketplace/plugins/hello-terry/` — sample plugin with SKILL.md + plugin.json
+
+### Performance
+- Cold start: ~1000ms → 192ms (5x via lazy SDK client + lazy subsystem imports)
+
+### Validated
+- ACP protocol: JSON-RPC initialize/session/turn passing
+- OAuth: token save/load/expire/refresh logic correct
+- Plugin: install/uninstall/search flow tested
+
 ## [1.3.0] - 2026-06-27
 
 ### Added

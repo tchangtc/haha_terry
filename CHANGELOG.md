@@ -5,6 +5,14 @@ All notable changes to Terry will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2026-06-27
+
+### Added
+- **Project Context Engine** — unified project understanding with auto-indexing, relevance scoring, and context prompt generation.
+- **Memory 2.0** — cross-project memory sharing, user preference learning (auto-detect from interactions), memory decay and reinforcement.
+- **Autonomous Workflow v2** — webhook, CI event (GitHub/GitLab), file watch, and schedule triggers with background polling engine.
+- **AutoHealer v2** — auto-fix test failures (pytest parsing), lint errors (ruff --fix runner), and type errors (mypy parsing).
+
 ## [1.4.0] - 2026-06-27
 
 ### Added

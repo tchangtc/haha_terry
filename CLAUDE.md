@@ -3,7 +3,7 @@
 > **Agency comes from the model. Terry is the harness.**
 >
 > Terry is an AI coding agent supporting Terminal · Web · Desktop · Mobile interfaces.  
-> Version: **v1.4.0** | Python 3.11+ | MIT License | 142 modules | 28 tools | ~30,200 LOC
+> Version: **v1.5.0** | Python 3.11+ | MIT License | 146 modules | 28 tools | ~31,000 LOC
 >
 > **v1.0.0**: GA release — stable API, documentation, community governance
 > **v0.9.0**: design system, Textual TUI, voice mode, WebUI polish

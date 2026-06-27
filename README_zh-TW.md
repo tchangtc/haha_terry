@@ -32,6 +32,7 @@
 
 **2026-06**
 
+- **v1.5.0** — **自主深化** — 專案上下文引擎（自動索引 + 相關性評分）、Memory 2.0（跨專案共享 + 偏好學習）、自主工作流 v2（webhook/CI/檔案監聽觸發器）。
 - **v1.4.0** — **觀測與企業級** — OpenTelemetry 全鏈路追蹤（LLM + 工具 + Agent）、Prometheus 指標匯出（token、成本、延遲）、結構化審計日誌（JSONL，90 天留存）、RBAC 4 角色權限矩陣覆蓋全部 28 個工具。
 - **v1.3.0** — **Agent 協作與路由** — 智慧模型路由（成本/延遲感知）、Agent Swarm（scatter/gather/broadcast）、共享會話（多 Agent 鎖 + 5 種內建角色）、PyPI 套件更名為 `terry-agent`。
 - **v1.2.0** — **插件生態與多模態** — 插件市場（GitHub 源 + 信任等級）、影片輸入（ffmpeg 幀提取）、5 個內建 Agent 角色設定、對話式 MCP 配置、JSON 模式結構化輸出。

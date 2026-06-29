@@ -1006,6 +1006,56 @@ def _cmd_pipeline(cmd: str, args: str | None, agent: AgentLike) -> bool:
     return True
 
 
+def _cmd_vim(cmd: str, args: str | None, agent: AgentLike) -> bool:
+    """Toggle vim-mode for readline input."""
+    try:
+        import readline
+        readline.parse_and_bind("set editing-mode vi")
+        readline.parse_and_bind("set show-mode-in-prompt on")
+        console.print("[green]✅ Vim mode enabled (use Esc for normal mode, i/a for insert)[/green]")
+        console.print("[dim]Set TERRY_VIM=1 for persistent vim mode across sessions[/dim]")
+    except Exception:
+        console.print("[yellow]Vim mode not available (readline not found)[/yellow]")
+    return True
+
+
+def _cmd_backup(cmd: str, args: str | None, agent: AgentLike) -> bool:
+    from terry.core.auto_backup import AutoBackup
+    backup = AutoBackup()
+    name = backup.run()
+    if name:
+        console.print(f"[green]✅ Backup created: {name}[/green]")
+        stats = backup.get_stats()
+        console.print(f"[dim]{stats['total_backups']} backups, {stats['total_size_mb']}MB total[/dim]")
+    else:
+        console.print("[red]❌ Backup failed[/red]")
+    return True
+
+
+def _cmd_search_provider(cmd: str, args: str | None, agent: AgentLike) -> bool:
+    from terry.core.search_providers import SearchProviderRegistry
+    reg = SearchProviderRegistry()
+    if not args:
+        console.print("[bold]Available search providers:[/bold]")
+        for p in reg.list_all():
+            mark = " [green]◀ default[/green]" if p.name == reg.get_default().name else ""
+            console.print(f"  {'🔒' if p.name in ('duckduckgo', 'google', 'searxng') else '👤'} {p.name}: {p.description}{mark}")
+        return True
+    parts = args.strip().split(maxsplit=1)
+    action = parts[0]
+    if action == "use" and len(parts) > 1:
+        reg.set_default(parts[1])
+        console.print(f"[green]✅ Default search: {parts[1]}[/green]")
+    elif action == "add" and len(parts) > 1:
+        name_and_url = parts[1].split(maxsplit=1)
+        if len(name_and_url) == 2:
+            reg.register(name_and_url[0], name_and_url[1])
+            console.print(f"[green]✅ Added provider: {name_and_url[0]}[/green]")
+    else:
+        console.print("[yellow]Usage: /search-provider [use <name>|add <name> <url>][/yellow]")
+    return True
+
+
 def _cmd_expand(cmd: str, args: str | None, agent: AgentLike) -> bool:
     """Expand the last truncated message to see its full content."""
     if not agent.messages:
@@ -1115,6 +1165,9 @@ def register_all_commands():
     register_cli_command("/benchmark", _cmd_benchmark, "Run benchmark", "skills")
     register_cli_command("/btw", _cmd_btw, "Quick interjection — add context without starting new turn", "basic")
     register_cli_command("/expand", _cmd_expand, "Show full content of truncated pasted text", "basic")
+    register_cli_command("/vim", _cmd_vim, "Toggle vim-mode for input (set TERRY_VIM=1 for persistent)", "basic")
+    register_cli_command("/backup", _cmd_backup, "Create a backup of Terry data", "safety")
+    register_cli_command("/search-provider", _cmd_search_provider, "Set web search provider", "search")
 
     # v2.0.0 commands
     register_cli_command("/team", _cmd_team, "Multi-agent team with roles", "workflow")

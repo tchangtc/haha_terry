@@ -36,6 +36,7 @@
 
 **2026-06**
 
+- **v2.2.0** — **User-Driven Improvements II** — auto backup (tar.gz + rotation), search provider registry (DuckDuckGo/Google/Searxng/custom), vim mode (TERRY_VIM=1 or /vim).
 - **v2.1.0** — **User-Driven Improvements** — sensitive file guard (.env/keys/credentials), ``/btw`` quick interjection, ``/expand`` paste expansion, 17 new unit tests.
 - **v2.0.0** — **Paradigm Shift** — Agent Team 2.0 (5 roles: lead/architect/developer/reviewer/QA), Autonomous Pipeline (6-stage req→deploy), Plugin Ecosystem 2.0 (ratings, reviews, contribution workflow).
 - **v1.5.0** — **Autonomy Deepening** — Project Context Engine (auto-index + relevance scoring), Memory 2.0 (cross-project sharing + preference learning), Autonomous Workflow v2 (webhook/CI/file-watch triggers).

@@ -32,6 +32,7 @@
 
 **2026-06**
 
+- **v2.2.0** — **用戶驅動改進 II** — 自動備份（tar.gz + 輪轉）、搜尋提供者註冊（DuckDuckGo/Google/Searxng/自訂）、Vim 模式（TERRY_VIM=1 或 /vim）。
 - **v2.1.0** — **用戶驅動改進** — 敏感文件防護（.env/金鑰/憑證）、``/btw`` 快速插話、``/expand`` 貼上展開、17 個新單元測試。
 - **v2.0.0** — **範式革命** — Agent Team 2.0（5 種角色：lead/architect/developer/reviewer/QA）、全自主 Pipeline（6 階段需求→部署）、Plugin Ecosystem 2.0（評分、評論、貢獻流程）。
 - **v1.5.0** — **自主深化** — 專案上下文引擎（自動索引 + 相關性評分）、Memory 2.0（跨專案共享 + 偏好學習）、自主工作流 v2（webhook/CI/檔案監聽觸發器）。

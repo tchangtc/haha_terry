@@ -5,6 +5,16 @@ All notable changes to Terry will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2026-06-29
+
+### Added
+- **Auto Backup** — automatic agent data backup with rotation (tar.gz), restore support (hermes +27).
+- **Search Provider Registry** — pluggable search backends: DuckDuckGo, Google, Searxng, custom (hermes +30).
+- **Vim Mode** — set `TERRY_VIM=1` or use `/vim` to enable vi-mode in REPL (opencode +172).
+
+### Tests
+- 9 new unit tests for auto_backup, search_providers, and vim toggle.
+
 ## [2.1.0] - 2026-06-29
 
 ### Added

@@ -29,6 +29,16 @@ try:
 except ImportError:
     _readline_available = False
 
+# Enable vim-mode in readline if TERRY_VIM=1
+if os.environ.get("TERRY_VIM", "").lower() in ("1", "true", "yes"):
+    try:
+        if _readline_available:
+            # Enable vi editing mode in readline
+            readline.parse_and_bind("set editing-mode vi")
+            readline.parse_and_bind("set show-mode-in-prompt on")
+    except Exception:
+        pass
+
 try:
     import rlcompleter
 except ImportError:

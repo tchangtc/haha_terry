@@ -8,7 +8,7 @@
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
   <a href="#"><img src="https://img.shields.io/badge/python-3.11+-green.svg" alt="Python"></a>
   <a href="#"><img src="https://img.shields.io/badge/version-2.7.0-orange.svg" alt="Version"></a>
-  <a href="#"><img src="https://img.shields.io/badge/tests-870%20passed-brightgreen.svg" alt="Tests"></a>
+  <a href="#"><img src="https://img.shields.io/badge/tests-926%20passed-brightgreen.svg" alt="Tests"></a>
   <a href="#"><img src="https://img.shields.io/badge/tools-28-blue.svg" alt="Tools"></a>
   <a href="#"><img src="https://img.shields.io/badge/modules-155-orange.svg" alt="Modules"></a>
   <a href="#"><img src="https://img.shields.io/badge/ruff-0%20issues-green.svg" alt="Ruff"></a>
@@ -125,7 +125,7 @@ terry [ask] ▸ 帮我找到这个项目里用户认证逻辑在哪里实现的
 
 ## 核心能力
 
-### 🛠️ 27 个内置工具
+### 🛠️ 28 个内置工具
 
 - **文件** — 读取、写入、编辑（含 diff 预览）、多点编辑（原子操作）、Jupyter 笔记本编辑
 - **搜索** — 正则搜索、glob 模式匹配、文件查找、目录列表
@@ -145,7 +145,7 @@ terry [ask] ▸ 帮我找到这个项目里用户认证逻辑在哪里实现的
                                 ← 分别执行，最后汇总结果
 ```
 
-支持 6 种编排模式——分发汇总、对抗验证、竞赛、分类执行、循环至完成、生成筛选。
+支持 8 种编排模式——分发汇总、对抗验证、竞赛、分类执行、循环至完成、生成筛选。
 
 ### 🧠 越用越聪明
 
@@ -265,7 +265,7 @@ CLI · WebUI · Desktop · Mobile(PWA) · Telegram · Discord
 └───────┘ └─────────┘ └──────────┘ └──────────────┘
 ```
 
-- **41 个核心模块**，职责清晰
+- **98 个核心模块**，职责清晰
 - **6 种交互界面** — CLI、WebUI、桌面、PWA、Telegram、Discord
 - **710 个测试** — pytest + 依赖注入
 

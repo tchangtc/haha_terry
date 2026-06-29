@@ -5,6 +5,7 @@ description = "A personal AI coding agent - the harness for your LLM"
 readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "MIT"}
+# Currently a single-maintainer project
 authors = [
     {name = "Terry Contributors"},
 ]

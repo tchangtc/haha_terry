@@ -87,3 +87,4 @@ poetry.lock
 Pipfile.lock
 AUDIT_REPORT_*.md
 BEGINNER_EXPERIENCE_*.md
+report.md

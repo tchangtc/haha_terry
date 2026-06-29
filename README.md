@@ -8,7 +8,7 @@
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
   <a href="#"><img src="https://img.shields.io/badge/python-3.11+-green.svg" alt="Python"></a>
   <a href="#"><img src="https://img.shields.io/badge/version-2.7.0-orange.svg" alt="Version"></a>
-  <a href="#"><img src="https://img.shields.io/badge/tests-870%20passed-brightgreen.svg" alt="Tests"></a>
+  <a href="#"><img src="https://img.shields.io/badge/tests-926%20passed-brightgreen.svg" alt="Tests"></a>
   <a href="#"><img src="https://img.shields.io/badge/tools-28-blue.svg" alt="Tools"></a>
   <a href="#"><img src="https://img.shields.io/badge/modules-155-orange.svg" alt="Modules"></a>
   <a href="#"><img src="https://img.shields.io/badge/ruff-0%20issues-green.svg" alt="Ruff"></a>
@@ -96,6 +96,7 @@ python3 -m venv .venv && source .venv/bin/activate
 # Clone and install
 git clone https://github.com/tchangtc/haha_terry.git && cd haha_terry
 pip install -e . 2>/dev/null || pip install -r requirements.txt
+# 💡 Vector memory, RAG, sentence-transformers require: pip install terry-agent[vector,ml]
 
 # Set API key (Anthropic, or use DeepSeek/OpenAI — see .env.example)
 export ANTHROPIC_API_KEY="sk-ant-..."
@@ -308,7 +309,7 @@ CLI · WebUI · Desktop · Mobile(PWA) · Telegram · Discord
 └───────┘ └─────────┘ └──────────┘ └──────────────┘
 ```
 
-- **51 core modules** in `terry/core/` — each with clear single responsibility
+- **98 core modules** in `terry/core/` — each with clear single responsibility
 - **6 interaction interfaces** — CLI, WebUI, Desktop, PWA, Telegram, Discord
 - **710 tests** — pytest with full DI-based isolation
 

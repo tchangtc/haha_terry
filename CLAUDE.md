@@ -40,7 +40,7 @@ haha_terry/
 │   ├── desktop.py                   # Desktop tray app (136 lines)
 │   ├── i18n.py                      # Internationalization
 │   │
-│   ├── core/                        # 🧠 Core engine (51 modules)
+│   ├── core/                        # 🧠 Core engine (98 modules)
 │   │   ├── agent.py                 # Main Agent class — the central orchestrator
 │   │   ├── harness.py               # HarnessEngine — multi-agent orchestration (8 patterns)
 │   │   ├── llm.py                   # LLMClient — model abstraction layer
@@ -130,7 +130,7 @@ haha_terry/
 │   └── locale/                      # i18n resources
 │
 ├── skills/                          # 📦 Bundled skills (marketplace)
-├── tests/                           # 🧪 23 test files, 1,189 assertions
+├── tests/                           # 🧪 26 test files, 926 tests
 ├── vscode-extension/                # VS Code extension (TypeScript)
 ├── mobile/                          # Mobile app (TWA + iOS WKWebView)
 ├── deploy/                          # Deployment guides (containerd, K8s)
@@ -347,7 +347,7 @@ python -m pytest tests/ -k "not e2e"
 - **GA Release**: stable API, `pip install terry`, community governance model, CI/CD pipeline
 - **Documentation**: full documentation suite, 3-language README sync, CHANGELOG versioning policy
 - **Code Quality**: 0 hardcoded versions (single-source from `__version__`), semver validation in tests
-- **Test Suite**: 23 test files, 1,189 assertions, validate.py format checks
+- **Test Suite**: 26 test files, 926 tests, validate.py format checks
 - **Security**: runtime security middleware (RateLimiter, RequestValidator, SecurityMiddleware)
 - **CLI**: 47 commands across 6 categories
 

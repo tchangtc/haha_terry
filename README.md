@@ -36,6 +36,7 @@
 
 **2026-06**
 
+- **v2.0.0** — **Paradigm Shift** — Agent Team 2.0 (5 roles: lead/architect/developer/reviewer/QA), Autonomous Pipeline (6-stage req→deploy), Plugin Ecosystem 2.0 (ratings, reviews, contribution workflow).
 - **v1.5.0** — **Autonomy Deepening** — Project Context Engine (auto-index + relevance scoring), Memory 2.0 (cross-project sharing + preference learning), Autonomous Workflow v2 (webhook/CI/file-watch triggers).
 - **v1.4.0** — **Observability & Enterprise** — OpenTelemetry tracing (LLM + tools + agents), Prometheus metrics export (tokens, cost, latency), structured audit logging with JSONL retention, RBAC with 4 roles and 28-tool permission matrix.
 - **v1.3.0** — **Agent Collaboration & Routing** — smart model routing with cost/latency awareness, agent swarm with scatter/gather/broadcast, shared sessions with multi-agent locking and 5 built-in roles, PyPI package renamed to `terry-agent`.

@@ -5,6 +5,21 @@ All notable changes to Terry will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-06-27
+
+### Added
+- **Agent Team 2.0** — role-based multi-agent collaboration with 5 roles (lead/architect/developer/reviewer/QA), task delegation, and 4-stage orchestration pipeline.
+- **Autonomous Pipeline** — 6-stage end-to-end workflow (requirements→design→implement→test→review→deploy) with pause/resume and auto-approve mode.
+- **Plugin Ecosystem 2.0** — rating system (1-5 stars), text reviews with author verification, and contribution workflow (submit→review→publish).
+
+### Fixed
+- `auto_pipeline.py`: `_create_task` now appends to task list (bug found in double-check).
+- `cli_commands.py`: `exec()` sandboxed — 7 dangerous builtins restricted + namespace isolation.
+- `__main__.py`: added missing `from __future__ import annotations`.
+
+### Tests
+- 18 new tests for webui, server, lsp, mcp coverage gaps (mcp_config 0%→73%).
+
 ## [1.5.0] - 2026-06-27
 
 ### Added

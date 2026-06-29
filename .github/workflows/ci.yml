@@ -64,13 +64,10 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with: {name: dist, path: dist/}
-      - uses: actions/download-artifact@v4
-        with: {name: terry-binary, path: dist/binary/}
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
             dist/terry_agent-*.whl
             dist/terry_agent-*.tar.gz
-            dist/binary/terry
           generate_release_notes: true

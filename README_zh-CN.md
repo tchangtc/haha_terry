@@ -6,13 +6,13 @@
 <p align="center">
   <a href="https://github.com/tchangtc/haha_terry/actions"><img src="https://img.shields.io/badge/CI-passing-brightgreen.svg" alt="CI"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
-  <a href="#"><img src="https://img.shields.io/badge/python-3.12+-green.svg" alt="Python"></a>
-  <a href="#"><img src="https://img.shields.io/badge/version-1.0.0-orange.svg" alt="Version"></a>
-  <a href="#"><img src="https://img.shields.io/badge/tests-1089%20assertions-brightgreen.svg" alt="Tests"></a>
-  <a href="#"><img src="https://img.shields.io/badge/tools-27-blue.svg" alt="Tools"></a>
-  <a href="#"><img src="https://img.shields.io/badge/modules-127-orange.svg" alt="Modules"></a>
+  <a href="#"><img src="https://img.shields.io/badge/python-3.11+-green.svg" alt="Python"></a>
+  <a href="#"><img src="https://img.shields.io/badge/version-2.3.0-orange.svg" alt="Version"></a>
+  <a href="#"><img src="https://img.shields.io/badge/tests-843%20passed-brightgreen.svg" alt="Tests"></a>
+  <a href="#"><img src="https://img.shields.io/badge/tools-28-blue.svg" alt="Tools"></a>
+  <a href="#"><img src="https://img.shields.io/badge/modules-153-orange.svg" alt="Modules"></a>
   <a href="#"><img src="https://img.shields.io/badge/ruff-0%20issues-green.svg" alt="Ruff"></a>
-  <a href="#"><img src="https://img.shields.io/badge/CLI-✅-purple.svg" alt="CLI"></a>
+  <a href="#"><img src="https://img.shields.io/badge/CLI-47-purple.svg" alt="CLI"></a>
   <a href="#"><img src="https://img.shields.io/badge/WebUI-✅-purple.svg" alt="WebUI"></a>
   <a href="#"><img src="https://img.shields.io/badge/Desktop-✅-purple.svg" alt="Desktop"></a>
   <a href="#"><img src="https://img.shields.io/badge/Mobile-✅-purple.svg" alt="Mobile"></a>
@@ -32,6 +32,7 @@
 
 **2026-06**
 
+- **v2.3.0** — **外部编辑器** — 支持 $VISUAL/$EDITOR 环境变量，``/editor`` 命令支持 vim/nvim/code/emacs/nano 并跳转到指定行。
 - **v2.2.0** — **用户驱动改进 II** — 自动备份（tar.gz + 轮转）、搜索提供者注册（DuckDuckGo/Google/Searxng/自定义）、Vim 模式（TERRY_VIM=1 或 /vim）。
 - **v2.1.0** — **用户驱动改进** — 敏感文件防护（.env/密钥/凭证）、``/btw`` 快速插话、``/expand`` 粘贴展开、17 个新单元测试。
 - **v2.0.0** — **范式革命** — Agent Team 2.0（5 种角色：lead/architect/developer/reviewer/QA）、全自主 Pipeline（6 阶段需求→部署）、Plugin Ecosystem 2.0（评分、评论、贡献流程）。

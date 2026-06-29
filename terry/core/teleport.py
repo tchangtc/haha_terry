@@ -139,7 +139,7 @@ class TeleportImporter:
             tmp = Path(tmpdir)
 
             with tarfile.open(archive_path, "r:gz") as tar:
-                tar.extractall(tmp)
+                tar.extractall(tmp, filter="data")
 
             # Validate manifest
             manifest_file = tmp / "manifest.json"

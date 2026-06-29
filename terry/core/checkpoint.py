@@ -236,7 +236,7 @@ class CheckpointManager:
 
         try:
             with tarfile.open(tar_path, "r:gz") as tar:
-                tar.extractall(path=self.workdir)
+                tar.extractall(path=self.workdir, filter="data")
             return True
         except Exception:
             logger.warning("Failed to restore from tar snapshot", exc_info=True)

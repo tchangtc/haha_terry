@@ -143,18 +143,14 @@ class PluginRegistry:
             shutil.rmtree(target)
         shutil.copytree(source_dir, target)
 
-        # Run install hook if present
+        # Install hook: skipped by default for security (users must run manually)
         install_script = target / "install.py"
         if install_script.exists():
-            try:
-                subprocess.run(
-                    ["python3", str(install_script)],
-                    cwd=target,
-                    timeout=60,
-                    capture_output=True,
-                )
-            except (subprocess.TimeoutExpired, OSError) as e:
-                logger.warning("Plugin install script failed for %s: %s", manifest.name, e)
+            logger.info(
+                "Plugin '%s' has an install script. "
+                "Run manually: python3 %s",
+                manifest.name, install_script,
+            )
 
         self._plugins[manifest.name] = manifest
         self._save()

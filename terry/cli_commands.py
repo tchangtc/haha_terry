@@ -1113,7 +1113,7 @@ def _cmd_btw(cmd: str, args: str | None, agent: AgentLike) -> bool:
 
 
 def _cmd_ecosystem(cmd: str, args: str | None, agent: AgentLike) -> bool:
-    from terry.plugin_ecosystem import PluginEcosystem
+    from terry.core.plugin_ecosystem import PluginEcosystem
     eco = PluginEcosystem()
     stats = eco.get_stats()
     console.print(f"Plugin Ecosystem: {stats['rated_plugins']} rated, {stats['total_reviews']} reviews, {stats['pending_submissions']} pending")

@@ -15,8 +15,8 @@ sys.path.insert(0, os.path.abspath("../.."))
 
 # ── Project metadata ──────────────────────────────────────────────────
 project = "Terry"
-version = "1.0.0"
-release = "1.0.0"
+version = "2.3.0"
+release = "2.3.0"
 author = "Terry Contributors"
 copyright = "2025–2026, Terry Contributors"
 

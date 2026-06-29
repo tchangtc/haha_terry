@@ -745,7 +745,7 @@ def ecosystem_cmd(
     plugin: str = typer.Argument("", help="Plugin name"),
 ):
     """View plugin ecosystem — ratings, reviews, and stats."""
-    from terry.plugin_ecosystem import PluginEcosystem
+    from terry.core.plugin_ecosystem import PluginEcosystem
 
     eco = PluginEcosystem()
 

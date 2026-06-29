@@ -3,7 +3,7 @@
 > **Agency comes from the model. Terry is the harness.**
 >
 > Terry is an AI coding agent supporting Terminal · Web · Desktop · Mobile interfaces.  
-> Version: **v2.3.0** | Python 3.11+ | MIT License | 153 modules | 28 tools | ~32,100 LOC | 47 CLI commands
+>   Version: **v2.3.0** | Python 3.11+ | MIT License | 153 modules | 28 tools | ~32,100 LOC | 47 CLI commands
 >
 > **v1.0.0**: GA release — stable API, documentation, community governance
 > **v0.9.0**: design system, Textual TUI, voice mode, WebUI polish
@@ -100,7 +100,7 @@ haha_terry/
 │   │   ├── scheduling/              # Scheduling subsystem
 │   │   └── storage/                 # Storage subsystem
 │   │
-│   ├── tools/                       # 🔧 27 built-in tools
+│   ├── tools/                       # 🔧 28 built-in tools
 │   │   ├── bash.py, read_file.py, write_file.py, edit_file.py
 │   │   ├── grep_tool.py, glob_tool.py, find_tool.py, ls_tool.py
 │   │   ├── web_search.py, web_fetch.py
@@ -349,9 +349,7 @@ python -m pytest tests/ -k "not e2e"
 - **Code Quality**: 0 hardcoded versions (single-source from `__version__`), semver validation in tests
 - **Test Suite**: 23 test files, 1,189 assertions, validate.py format checks
 - **Security**: runtime security middleware (RateLimiter, RequestValidator, SecurityMiddleware)
-- **CLI**: 36 commands across 6 categories
-
-- ~26,900 LOC across 127 modules, 27 tools, ~1,189 test assertions
+- **CLI**: 47 commands across 6 categories
 
 ---
 

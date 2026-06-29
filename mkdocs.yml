@@ -28,15 +28,8 @@ markdown_extensions:
       permalink: true
 nav:
   - Home: index.md
-  - Getting Started:
-    - Quick Start: getting-started.md
-    - Installation: installation.md
+  - Installation: installation.md
   - SDK:
     - Overview: sdk.md
-    - API Reference: api.md
-  - Tools:
-    - Overview: tools.md
-  - Architecture: architecture.md
-  - Changelog: changelog.md
 plugins:
   - search

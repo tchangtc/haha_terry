@@ -6,13 +6,13 @@
 <p align="center">
   <a href="https://github.com/tchangtc/haha_terry/actions"><img src="https://img.shields.io/badge/CI-passing-brightgreen.svg" alt="CI"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
-  <a href="#"><img src="https://img.shields.io/badge/python-3.12+-green.svg" alt="Python"></a>
-  <a href="#"><img src="https://img.shields.io/badge/version-1.0.0-orange.svg" alt="Version"></a>
-  <a href="#"><img src="https://img.shields.io/badge/tests-1089%20assertions-brightgreen.svg" alt="Tests"></a>
-  <a href="#"><img src="https://img.shields.io/badge/tools-27-blue.svg" alt="Tools"></a>
-  <a href="#"><img src="https://img.shields.io/badge/modules-127-orange.svg" alt="Modules"></a>
+  <a href="#"><img src="https://img.shields.io/badge/python-3.11+-green.svg" alt="Python"></a>
+  <a href="#"><img src="https://img.shields.io/badge/version-2.3.0-orange.svg" alt="Version"></a>
+  <a href="#"><img src="https://img.shields.io/badge/tests-843%20passed-brightgreen.svg" alt="Tests"></a>
+  <a href="#"><img src="https://img.shields.io/badge/tools-28-blue.svg" alt="Tools"></a>
+  <a href="#"><img src="https://img.shields.io/badge/modules-153-orange.svg" alt="Modules"></a>
   <a href="#"><img src="https://img.shields.io/badge/ruff-0%20issues-green.svg" alt="Ruff"></a>
-  <a href="#"><img src="https://img.shields.io/badge/CLI-✅-purple.svg" alt="CLI"></a>
+  <a href="#"><img src="https://img.shields.io/badge/CLI-47-purple.svg" alt="CLI"></a>
   <a href="#"><img src="https://img.shields.io/badge/WebUI-✅-purple.svg" alt="WebUI"></a>
   <a href="#"><img src="https://img.shields.io/badge/Desktop-✅-purple.svg" alt="Desktop"></a>
   <a href="#"><img src="https://img.shields.io/badge/Mobile-✅-purple.svg" alt="Mobile"></a>
@@ -36,6 +36,7 @@
 
 **2026-06**
 
+- **v2.3.0** — **External Editor** — respects $VISUAL/$EDITOR, ``/editor`` command with vim/nvim/code/emacs/nano support and line number jump.
 - **v2.2.0** — **User-Driven Improvements II** — auto backup (tar.gz + rotation), search provider registry (DuckDuckGo/Google/Searxng/custom), vim mode (TERRY_VIM=1 or /vim).
 - **v2.1.0** — **User-Driven Improvements** — sensitive file guard (.env/keys/credentials), ``/btw`` quick interjection, ``/expand`` paste expansion, 17 new unit tests.
 - **v2.0.0** — **Paradigm Shift** — Agent Team 2.0 (5 roles: lead/architect/developer/reviewer/QA), Autonomous Pipeline (6-stage req→deploy), Plugin Ecosystem 2.0 (ratings, reviews, contribution workflow).

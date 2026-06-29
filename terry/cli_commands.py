@@ -1032,6 +1032,29 @@ def _cmd_backup(cmd: str, args: str | None, agent: AgentLike) -> bool:
     return True
 
 
+def _cmd_editor_open(cmd: str, args: str | None, agent: AgentLike) -> bool:
+    """Open a file in the user's external editor."""
+    from terry.core.editor import open_in_editor, get_editor_info
+    if not args:
+        info = get_editor_info()
+        console.print(f"[bold]Editor:[/bold] {info['editor']} {'✅' if info['available'] else '❌ not found'}")
+        if info['visual']:
+            console.print(f"[dim]  VISUAL={info['visual']}[/dim]")
+        if info['editor_env']:
+            console.print(f"[dim]  EDITOR={info['editor_env']}[/dim]")
+        console.print("[dim]Usage: /editor <file> [line][/dim]")
+        return True
+    parts = args.strip().split()
+    filepath = parts[0]
+    line = int(parts[1]) if len(parts) > 1 and parts[1].isdigit() else 0
+    ok = open_in_editor(filepath, line)
+    if ok:
+        console.print(f"[green]📝 Opened {filepath} in external editor[/green]")
+    else:
+        console.print(f"[yellow]⚠️  Could not open {filepath}. Set $VISUAL or $EDITOR[/yellow]")
+    return True
+
+
 def _cmd_search_provider(cmd: str, args: str | None, agent: AgentLike) -> bool:
     from terry.core.search_providers import SearchProviderRegistry
     reg = SearchProviderRegistry()
@@ -1168,6 +1191,7 @@ def register_all_commands():
     register_cli_command("/vim", _cmd_vim, "Toggle vim-mode for input (set TERRY_VIM=1 for persistent)", "basic")
     register_cli_command("/backup", _cmd_backup, "Create a backup of Terry data", "safety")
     register_cli_command("/search-provider", _cmd_search_provider, "Set web search provider", "search")
+    register_cli_command("/editor", _cmd_editor_open, "Open file in external editor ($VISUAL/$EDITOR)", "basic")
 
     # v2.0.0 commands
     register_cli_command("/team", _cmd_team, "Multi-agent team with roles", "workflow")

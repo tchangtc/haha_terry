@@ -33,28 +33,11 @@ for data_dir in "terry/webui/static" "terry/locale" "skills"; do
 done
 
 # ── Hidden imports ───────────────────────────────────────
-HIDDEN_IMPORTS=(
-    terry.tools.bash terry.tools.calculator terry.tools.edit_file
-    terry.tools.find_tool terry.tools.git terry.tools.glob_tool
-    terry.tools.grep_tool terry.tools.harness_tool terry.tools.ls_tool
-    terry.tools.notebook terry.tools.notes terry.tools.read_file
-    terry.tools.read_image terry.tools.reminder terry.tools.timer
-    terry.tools.todo_write terry.tools.weather terry.tools.web_fetch
-    terry.tools.web_search terry.tools.write_file
-    terry.tools.slash_command terry.tools.task_update
-    terry.core.agent terry.core.async_agent terry.core.async_harness
-    terry.core.async_llm terry.core.async_subagent
-    terry.core.harness terry.core.subagent terry.core.workflow
-    terry.core.dynamic_workflow terry.core.autonomous_agent
-    terry.core.skill terry.core.skill_registry
-    terry.webui.server terry.server.async_server
-    terry.hooks.permission terry.hooks.logging_hook
-    terry.lsp terry.mcp terry.tui.app
-)
-
+# Auto-discover all Terry modules for hidden imports
 HIDDEN_ARGS=""
-for imp in "${HIDDEN_IMPORTS[@]}"; do
-    HIDDEN_ARGS="$HIDDEN_ARGS --hidden-import=$imp"
+for pyfile in $(find terry -name "*.py" ! -path "*__pycache__*"); do
+    modpath=$(echo "$pyfile" | sed 's|/|.|g' | sed 's|\.py$||')
+    HIDDEN_ARGS="$HIDDEN_ARGS --hidden-import=$modpath"
 done
 
 # ── Collect all Python files ──────────────────────────────

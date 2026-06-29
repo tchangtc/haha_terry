@@ -976,6 +976,44 @@ def _cmd_routine(cmd: str, args: str | None, agent: AgentLike) -> bool:
     return True
 
 
+def _cmd_team(cmd: str, args: str | None, agent: AgentLike) -> bool:
+    mission = args or "Analyze and improve this project"
+    console.print(f"Assembling team for: [bold]{mission}[/bold]")
+    from terry.core.agent_team import AgentTeam, TeamRole
+    team = AgentTeam(mission)
+    team.add_member("architect", TeamRole.ARCHITECT)
+    team.add_member("developer", TeamRole.DEVELOPER)
+    team.add_member("reviewer", TeamRole.REVIEWER)
+    with console.status("[green]Team working..."):
+        results = team.execute()
+    for phase, output in results.items():
+        console.print(f"\n[bold cyan]━━━ {phase.upper()} ━━━[/bold cyan]")
+        console.print(output[:400])
+    return True
+
+
+def _cmd_pipeline(cmd: str, args: str | None, agent: AgentLike) -> bool:
+    requirement = args or "Improve code quality"
+    from terry.core.auto_pipeline import AutoPipeline
+    console.print(f"Pipeline: [bold]{requirement}[/bold]")
+    pipe = AutoPipeline(auto_approve=True)
+    with console.status("[green]Pipeline running..."):
+        result = pipe.run(requirement)
+    for stage, output in result.items():
+        if stage != "summary":
+            console.print(f"  {'✅' if 'FAILED' not in str(output) else '❌'} {stage}: {str(output)[:120]}")
+    console.print(result.get("summary", ""))
+    return True
+
+
+def _cmd_ecosystem(cmd: str, args: str | None, agent: AgentLike) -> bool:
+    from terry.plugin_ecosystem import PluginEcosystem
+    eco = PluginEcosystem()
+    stats = eco.get_stats()
+    console.print(f"Plugin Ecosystem: {stats['rated_plugins']} rated, {stats['total_reviews']} reviews, {stats['pending_submissions']} pending")
+    return True
+
+
 def _cmd_benchmark(cmd: str, args: str | None, agent: AgentLike) -> bool:
     from .core.benchmark import BenchmarkRunner
     runner = BenchmarkRunner(agent=agent)
@@ -1042,6 +1080,11 @@ def register_all_commands():
     register_cli_command("/auto-skills", _cmd_auto_skills, "Auto skills", "skills")
     register_cli_command("/curator", _cmd_curator, "Skills curator", "skills")
     register_cli_command("/benchmark", _cmd_benchmark, "Run benchmark", "skills")
+
+    # v2.0.0 commands
+    register_cli_command("/team", _cmd_team, "Multi-agent team with roles", "workflow")
+    register_cli_command("/pipeline", _cmd_pipeline, "Autonomous dev pipeline", "workflow")
+    register_cli_command("/ecosystem", _cmd_ecosystem, "Plugin ratings and reviews", "skills")
 
 
 register_all_commands()

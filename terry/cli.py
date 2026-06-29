@@ -98,6 +98,9 @@ _TIPS = [
     "Tip: Press Tab to autocomplete commands",
     "Tip: Use /search to find anything in your conversation history",
     "Tip: Use /checkpoints to browse all undo snapshots",
+    "Tip: Use /team for multi-agent collaboration (architect+developer+reviewer+QA)",
+    "Tip: Use /pipeline for autonomous 6-stage development (requirements→deploy)",
+    "Tip: Use /ecosystem to browse plugin ratings, reviews, and stats",
 ]
 
 
@@ -668,6 +671,104 @@ def init_cmd(path: str = typer.Argument(".", help="Project path")):
     cfg = TerryConfig()
     cfg.save(str(config_path))
     console.print(f"[green]Created config: {config_path}[/green]")
+
+
+@app.command("team")
+def team_cmd(
+    mission: str = typer.Argument("", help="Mission description for the agent team"),
+):
+    """Run a multi-agent team with architect, developer, reviewer, and QA roles."""
+    from terry.core.agent_team import AgentTeam, TeamRole
+
+    if not mission:
+        console.print("[yellow]Usage: terry team <mission>[/yellow]")
+        console.print("[dim]Example: terry team 'Build a REST API for user management'[/dim]")
+        return
+
+    console.print(f"\n[bold]Assembling team for: {mission}[/bold]\n")
+    team = AgentTeam(mission)
+    team.add_member("architect", TeamRole.ARCHITECT)
+    team.add_member("developer", TeamRole.DEVELOPER)
+    team.add_member("reviewer", TeamRole.REVIEWER)
+    team.add_member("qa", TeamRole.QA)
+
+    with console.status("[green]Team working..."):
+        results = team.execute()
+
+    for phase, output in results.items():
+        console.print(f"\n[bold cyan]━━━ {phase.upper()} ━━━[/bold cyan]")
+        console.print(output[:500])
+    console.print(f"\n[green]✅ Team completed. {len(team.get_tasks())} tasks[/green]")
+
+
+@app.command("pipeline")
+def pipeline_cmd(
+    requirement: str = typer.Argument("", help="Requirement to run through the pipeline"),
+    auto: bool = typer.Option(False, "--auto", help="Auto-approve all stages"),
+):
+    """Run the 6-stage autonomous pipeline (requirements → deploy)."""
+    from terry.core.auto_pipeline import AutoPipeline
+
+    if not requirement:
+        console.print("[yellow]Usage: terry pipeline <requirement>[/yellow]")
+        console.print("[dim]Example: terry pipeline 'Add user authentication'[/dim]")
+        return
+
+    console.print(f"\n[bold]Pipeline: {requirement}[/bold]\n")
+    pipeline = AutoPipeline(auto_approve=auto)
+    with console.status("[green]Pipeline running..."):
+        result = pipeline.run(requirement)
+
+    for stage, output in result.items():
+        if stage == "summary":
+            continue
+        icon = "✅" if "FAILED" not in output else "❌"
+        console.print(f"  {icon} [bold]{stage}[/bold]: {output[:120]}")
+    console.print(f"\n{result.get('summary', '')}")
+
+
+@app.command("ecosystem")
+def ecosystem_cmd(
+    action: str = typer.Argument("stats", help="Action: stats, top, reviews"),
+    plugin: str = typer.Argument("", help="Plugin name"),
+):
+    """View plugin ecosystem — ratings, reviews, and stats."""
+    from terry.plugin_ecosystem import PluginEcosystem
+
+    eco = PluginEcosystem()
+
+    if action == "stats":
+        stats = eco.get_stats()
+        console.print("\n[bold]Plugin Ecosystem[/bold]")
+        console.print(f"  Rated plugins: {stats['rated_plugins']}")
+        console.print(f"  Total ratings: {stats['total_ratings']}")
+        console.print(f"  Total reviews: {stats['total_reviews']}")
+        console.print(f"  Pending submissions: {stats['pending_submissions']}")
+
+    elif action == "top":
+        top = eco.get_top_rated(10)
+        if top:
+            console.print("\n[bold]Top Rated Plugins[/bold]")
+            for r in top:
+                stars = "★" * int(r.average) + "☆" * (5 - int(r.average))
+                console.print(f"  {stars} [bold]{r.plugin}[/bold] ({r.total_ratings} ratings)")
+        else:
+            console.print("[dim]No ratings yet[/dim]")
+
+    elif action == "reviews":
+        if not plugin:
+            console.print("[yellow]Usage: terry ecosystem reviews <plugin>[/yellow]")
+            return
+        reviews = eco.get_reviews(plugin)
+        if reviews:
+            console.print(f"\n[bold]Reviews for {plugin}[/bold]")
+            for r in reviews[:20]:
+                console.print(f"  [bold]{r.author}[/bold] {'★'*r.rating}: {r.content[:100]}")
+        else:
+            console.print(f"[dim]No reviews for {plugin}[/dim]")
+
+    else:
+        console.print(f"[red]Unknown action: {action}. Use: stats, top, reviews[/red]")
 
 
 @app.command("mcp")

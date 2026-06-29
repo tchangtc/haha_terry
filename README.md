@@ -28,7 +28,9 @@
 
 ---
 
-> **TL;DR** — `pip install -r requirements.txt && export ANTHROPIC_API_KEY=sk-ant-... && terry` — then type what you need. Terry reads your code, runs commands, edits files. Use `/help` for all commands, `/undo` to revert mistakes, `/plan` before big tasks.
+> **TL;DR** — `pip install -r requirements.txt && export ANTHROPIC_API_KEY=sk-ant-... && terry` — then type what you need. Terry reads `CLAUDE.md` for project context, runs commands, edits files. Use `/cost` to track spending, `/undo` to revert, `/plan` before big tasks.
+
+> 🏆 **Terry supports CLAUDE.md** — the #1 most-requested feature from Claude Code users (4,274+ votes). Just add a `CLAUDE.md` file to your project root and Terry automatically reads it for context on every session.
 
 ---
 

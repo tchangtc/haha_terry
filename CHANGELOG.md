@@ -5,6 +5,12 @@ All notable changes to Terry will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.0] - 2026-06-29
+
+### Added
+- **Cost Tracker** — real-time token usage and cost dashboard (`/cost`). Transparent pricing tracking for all models. Budget warnings at 80% usage. Addresses the #1 pain point across Claude Code (+691 usage limits), Codex (+526 cost spike), and Gemini CLI users.
+- **CLAUDE.md Promotion** — Terry now prominently surfaces its CLAUDE.md support (the #1 most-requested Claude Code feature at +4,274 votes).
+
 ## [2.3.0] - 2026-06-29
 
 ### Added

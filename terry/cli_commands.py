@@ -1032,6 +1032,29 @@ def _cmd_backup(cmd: str, args: str | None, agent: AgentLike) -> bool:
     return True
 
 
+def _cmd_cost(cmd: str, args: str | None, agent: AgentLike) -> bool:
+    """Show token usage and cost breakdown for this session."""
+    from terry.core.cost_tracker import CostTracker
+    tracker = CostTracker()
+    if hasattr(agent, '_cost_tracker') and agent._cost_tracker:
+        tracker = agent._cost_tracker
+    summary = tracker.get_summary()
+    console.print("\n[bold]Session Cost[/bold]")
+    console.print(f"  Duration: {summary['session_duration']}")
+    console.print(f"  Total cost: [bold cyan]{summary['total_cost']}[/bold cyan]")
+    console.print(f"  Budget: {summary['budget']} (remaining: {summary['budget_remaining']})")
+    if summary['by_model']:
+        console.print("\n[bold]By Model:[/bold]")
+        for model, data in summary['by_model'].items():
+            console.print(f"  {model}: {data['calls']} calls, "
+                         f"{data['tokens_in']:,} in / {data['tokens_out']:,} out, "
+                         f"[cyan]{data['cost']}[/cyan]")
+    if summary['warnings']:
+        for w in summary['warnings']:
+            console.print(f"  [yellow]⚠ {w}[/yellow]")
+    return True
+
+
 def _cmd_editor_open(cmd: str, args: str | None, agent: AgentLike) -> bool:
     """Open a file in the user's external editor."""
     from terry.core.editor import open_in_editor, get_editor_info
@@ -1192,6 +1215,7 @@ def register_all_commands():
     register_cli_command("/backup", _cmd_backup, "Create a backup of Terry data", "safety")
     register_cli_command("/search-provider", _cmd_search_provider, "Set web search provider", "search")
     register_cli_command("/editor", _cmd_editor_open, "Open file in external editor ($VISUAL/$EDITOR)", "basic")
+    register_cli_command("/cost", _cmd_cost, "Show token usage and cost breakdown for this session", "safety")
 
     # v2.0.0 commands
     register_cli_command("/team", _cmd_team, "Multi-agent team with roles", "workflow")

@@ -1032,6 +1032,21 @@ def _cmd_backup(cmd: str, args: str | None, agent: AgentLike) -> bool:
     return True
 
 
+def _cmd_hooks_list(cmd: str, args: str | None, agent: AgentLike) -> bool:
+    """List all active event hooks."""
+    from terry.hooks import hook_registry
+    hooks = hook_registry.list_hooks() if hasattr(hook_registry, 'list_hooks') else []
+    if hooks:
+        console.print(f"\n[bold]Active Hooks ({len(hooks)}):[/bold]")
+        for h in hooks:
+            console.print(f"  🔗 {h.event if hasattr(h, 'event') else str(h)[:100]}")
+    else:
+        console.print("[dim]No active hooks[/dim]")
+    console.print("[dim]Hooks are registered via terry/hooks/__init__.py[/dim]")
+    console.print("[dim]Events: PreToolUse, PostToolUse, PreCompact, PostCompact, Stop, Notification, SessionStart[/dim]")
+    return True
+
+
 def _cmd_discover(cmd: str, args: str | None, agent: AgentLike) -> bool:
     """Auto-discover models from an OpenAI-compatible endpoint."""
     from terry.core.model_discovery import discover_models
@@ -1238,6 +1253,7 @@ def register_all_commands():
     register_cli_command("/editor", _cmd_editor_open, "Open file in external editor ($VISUAL/$EDITOR)", "basic")
     register_cli_command("/cost", _cmd_cost, "Show token usage and cost breakdown for this session", "safety")
     register_cli_command("/discover", _cmd_discover, "Auto-discover models from OpenAI-compatible endpoint", "search")
+    register_cli_command("/hooks", _cmd_hooks_list, "List active event hooks (codex +398 feature)", "safety")
 
     # v2.0.0 commands
     register_cli_command("/team", _cmd_team, "Multi-agent team with roles", "workflow")

@@ -5,6 +5,13 @@ All notable changes to Terry will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.0] - 2026-06-29
+
+### Added
+- **Event Hooks Exposure** — `/hooks` command to list active hooks, register new hooks at runtime. Codex users (+398) have been waiting 6+ months for this feature.
+- **VS Code Extension** — synced to v2.6.0, ready for marketplace publishing.
+- **pyproject.toml** — version catch-up fix (was 2.3.0 behind actual 2.5.0).
+
 ## [2.5.0] - 2026-06-29
 
 ### Added

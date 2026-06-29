@@ -101,6 +101,8 @@ _TIPS = [
     "Tip: Use /team for multi-agent collaboration (architect+developer+reviewer+QA)",
     "Tip: Use /pipeline for autonomous 6-stage development (requirements→deploy)",
     "Tip: Use /ecosystem to browse plugin ratings, reviews, and stats",
+    "Tip: Use /btw to inject a quick note mid-task without starting a new turn",
+    "Tip: Use /expand to view the full content of truncated messages",
 ]
 
 

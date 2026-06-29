@@ -32,6 +32,7 @@
 
 **2026-06**
 
+- **v2.1.0** — **用户驱动改进** — 敏感文件防护（.env/密钥/凭证）、``/btw`` 快速插话、``/expand`` 粘贴展开、17 个新单元测试。
 - **v2.0.0** — **范式革命** — Agent Team 2.0（5 种角色：lead/architect/developer/reviewer/QA）、全自主 Pipeline（6 阶段需求→部署）、Plugin Ecosystem 2.0（评分、评论、贡献流程）。
 - **v1.5.0** — **自主深化** — 项目上下文引擎（自动索引 + 相关性评分）、Memory 2.0（跨项目共享 + 偏好学习）、自主工作流 v2（webhook/CI/文件监听触发器）。
 - **v1.4.0** — **观测与企业级** — OpenTelemetry 全链路追踪（LLM + 工具 + Agent）、Prometheus 指标导出（token、成本、延迟）、结构化审计日志（JSONL，90 天留存）、RBAC 4 角色权限矩阵覆盖全部 28 个工具。

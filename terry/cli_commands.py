@@ -1006,6 +1006,39 @@ def _cmd_pipeline(cmd: str, args: str | None, agent: AgentLike) -> bool:
     return True
 
 
+def _cmd_expand(cmd: str, args: str | None, agent: AgentLike) -> bool:
+    """Expand the last truncated message to see its full content."""
+    if not agent.messages:
+        console.print("[dim]No messages to expand[/dim]")
+        return True
+    last = agent.messages[-1]
+    content = last.get("content", "")
+    if isinstance(content, str) and len(content) > 200:
+        console.print(f"[dim]Last message ({len(content)} chars):[/dim]")
+        console.print(content)
+    else:
+        console.print(f"[dim]Last message is not truncated ({len(str(content))} chars)[/dim]")
+        console.print(str(content)[:500])
+    return True
+
+
+def _cmd_btw(cmd: str, args: str | None, agent: AgentLike) -> bool:
+    """Quick interjection — inject context without a full turn.
+
+    Like 'by the way' in conversation. Adds the message to context
+    without triggering a full agent response. Useful for corrections,
+    clarifications, or reminders mid-task.
+    """
+    if not args:
+        console.print("[yellow]Usage: /btw <message>[/yellow]")
+        console.print("[dim]Example: /btw the config file is at config/app.toml[/dim]")
+        return True
+    # Inject as a system-level context note
+    agent.messages.append({"role": "user", "content": f"[BTW] {args}"})
+    console.print(f"[dim]💬 Noted: {args[:100]}[/dim]")
+    return True
+
+
 def _cmd_ecosystem(cmd: str, args: str | None, agent: AgentLike) -> bool:
     from terry.plugin_ecosystem import PluginEcosystem
     eco = PluginEcosystem()
@@ -1080,6 +1113,8 @@ def register_all_commands():
     register_cli_command("/auto-skills", _cmd_auto_skills, "Auto skills", "skills")
     register_cli_command("/curator", _cmd_curator, "Skills curator", "skills")
     register_cli_command("/benchmark", _cmd_benchmark, "Run benchmark", "skills")
+    register_cli_command("/btw", _cmd_btw, "Quick interjection — add context without starting new turn", "basic")
+    register_cli_command("/expand", _cmd_expand, "Show full content of truncated pasted text", "basic")
 
     # v2.0.0 commands
     register_cli_command("/team", _cmd_team, "Multi-agent team with roles", "workflow")

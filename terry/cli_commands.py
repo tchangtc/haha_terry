@@ -1032,6 +1032,27 @@ def _cmd_backup(cmd: str, args: str | None, agent: AgentLike) -> bool:
     return True
 
 
+def _cmd_discover(cmd: str, args: str | None, agent: AgentLike) -> bool:
+    """Auto-discover models from an OpenAI-compatible endpoint."""
+    from terry.core.model_discovery import discover_models
+    endpoint = (args or "http://localhost:11434/v1").strip()
+    console.print(f"Discovering models from [bold]{endpoint}[/bold]...")
+    try:
+        models = discover_models(endpoint)
+        if models:
+            console.print(f"\n[bold]Found {len(models)} model(s):[/bold]")
+            for m in models:
+                tier_color = {"premium": "red", "medium": "yellow", "budget": "green"}
+                color = tier_color.get(m.tier, "white")
+                console.print(f"  [{color}]●[/{color}] {m.id} [{m.tier}] ({m.context_window//1000}K context)")
+        else:
+            console.print("[yellow]No models found. Is the endpoint running?[/yellow]")
+            console.print("[dim]Try: /discover http://localhost:11434/v1 (Ollama)[/dim]")
+    except Exception as e:
+        console.print(f"[red]Discovery failed: {e}[/red]")
+    return True
+
+
 def _cmd_cost(cmd: str, args: str | None, agent: AgentLike) -> bool:
     """Show token usage and cost breakdown for this session."""
     from terry.core.cost_tracker import CostTracker
@@ -1216,6 +1237,7 @@ def register_all_commands():
     register_cli_command("/search-provider", _cmd_search_provider, "Set web search provider", "search")
     register_cli_command("/editor", _cmd_editor_open, "Open file in external editor ($VISUAL/$EDITOR)", "basic")
     register_cli_command("/cost", _cmd_cost, "Show token usage and cost breakdown for this session", "safety")
+    register_cli_command("/discover", _cmd_discover, "Auto-discover models from OpenAI-compatible endpoint", "search")
 
     # v2.0.0 commands
     register_cli_command("/team", _cmd_team, "Multi-agent team with roles", "workflow")

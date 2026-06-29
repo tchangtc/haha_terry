@@ -7,10 +7,10 @@
   <a href="https://github.com/tchangtc/haha_terry/actions"><img src="https://img.shields.io/badge/CI-passing-brightgreen.svg" alt="CI"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
   <a href="#"><img src="https://img.shields.io/badge/python-3.11+-green.svg" alt="Python"></a>
-  <a href="#"><img src="https://img.shields.io/badge/version-2.3.0-orange.svg" alt="Version"></a>
-  <a href="#"><img src="https://img.shields.io/badge/tests-843%20passed-brightgreen.svg" alt="Tests"></a>
+  <a href="#"><img src="https://img.shields.io/badge/version-2.7.0-orange.svg" alt="Version"></a>
+  <a href="#"><img src="https://img.shields.io/badge/tests-870%20passed-brightgreen.svg" alt="Tests"></a>
   <a href="#"><img src="https://img.shields.io/badge/tools-28-blue.svg" alt="Tools"></a>
-  <a href="#"><img src="https://img.shields.io/badge/modules-153-orange.svg" alt="Modules"></a>
+  <a href="#"><img src="https://img.shields.io/badge/modules-155-orange.svg" alt="Modules"></a>
   <a href="#"><img src="https://img.shields.io/badge/ruff-0%20issues-green.svg" alt="Ruff"></a>
   <a href="#"><img src="https://img.shields.io/badge/CLI-47-purple.svg" alt="CLI"></a>
   <a href="#"><img src="https://img.shields.io/badge/WebUI-✅-purple.svg" alt="WebUI"></a>
@@ -38,6 +38,7 @@
 
 **2026-06**
 
+- **v2.7.0** — **TUI Stability + Quality** — TUI ``--safe`` flag for flicker-free mode, 27 new tests (870 total), build-binary.sh dynamic module discovery.
 - **v2.6.0** — **Event Hooks + VS Code** — ``/hooks`` command, event hooks runtime exposure, VS Code extension synced.
 - **v2.5.0** — **Model Auto-Discovery** — ``/discover`` command probes OpenAI-compatible endpoints, auto-tier classification.
 - **v2.4.0** — **Cost Tracker** — ``/cost`` command, real-time token/cost dashboard, budget alerts. CLAUDE.md support promoted.

@@ -5,6 +5,15 @@ All notable changes to Terry will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.0] - 2026-06-29
+
+### Added
+- **TUI Safe Mode** — `terry tui --safe` flag disables CSS animations for flicker-prone terminals.
+- **build-binary.sh** — dynamic module discovery replaces stale hardcoded list (fixes missing modules in PyInstaller binary).
+
+### Tests
+- 27 new unit tests for v2.x coverage gaps (plugin_ecosystem, agent_team, auto_pipeline, cost_tracker, model_discovery). Total: 870.
+
 ## [2.6.0] - 2026-06-29
 
 ### Added

@@ -38,6 +38,9 @@
 
 **2026-06**
 
+- **v2.6.0** — **Event Hooks + VS Code** — ``/hooks`` command, event hooks runtime exposure, VS Code extension synced.
+- **v2.5.0** — **Model Auto-Discovery** — ``/discover`` command probes OpenAI-compatible endpoints, auto-tier classification.
+- **v2.4.0** — **Cost Tracker** — ``/cost`` command, real-time token/cost dashboard, budget alerts. CLAUDE.md support promoted.
 - **v2.3.0** — **External Editor** — respects $VISUAL/$EDITOR, ``/editor`` command with vim/nvim/code/emacs/nano support and line number jump.
 - **v2.2.0** — **User-Driven Improvements II** — auto backup (tar.gz + rotation), search provider registry (DuckDuckGo/Google/Searxng/custom), vim mode (TERRY_VIM=1 or /vim).
 - **v2.1.0** — **User-Driven Improvements** — sensitive file guard (.env/keys/credentials), ``/btw`` quick interjection, ``/expand`` paste expansion, 17 new unit tests.

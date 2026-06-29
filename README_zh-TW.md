@@ -32,6 +32,9 @@
 
 **2026-06**
 
+- **v2.6.0** — **事件 Hooks + VS Code** — ``/hooks`` 指令, 執行時事件 Hook 暴露, VS Code 擴充同步。
+- **v2.5.0** — **模型自動發現** — ``/discover`` 指令探測 OpenAI 相容端點, 自動分級分類。
+- **v2.4.0** — **成本追蹤** — ``/cost`` 指令, 即時 token/成本儀表板, 預算警報, CLAUDE.md 支援推廣。
 - **v2.3.0** — **外部編輯器** — 支援 $VISUAL/$EDITOR 環境變數，``/editor`` 指令支援 vim/nvim/code/emacs/nano 並跳轉到指定行。
 - **v2.2.0** — **用戶驅動改進 II** — 自動備份（tar.gz + 輪轉）、搜尋提供者註冊（DuckDuckGo/Google/Searxng/自訂）、Vim 模式（TERRY_VIM=1 或 /vim）。
 - **v2.1.0** — **用戶驅動改進** — 敏感文件防護（.env/金鑰/憑證）、``/btw`` 快速插話、``/expand`` 貼上展開、17 個新單元測試。

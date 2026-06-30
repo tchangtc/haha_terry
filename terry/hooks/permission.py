@@ -120,7 +120,7 @@ def check_destructive(command: str) -> str | None:
 
 def check_path_escape(tool_name: str, args: dict, workdir: Path) -> str | None:
     """Gate 3: Workspace escape check."""
-    if tool_name in ("write_file", "edit_file", "read_file"):
+    if tool_name in ("write_file", "edit_file", "read_file", "multi_edit"):
         path = args.get("path", "")
         if path:
             resolved = (workdir / path).resolve()

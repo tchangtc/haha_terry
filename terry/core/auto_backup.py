@@ -23,6 +23,7 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 DEFAULT_MAX_BACKUPS = 10
+BYTES_PER_MB = 1024 * 1024
 DEFAULT_BACKUP_INTERVAL_HOURS = 24
 BACKUP_NAME_FORMAT = "terry-backup-%Y%m%d-%H%M%S"
 
@@ -130,7 +131,7 @@ class AutoBackup:
         total_size = sum(b.get("size_bytes", 0) for b in self._index)
         return {
             "total_backups": len(self._index),
-            "total_size_mb": round(total_size / (1024 * 1024), 2),
+            "total_size_mb": round(total_size / (BYTES_PER_MB), 2),
             "max_backups": self._max,
             "directory": str(self._dir),
         }

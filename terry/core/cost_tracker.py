@@ -29,6 +29,7 @@ MODEL_PRICING: dict[str, dict[str, float]] = {
 
 DEFAULT_SESSION_BUDGET_USD = 5.0
 BUDGET_WARNING_PCT = 80
+TOKENS_PER_COST_UNIT = 1000  # Pricing is per 1K tokens
 
 
 @dataclass
@@ -57,8 +58,8 @@ class CostTracker:
     def record_call(self, model: str, input_tokens: int, output_tokens: int):
         """Record an LLM API call with token counts."""
         pricing = MODEL_PRICING.get(model, {"input": 0.001, "output": 0.005})
-        cost = (input_tokens / 1000) * pricing["input"] + \
-               (output_tokens / 1000) * pricing["output"]
+        cost = (input_tokens / TOKENS_PER_COST_UNIT) * pricing["input"] + \
+               (output_tokens / TOKENS_PER_COST_UNIT) * pricing["output"]
 
         mc = self._models[model]
         mc.model = model

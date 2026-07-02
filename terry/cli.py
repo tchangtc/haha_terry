@@ -44,6 +44,9 @@ try:
 except ImportError:
     rlcompleter = None
 
+TOKEN_FORMAT_THRESHOLD = 1000
+HISTORY_LENGTH = 1000
+
 app = typer.Typer(
     name="terry",
     help="Terry - Your intelligent personal assistant",
@@ -127,8 +130,8 @@ def _format_duration(seconds: float) -> str:
 
 def _format_tokens(n: int) -> str:
     """Format token count for display."""
-    if n >= 1000:
-        return f"{n / 1000:.1f}k"
+    if n >= TOKEN_FORMAT_THRESHOLD:
+        return f"{n / TOKEN_FORMAT_THRESHOLD:.1f}k"
     return str(n)
 
 
@@ -492,7 +495,7 @@ def run_repl(agent: Agent):
             readline.read_history_file(str(history_file))
         except (FileNotFoundError, OSError):
             pass
-        readline.set_history_length(1000)
+        readline.set_history_length(HISTORY_LENGTH)
         atexit.register(lambda: readline.write_history_file(str(history_file)))
 
     # Dynamic tab completion from CommandRegistry (no hardcoded list)

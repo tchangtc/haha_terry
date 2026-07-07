@@ -3,6 +3,18 @@
 All notable changes to Terry will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+## [2.8.0] - 2026-07-04
+
+### Tests
+- 66 new tests (1005 total). Coverage: 53% → 58%.
+- test_coverage_v3.py: agent_swarm, shared_session, model_router_v2, memory_v2
+- test_coverage_v3b.py: context_engine, oauth, profile, mcp_config
+- test_push_65.py: workflow_v2, error_recovery, auto_classifier, rbac
+
+### Changed
+- Magic numbers extracted: TOKEN_FORMAT_THRESHOLD, HISTORY_LENGTH, BYTES_PER_MB, TOKENS_PER_COST_UNIT
+
+
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [2.7.0] - 2026-06-29

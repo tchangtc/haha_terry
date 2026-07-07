@@ -7,8 +7,8 @@
   <a href="https://github.com/tchangtc/haha_terry/actions"><img src="https://img.shields.io/badge/CI-passing-brightgreen.svg" alt="CI"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
   <a href="#"><img src="https://img.shields.io/badge/python-3.11+-green.svg" alt="Python"></a>
-  <a href="#"><img src="https://img.shields.io/badge/version-2.7.0-orange.svg" alt="Version"></a>
-  <a href="#"><img src="https://img.shields.io/badge/tests-926%20passed-brightgreen.svg" alt="Tests"></a>
+  <a href="#"><img src="https://img.shields.io/badge/version-2.8.0-orange.svg" alt="Version"></a>
+  <a href="#"><img src="https://img.shields.io/badge/tests-1005%20passed-brightgreen.svg" alt="Tests"></a>
   <a href="#"><img src="https://img.shields.io/badge/tools-28-blue.svg" alt="Tools"></a>
   <a href="#"><img src="https://img.shields.io/badge/modules-155-orange.svg" alt="Modules"></a>
   <a href="#"><img src="https://img.shields.io/badge/ruff-0%20issues-green.svg" alt="Ruff"></a>
@@ -33,6 +33,7 @@
 **2026-06**
 
 - **v2.6.0** — **事件 Hooks + VS Code** — ``/hooks`` 指令, 執行時事件 Hook 暴露, VS Code 擴充同步。
+- **v2.8.0** — **品質推進** — 66 個新測試（總計 1005），覆蓋率 53%→58%，消除魔鬼數字，RBAC/分類器/工作流測試。
 - **v2.7.0** — **TUI 穩定性 + 品質** — TUI ``--safe`` 無閃爍模式、27 個新測試案例（總計 870）、build-binary.sh 動態模組發現。
 - **v2.5.0** — **模型自動發現** — ``/discover`` 指令探測 OpenAI 相容端點, 自動分級分類。
 - **v2.4.0** — **成本追蹤** — ``/cost`` 指令, 即時 token/成本儀表板, 預算警報, CLAUDE.md 支援推廣。

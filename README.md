@@ -147,7 +147,7 @@ terry webui                                       # Open in browser
 
 ## Core Capabilities
 
-### 🛠️ Rich Tool Set (27 tools)
+### 🛠️ Rich Tool Set (30 tools)
 
 - **Files** — read, write, edit (with diff preview), multi-edit (atomic), Jupyter notebook editing
 - **Search** — grep with regex, glob patterns, file finder, directory listing

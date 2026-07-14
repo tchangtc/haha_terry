@@ -3,7 +3,7 @@
 > **Agency comes from the model. Terry is the harness.**
 >
 > Terry is an AI coding agent supporting Terminal · Web · Desktop · Mobile interfaces.  
->   Version: **v2.8.0** | Python 3.11+ | MIT License | 155 modules | 28 tools | ~32,600 LOC | 47 CLI commands
+>   Version: **v2.8.0** | Python 3.11+ | MIT License | 155 modules | 30 tools | ~32,500 LOC | 50 CLI commands
 >
 > **v1.0.0**: GA release — stable API, documentation, community governance
 > **v0.9.0**: design system, Textual TUI, voice mode, WebUI polish
@@ -34,9 +34,9 @@ When making design decisions, ask: *"Does this make the harness better, or is it
 ```
 haha_terry/
 ├── terry/                          # Main package
-│   ├── __init__.py                  # v0.3.0
-│   ├── cli.py                       # CLI entry point (689 lines)
-│   ├── cli_commands.py              # CLI command handlers (36 commands in 6 categories)
+│   ├── __init__.py                  # v2.8.0
+│   ├── cli.py                       # CLI entry point (1,020 lines)
+│   ├── cli_commands.py              # CLI command handlers (50 commands in 6 categories)
 │   ├── desktop.py                   # Desktop tray app (136 lines)
 │   ├── i18n.py                      # Internationalization
 │   │
@@ -100,7 +100,7 @@ haha_terry/
 │   │   ├── scheduling/              # Scheduling subsystem
 │   │   └── storage/                 # Storage subsystem
 │   │
-│   ├── tools/                       # 🔧 28 built-in tools
+│   ├── tools/                       # 🔧 30 built-in tools
 │   │   ├── bash.py, read_file.py, write_file.py, edit_file.py
 │   │   ├── grep_tool.py, glob_tool.py, find_tool.py, ls_tool.py
 │   │   ├── web_search.py, web_fetch.py
@@ -113,8 +113,8 @@ haha_terry/
 │   ├── server/                      # 🌐 Server infrastructure
 │   │   ├── async_server.py          # Async HTTP server (457 lines)
 │   │   └── gateways/                # External platform gateways
-│   │       ├── telegram_gateway.py  # Telegram Bot gateway (257 lines)
-│   │       └── discord_gateway.py   # Discord Bot gateway (210 lines)
+│   │       ├── telegram_gateway.py  # Telegram Bot gateway (259 lines)
+│   │       └── discord_gateway.py   # Discord Bot gateway (212 lines)
 │   │
 │   ├── webui/                       # 🖥️ Web interface
 │   │   ├── server.py                # WebUI HTTP server (491 lines, SSE streaming)
@@ -130,7 +130,7 @@ haha_terry/
 │   └── locale/                      # i18n resources
 │
 ├── skills/                          # 📦 Bundled skills (marketplace)
-├── tests/                           # 🧪 26 test files, 926 tests
+├── tests/                           # 🧪 32 test files, 1,034 tests
 ├── vscode-extension/                # VS Code extension (TypeScript)
 ├── mobile/                          # Mobile app (TWA + iOS WKWebView)
 ├── deploy/                          # Deployment guides (containerd, K8s)
@@ -165,7 +165,7 @@ True async via `httpx.AsyncClient` + `asyncio`, NOT `run_in_executor()` wrapping
 
 ### 2. CLI Refactoring (884 → 332 lines)
 Split `cli.py` into command definition (`cli_commands.py`) + routing (`cli.py`).  
-**Pattern**: CommandRegistry with 36 commands in 6 categories (basic, safety, planning, search, workflow, skills).  
+**Pattern**: CommandRegistry with 50 commands in 6 categories (basic, safety, planning, search, workflow, skills).  
 **Why**: Single-file CLI was unmaintainable with 48 commands in elif chains.
 
 ### 3. Agent.run() Slimmed (→ 99 lines)
@@ -183,7 +183,7 @@ Actively detects and fixes tool execution errors before surfacing to the model.
 
 ### 6. Security as Middleware, Not Afterthought
 RateLimiter (token bucket), RequestValidator (injection detection), APIKeyAuth, CORSPolicy, SecurityMiddleware.  
-All in `terry/core/security/__init__.py` (184 lines).  
+All in `terry/core/security/__init__.py` (212 lines).  
 **Why**: Production users need runtime protection against DDoS, injection, and unauthorized access.
 
 ---
@@ -282,12 +282,12 @@ pip install hatchling && python -m hatchling build  # Build wheel
 ## Testing Strategy
 
 ### Test Structure
-- **23 test files** under `tests/`, targeting 80%+ coverage
+- **32 test files** under `tests/`, targeting 80%+ coverage
 - `test_core_full.py` — Core agent functionality (44 tests)
 - `test_comprehensive.py` — Broad integration tests (67 tests)
 - `test_coverage.py` — Targeted coverage tests (78 tests)
 - `test_80_target.py` — Coverage push tests (63 tests)
-- `test_runtime_security.py` — Security component tests (33 tests)
+- `test_runtime_security.py` — Security component tests (53 tests)
 - `test_async.py` — Async module tests (15 tests)
 - `test_e2e.py` — End-to-end tests with mock LLM (6 tests)
 
@@ -311,7 +311,7 @@ python -m pytest tests/ -k "not e2e"
 |--------|-------|--------|
 | `webui/server.py` | 491 | ⚠️ Untested |
 | `server/async_server.py` | 457 | ⚠️ Untested |
-| `server/gateways/` | 481 | ⚠️ Untested |
+| `server/gateways/` | 471 | ⚠️ Untested |
 | `lsp/__init__.py` | 227 | ⚠️ Untested |
 | `mcp/__init__.py` | 192 | ⚠️ Untested |
 | `desktop.py` | 136 | ⚠️ Untested |
@@ -347,9 +347,9 @@ python -m pytest tests/ -k "not e2e"
 - **GA Release**: stable API, `pip install terry`, community governance model, CI/CD pipeline
 - **Documentation**: full documentation suite, 3-language README sync, CHANGELOG versioning policy
 - **Code Quality**: 0 hardcoded versions (single-source from `__version__`), semver validation in tests
-- **Test Suite**: 26 test files, 926 tests, validate.py format checks
+- **Test Suite**: 32 test files, 1,034 tests, validate.py format checks
 - **Security**: runtime security middleware (RateLimiter, RequestValidator, SecurityMiddleware)
-- **CLI**: 47 commands across 6 categories
+- **CLI**: 50 commands across 6 categories
 
 ---
 

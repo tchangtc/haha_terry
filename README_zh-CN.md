@@ -7,12 +7,12 @@
   <a href="https://github.com/tchangtc/haha_terry/actions"><img src="https://img.shields.io/badge/CI-passing-brightgreen.svg" alt="CI"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
   <a href="#"><img src="https://img.shields.io/badge/python-3.11+-green.svg" alt="Python"></a>
-  <a href="#"><img src="https://img.shields.io/badge/version-2.8.0-orange.svg" alt="Version"></a>
-  <a href="#"><img src="https://img.shields.io/badge/tests-1005%20passed-brightgreen.svg" alt="Tests"></a>
-  <a href="#"><img src="https://img.shields.io/badge/tools-28-blue.svg" alt="Tools"></a>
+  <a href="#"><img src="https://img.shields.io/badge/version-2.9.0-orange.svg" alt="Version"></a>
+  <a href="#"><img src="https://img.shields.io/badge/tests-1064%20passed-brightgreen.svg" alt="Tests"></a>
+  <a href="#"><img src="https://img.shields.io/badge/tools-30-blue.svg" alt="Tools"></a>
   <a href="#"><img src="https://img.shields.io/badge/modules-155-orange.svg" alt="Modules"></a>
   <a href="#"><img src="https://img.shields.io/badge/ruff-0%20issues-green.svg" alt="Ruff"></a>
-  <a href="#"><img src="https://img.shields.io/badge/CLI-47-purple.svg" alt="CLI"></a>
+  <a href="#"><img src="https://img.shields.io/badge/CLI-50-purple.svg" alt="CLI"></a>
   <a href="#"><img src="https://img.shields.io/badge/WebUI-✅-purple.svg" alt="WebUI"></a>
   <a href="#"><img src="https://img.shields.io/badge/Desktop-✅-purple.svg" alt="Desktop"></a>
   <a href="#"><img src="https://img.shields.io/badge/Mobile-✅-purple.svg" alt="Mobile"></a>
@@ -30,11 +30,15 @@
 
 ## 📰 新闻
 
+**2026-07**
+
+- **v2.9.0** — **回归守卫 + 覆盖率** — 文档一致性测试套件,自动校验工具/命令/模块/版本计数及三语 README badge 与源码一致(漂移即 CI 失败);plugin_market.py 覆盖率 0%→82%;新增 34 个测试(总计 1068,34 个文件)。
+
 **2026-06**
 
-- **v2.6.0** — **事件 Hooks + VS Code** — ``/hooks`` 命令, 运行时事件 Hook 暴露, VS Code 扩展同步。
 - **v2.8.0** — **质量推进** — 66 个新测试（总计 1005），覆盖率 53%→58%，消除魔鬼数字，RBAC/分类器/工作流测试。
 - **v2.7.0** — **TUI 稳定性 + 质量** — TUI ``--safe`` 无闪烁模式、27 个新测试用例（总计 870）、build-binary.sh 动态模块发现。
+- **v2.6.0** — **事件 Hooks + VS Code** — ``/hooks`` 命令, 运行时事件 Hook 暴露, VS Code 扩展同步。
 - **v2.5.0** — **模型自动发现** — ``/discover`` 命令探测 OpenAI 兼容端点, 自动分级分类。
 - **v2.4.0** — **成本追踪** — ``/cost`` 命令, 实时 token/成本仪表盘, 预算警报, CLAUDE.md 支持推广。
 - **v2.3.0** — **外部编辑器** — 支持 $VISUAL/$EDITOR 环境变量，``/editor`` 命令支持 vim/nvim/code/emacs/nano 并跳转到指定行。

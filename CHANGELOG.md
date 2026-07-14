@@ -3,6 +3,17 @@
 All notable changes to Terry will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+## [2.9.0] - 2026-07-14
+
+### Tests
+- Regression-guard suite `test_doc_consistency.py`: recomputes tool/CLI/module counts and version from source and asserts CLAUDE.md + trilingual README headers/badges match — documentation drift now fails CI.
+- `test_plugin_market.py`: 20 network-free tests for PluginManifest, PluginRegistry, directory marketplace sources, and search/list/install APIs. `plugin_market.py` coverage 0% → 82%.
+- 1,068 tests total (34 files). Overall coverage 58% → 59%.
+
+### Fixed
+- Corrected stale metrics in CLAUDE.md and README badges (tools 28→30, CLI 47→50) and synced the trilingual README tool count (was 27/28/28).
+- Bumped long-stale version pins: `vscode-extension/package.json` (2.6.0→2.9.0), `docs/api/conf.py` (2.3.0→2.9.0), `requirements.txt` header.
+
 ## [2.8.0] - 2026-07-04
 
 ### Tests

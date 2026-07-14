@@ -1,4 +1,4 @@
-# Terry v1.0.1 — pip install fallback
+# Terry v2.9.0 — pip install fallback
 # Use this if 'pip install -e .' fails due to build system issues:
 #   pip install -r requirements.txt
 anthropic>=0.105.2

@@ -7,12 +7,12 @@
   <a href="https://github.com/tchangtc/haha_terry/actions"><img src="https://img.shields.io/badge/CI-passing-brightgreen.svg" alt="CI"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
   <a href="#"><img src="https://img.shields.io/badge/python-3.11+-green.svg" alt="Python"></a>
-  <a href="#"><img src="https://img.shields.io/badge/version-2.8.0-orange.svg" alt="Version"></a>
-  <a href="#"><img src="https://img.shields.io/badge/tests-1005%20passed-brightgreen.svg" alt="Tests"></a>
-  <a href="#"><img src="https://img.shields.io/badge/tools-28-blue.svg" alt="Tools"></a>
+  <a href="#"><img src="https://img.shields.io/badge/version-2.9.0-orange.svg" alt="Version"></a>
+  <a href="#"><img src="https://img.shields.io/badge/tests-1064%20passed-brightgreen.svg" alt="Tests"></a>
+  <a href="#"><img src="https://img.shields.io/badge/tools-30-blue.svg" alt="Tools"></a>
   <a href="#"><img src="https://img.shields.io/badge/modules-155-orange.svg" alt="Modules"></a>
   <a href="#"><img src="https://img.shields.io/badge/ruff-0%20issues-green.svg" alt="Ruff"></a>
-  <a href="#"><img src="https://img.shields.io/badge/CLI-47-purple.svg" alt="CLI"></a>
+  <a href="#"><img src="https://img.shields.io/badge/CLI-50-purple.svg" alt="CLI"></a>
   <a href="#"><img src="https://img.shields.io/badge/WebUI-✅-purple.svg" alt="WebUI"></a>
   <a href="#"><img src="https://img.shields.io/badge/Desktop-✅-purple.svg" alt="Desktop"></a>
   <a href="#"><img src="https://img.shields.io/badge/Mobile-✅-purple.svg" alt="Mobile"></a>
@@ -35,6 +35,10 @@
 ---
 
 ## 📰 News
+
+**2026-07**
+
+- **v2.9.0** — **Regression Guard + Coverage** — doc-consistency test suite auto-verifies tool/CLI/module/version counts and trilingual README badges against source (drift now fails CI); plugin_market.py coverage 0%→82%; 34 new tests (1068 total, 34 files).
 
 **2026-06**
 

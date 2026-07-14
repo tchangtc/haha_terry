@@ -154,11 +154,12 @@ class Agent:
             compression_threshold=config.compression_threshold,
         )
 
-        # Initialize error recovery
+        # Initialize error recovery (cross-provider fallback on overload)
         self.error_recovery = ErrorRecovery(
             max_retries=3,
             base_delay=1.0,
             max_delay=60.0,
+            user_fallbacks=config.model.fallback_models or None,
         )
 
         # Initialize auto-healer
@@ -595,11 +596,36 @@ class Agent:
         Returns:
             LLM response or None on error
         """
+        switched = {"active": False}
+
+        def _on_fallback(prov: str, mdl: str) -> None:
+            """Switch the live client to a fallback provider/model on overload."""
+            from dataclasses import replace
+
+            # Set the flag first so a mid-reconfigure failure still triggers the
+            # `finally` restore instead of leaking the half-applied fallback.
+            switched["active"] = True
+            if prov == self.config.model.provider:
+                # Same provider: keep the user's base_url/api_key (proxy/gateway,
+                # programmatic key) — only the model changes.
+                fb_config = replace(self.config.model, model=mdl)
+            else:
+                # Cross-provider: clear so resolve() re-derives base_url/key for `prov`.
+                fb_config = replace(
+                    self.config.model, provider=prov, model=mdl, api_key=None, base_url=None
+                )
+                fb_config.resolve()
+            self.llm.reconfigure(fb_config)
+            self.logger.warning("LLM fallback active", provider=prov, model=mdl)
+
         try:
             wrapped_call = wrap_llm_call_with_recovery(
                 self.llm.chat,
                 self.error_recovery,
                 self.compactor,
+                provider=self.config.model.provider,
+                model=self.config.model.model,
+                on_fallback=_on_fallback,
             )
             return wrapped_call(
                 messages=self.messages,
@@ -612,6 +638,11 @@ class Agent:
             if self.metrics:
                 self.metrics.increment("llm_errors")
             return None
+        finally:
+            # Restore the primary model so the next turn retries it — a transient
+            # 529 must not permanently pin the session to a fallback model.
+            if switched["active"]:
+                self.llm.reconfigure(self.config.model)
 
     def _handle_final_response(self, user_message: str, response: Any, start_time: float) -> str:
         """Handle the final assistant response — delegates to ResponseHandler."""

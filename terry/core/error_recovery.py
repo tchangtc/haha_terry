@@ -11,13 +11,18 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-# Model fallback chain: if primary model fails with 529 (overloaded),
-# automatically try cheaper/faster alternatives.
-# Format: provider_name → [fallback_model, ...]
+# Built-in fallback chain: when the primary model fails with 529 (overloaded),
+# try these in order. Entries are "model" (same provider) or "provider:model"
+# (cross-provider). Cross-provider fallback is Terry's edge — a single-vendor
+# CLI cannot fail over from an overloaded Anthropic to OpenAI/DeepSeek/local.
+# Users override per-config via ModelConfig.fallback_models.
 FALLBACK_MODELS: dict[str, list[str]] = {
-    "anthropic": ["claude-3-5-sonnet-20241022", "claude-3-haiku-20240307"],
-    "openai": ["gpt-4o-mini", "gpt-3.5-turbo"],
-    "deepseek": ["deepseek-chat"],
+    "anthropic": ["claude-haiku-3-5-20241022", "openai:gpt-4o", "deepseek:deepseek-chat"],
+    "openai": ["gpt-4o-mini", "anthropic:claude-haiku-3-5-20241022", "deepseek:deepseek-chat"],
+    "deepseek": ["openai:gpt-4o-mini", "anthropic:claude-haiku-3-5-20241022"],
+    "zhipu": ["openai:gpt-4o-mini", "anthropic:claude-haiku-3-5-20241022"],
+    "dashscope": ["openai:gpt-4o-mini", "anthropic:claude-haiku-3-5-20241022"],
+    "minimax": ["openai:gpt-4o-mini", "anthropic:claude-haiku-3-5-20241022"],
 }
 
 
@@ -31,12 +36,16 @@ class ErrorRecovery:
         max_delay: float = 60.0,
         model_fallback: bool = True,
         consecutive_529_limit: int = 3,
+        user_fallbacks: list[str] | None = None,
     ):
         self.max_retries = max_retries
         self.base_delay = base_delay
         self.max_delay = max_delay
         self.model_fallback = model_fallback
         self.consecutive_529_limit = consecutive_529_limit
+        # User-configured chain (ModelConfig.fallback_models) takes priority over
+        # the built-in FALLBACK_MODELS defaults when non-empty.
+        self.user_fallbacks = user_fallbacks or None
         self._consecutive_529_count: dict[str, int] = {}
         self._active_fallback: str | None = None
 
@@ -118,27 +127,77 @@ class ErrorRecovery:
 
     # ── Model fallback ──────────────────────────────────────────
 
-    def should_fallback_model(self, provider: str, model: str) -> str | None:
-        """Check if we should fallback to an alternative model.
+    @staticmethod
+    def _provider_usable(provider: str) -> bool:
+        """True if `provider` is known and its API key (if any) is available.
 
-        Returns the fallback model name, or None if no fallback available.
+        Prevents falling back to a provider we cannot authenticate with —
+        e.g. crossing to OpenAI when OPENAI_API_KEY is unset. Fails open if the
+        registry can't be inspected, so fallback is never silently disabled.
+        """
+        try:
+            import os
+
+            from .config import PROVIDER_REGISTRY
+
+            entry = PROVIDER_REGISTRY.get(provider)
+            if entry is None:
+                return False
+            if not entry.key_env:  # e.g. local Ollama needs no key
+                return True
+            return bool(os.environ.get(entry.key_env))
+        except Exception:
+            return True
+
+    @staticmethod
+    def _resolve_entry(entry: str, current_provider: str) -> tuple[str, str]:
+        """Parse a fallback entry into (provider, model).
+
+        "provider:model" → cross-provider, but only when the prefix is a known
+        provider (so an Ollama tag like "llama3:8b" is not mis-split). Otherwise
+        the whole entry is a model on the current provider.
+        """
+        if ":" in entry:
+            prefix, _, rest = entry.partition(":")
+            try:
+                from .config import PROVIDER_REGISTRY
+
+                known = prefix in PROVIDER_REGISTRY
+            except Exception:
+                known = prefix in {
+                    "anthropic", "openai", "deepseek", "zhipu",
+                    "dashscope", "ollama", "minimax",
+                }
+            if known and rest:
+                return prefix, rest
+        return current_provider, entry
+
+    def should_fallback_model(self, provider: str, model: str) -> tuple[str, str] | None:
+        """Check if we should fall back to an alternative model.
+
+        Returns ``(fallback_provider, fallback_model)`` — possibly on a different
+        provider — or None if no distinct fallback is available yet.
         """
         if not self.model_fallback:
             return None
 
-        # Track consecutive 529s
+        # Track consecutive 529s per primary model.
         key = f"{provider}:{model}"
         self._consecutive_529_count[key] = self._consecutive_529_count.get(key, 0) + 1
 
         if self._consecutive_529_count[key] >= self.consecutive_529_limit:
-            fallbacks = FALLBACK_MODELS.get(provider, [])
-            # Find first fallback that's different from current model
-            for fb in fallbacks:
-                if fb != model:
-                    self._active_fallback = fb
-                    # Reset counter on successful fallback
-                    self._consecutive_529_count[key] = 0
-                    return fb
+            chain = self.user_fallbacks if self.user_fallbacks else FALLBACK_MODELS.get(provider, [])
+            for entry in chain:
+                fb_provider, fb_model = self._resolve_entry(entry, provider)
+                # Skip entries that resolve back to the currently-failing model.
+                if (fb_provider, fb_model) == (provider, model):
+                    continue
+                # Skip cross-provider targets we have no credentials for.
+                if fb_provider != provider and not self._provider_usable(fb_provider):
+                    continue
+                self._active_fallback = f"{fb_provider}:{fb_model}"
+                self._consecutive_529_count[key] = 0
+                return fb_provider, fb_model
         return None
 
     def reset_fallback(self) -> None:
@@ -342,6 +401,10 @@ def wrap_llm_call_with_recovery(
     llm_call: callable,
     error_recovery: ErrorRecovery,
     compactor: Any = None,
+    *,
+    provider: str | None = None,
+    model: str | None = None,
+    on_fallback: callable = None,
 ) -> callable:
     """Wrap an LLM call with error recovery logic.
 
@@ -349,28 +412,65 @@ def wrap_llm_call_with_recovery(
         llm_call: Function that makes the LLM call
         error_recovery: ErrorRecovery instance
         compactor: Optional ContextCompactor instance
+        provider: Current provider name (enables model fallback on overload)
+        model: Current model name
+        on_fallback: Callback ``(provider, model) -> None`` that switches the
+            active client to the fallback target before the next attempt.
 
     Returns:
         Wrapped function with recovery
     """
     def wrapped_call(messages: list[dict[str, Any]], **kwargs) -> Any:
         attempt = 0
+        cur_provider, cur_model = provider, model
+        # Targets already switched to this call — prevents chains that loop back
+        # (e.g. anthropic→openai→anthropic) from cycling forever.
+        tried: set[tuple[str, str]] = set()
+        if provider and model:
+            tried.add((provider, model))
 
         while attempt <= error_recovery.max_retries:
             try:
-                return llm_call(messages, **kwargs)
+                result = llm_call(messages, **kwargs)
+                error_recovery.reset_fallback()
+                return result
             except Exception as e:
+                error_str = str(e).lower()
+                is_overload = "529" in error_str or "overloaded" in error_str
+                # A non-overload outcome breaks the "consecutive 529" streak so a
+                # later, unrelated overload starts counting from zero.
+                if not is_overload:
+                    error_recovery.reset_fallback()
                 recovery = error_recovery.handle_api_error(e, attempt)
 
-                if recovery["action"] == "retry":
+                if recovery["action"] == "compact_context" and compactor:
+                    logger.info("Context too long, compacting...")
+                    messages = error_recovery.handle_context_length_error(messages, compactor)
+                    attempt += 1
+
+                elif is_overload and on_fallback and cur_provider:
+                    # Overloaded: after a few tries, switch model/provider entirely.
+                    fb = error_recovery.should_fallback_model(cur_provider, cur_model)
+                    if fb and fb not in tried:
+                        logger.warning(
+                            "Model %s:%s overloaded — falling back to %s:%s",
+                            cur_provider, cur_model, fb[0], fb[1],
+                        )
+                        on_fallback(fb[0], fb[1])
+                        cur_provider, cur_model = fb
+                        tried.add(fb)
+                        # Deliberately no attempt++: the freshly-switched model must
+                        # get a real call, even when consecutive_529_limit >=
+                        # max_retries. `tried` bounds the number of switches, so the
+                        # loop still terminates.
+                    else:
+                        time.sleep(error_recovery.get_delay(attempt))
+                        attempt += 1
+
+                elif recovery["action"] == "retry":
                     delay = recovery.get("delay", 1.0)
                     logger.info("Retry attempt %d after %.1fs...", attempt + 1, delay)
                     time.sleep(delay)
-                    attempt += 1
-
-                elif recovery["action"] == "compact_context" and compactor:
-                    logger.info("Context too long, compacting...")
-                    messages = error_recovery.handle_context_length_error(messages, compactor)
                     attempt += 1
 
                 else:

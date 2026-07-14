@@ -57,6 +57,10 @@ class ModelConfig:
     base_url: str | None = None
     temperature: float = 0.7
     max_tokens: int = 128000
+    # Ordered fallback chain tried when the primary model is overloaded (529).
+    # Entries are "model" (same provider) or "provider:model" (cross-provider),
+    # e.g. ["claude-haiku-3-5-20241022", "openai:gpt-4o"]. Empty = built-in defaults.
+    fallback_models: list[str] = field(default_factory=list)
 
     def resolve(self):
         """Fill in missing fields from provider registry."""
@@ -206,6 +210,7 @@ class TerryConfig:
                 "base_url": self.model.base_url,
                 "temperature": self.model.temperature,
                 "max_tokens": self.model.max_tokens,
+                "fallback_models": self.model.fallback_models,
             },
             "max_tool_calls": self.max_tool_calls,
             "max_input_tokens": self.max_input_tokens,
@@ -260,6 +265,7 @@ class TerryConfig:
             base_url=model_data.get("base_url"),
             temperature=model_data.get("temperature", 0.7),
             max_tokens=model_data.get("max_tokens", 128000),
+            fallback_models=model_data.get("fallback_models", []),
         )
         return cls(
             model=model,

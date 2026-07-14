@@ -3,6 +3,19 @@
 All notable changes to Terry will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+## [2.10.0] - 2026-07-14
+
+### Added
+- **Cross-provider model fallback on overload (529).** The agent now fails over to models on *other* providers (e.g. Anthropic → OpenAI → DeepSeek → Ollama), not just within one vendor — something a single-vendor CLI cannot do. Configurable via `model.fallback_models` (entries are `"model"` or `"provider:model"`); cross-provider targets without credentials are skipped; the primary model is restored after each turn so a transient 529 never permanently downgrades the session.
+- `ModelConfig.fallback_models` config field, persisted in `terry.json`.
+
+### Fixed
+- Model fallback was previously **dead code** — the `model_fallback` action was never wired into the live LLM loop, so overloads never actually switched models. It now works end-to-end.
+- Fallback no longer discards a user's custom `base_url`/`api_key` on a same-provider switch, no longer strands the selected model when `consecutive_529_limit >= max_retries`, no longer leaks a half-applied client if reconfigure raises, and no longer lets cross-provider chains loop back on themselves.
+
+### Tests
+- `test_model_fallback.py`: 31 tests — same/cross-provider selection, credential gating, loop termination, counter-reset semantics, and the agent restore path. 1,099 tests total (35 files).
+
 ## [2.9.0] - 2026-07-14
 
 ### Tests

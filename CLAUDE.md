@@ -3,8 +3,9 @@
 > **Agency comes from the model. Terry is the harness.**
 >
 > Terry is an AI coding agent supporting Terminal · Web · Desktop · Mobile interfaces.  
->   Version: **v2.9.0** | Python 3.11+ | MIT License | 155 modules | 30 tools | ~32,500 LOC | 50 CLI commands
+>   Version: **v2.10.0** | Python 3.11+ | MIT License | 155 modules | 30 tools | ~32,600 LOC | 50 CLI commands
 >
+> **v2.10.0**: cross-provider model fallback on overload (user-configurable, credential-gated, primary restored per turn)
 > **v2.9.0**: regression-guard test suite (doc/badge drift fails CI), plugin_market coverage 0→82%
 > **v1.0.0**: GA release — stable API, documentation, community governance
 > **v0.9.0**: design system, Textual TUI, voice mode, WebUI polish
@@ -35,7 +36,7 @@ When making design decisions, ask: *"Does this make the harness better, or is it
 ```
 haha_terry/
 ├── terry/                          # Main package
-│   ├── __init__.py                  # v2.9.0
+│   ├── __init__.py                  # v2.10.0
 │   ├── cli.py                       # CLI entry point (1,020 lines)
 │   ├── cli_commands.py              # CLI command handlers (50 commands in 6 categories)
 │   ├── desktop.py                   # Desktop tray app (136 lines)
@@ -131,7 +132,7 @@ haha_terry/
 │   └── locale/                      # i18n resources
 │
 ├── skills/                          # 📦 Bundled skills (marketplace)
-├── tests/                           # 🧪 34 test files, 1,068 tests
+├── tests/                           # 🧪 35 test files, 1,099 tests
 ├── vscode-extension/                # VS Code extension (TypeScript)
 ├── mobile/                          # Mobile app (TWA + iOS WKWebView)
 ├── deploy/                          # Deployment guides (containerd, K8s)
@@ -348,7 +349,7 @@ python -m pytest tests/ -k "not e2e"
 - **GA Release**: stable API, `pip install terry`, community governance model, CI/CD pipeline
 - **Documentation**: full documentation suite, 3-language README sync, CHANGELOG versioning policy
 - **Code Quality**: 0 hardcoded versions (single-source from `__version__`), semver validation in tests
-- **Test Suite**: 34 test files, 1,068 tests, validate.py format checks
+- **Test Suite**: 35 test files, 1,099 tests, validate.py format checks
 - **Security**: runtime security middleware (RateLimiter, RequestValidator, SecurityMiddleware)
 - **CLI**: 50 commands across 6 categories
 

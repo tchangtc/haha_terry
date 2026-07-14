@@ -7,8 +7,8 @@
   <a href="https://github.com/tchangtc/haha_terry/actions"><img src="https://img.shields.io/badge/CI-passing-brightgreen.svg" alt="CI"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
   <a href="#"><img src="https://img.shields.io/badge/python-3.11+-green.svg" alt="Python"></a>
-  <a href="#"><img src="https://img.shields.io/badge/version-2.9.0-orange.svg" alt="Version"></a>
-  <a href="#"><img src="https://img.shields.io/badge/tests-1064%20passed-brightgreen.svg" alt="Tests"></a>
+  <a href="#"><img src="https://img.shields.io/badge/version-2.10.0-orange.svg" alt="Version"></a>
+  <a href="#"><img src="https://img.shields.io/badge/tests-1095%20passed-brightgreen.svg" alt="Tests"></a>
   <a href="#"><img src="https://img.shields.io/badge/tools-30-blue.svg" alt="Tools"></a>
   <a href="#"><img src="https://img.shields.io/badge/modules-155-orange.svg" alt="Modules"></a>
   <a href="#"><img src="https://img.shields.io/badge/ruff-0%20issues-green.svg" alt="Ruff"></a>
@@ -32,6 +32,7 @@
 
 **2026-07**
 
+- **v2.10.0** — **跨 Provider 回退** — 過載(529)時的模型回退現支援跨 Provider(Anthropic→OpenAI/DeepSeek/Ollama)—— 單一廠商 CLI 做不到;經 ``model.fallback_models`` 使用者可配,自動跳過無憑證的 Provider,並每輪恢復主模型。新增 31 個測試。
 - **v2.9.0** — **回歸守衛 + 覆蓋率** — 文件一致性測試套件,自動校驗工具/指令/模組/版本計數及三語 README badge 與原始碼一致(漂移即 CI 失敗);plugin_market.py 覆蓋率 0%→82%;新增 34 個測試(總計 1068,34 個檔案)。
 
 **2026-06**

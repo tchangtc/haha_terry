@@ -20,11 +20,26 @@ class LLMClient:
     saving ~500ms at init time.
     """
 
+    # Anthropic prompt caching caches prefixes >= ~1024 tokens (~4096 chars).
+    PROMPT_CACHE_MIN_CHARS = 4096
+
     def __init__(self, config: ModelConfig):
         self.config = config
         self.adapter = self._resolve_adapter()
         self.provider_type = self._detect_provider_type()
         self._client = None
+        # Prompt-cache effectiveness counters (populated from API usage).
+        self._cache_hits = 0
+        self._cache_misses = 0
+
+    def cache_stats(self) -> dict[str, Any]:
+        """Return prompt-cache hit/miss statistics gathered from API usage."""
+        total = self._cache_hits + self._cache_misses
+        return {
+            "hits": self._cache_hits,
+            "misses": self._cache_misses,
+            "hit_rate": (self._cache_hits / total) if total else 0.0,
+        }
 
     @property
     def client(self):
@@ -39,6 +54,9 @@ class LLMClient:
         self.adapter = self._resolve_adapter()
         self.provider_type = self._detect_provider_type()
         self._client = self._create_client()
+        # Reset cache stats — a different provider/model has a fresh cache.
+        self._cache_hits = 0
+        self._cache_misses = 0
 
     def _resolve_adapter(self) -> ProviderAdapter | None:
         """Find the matching provider adapter from the registry."""
@@ -161,11 +179,31 @@ class LLMClient:
         if json_mode:
             effective_system = (effective_system + "\n\nYou MUST respond with valid JSON only. No other text.").strip()
         if effective_system:
-            kwargs["system"] = effective_system
+            # Anthropic prompt caching: mark large stable prefixes as ephemeral
+            # so the provider caches them (90% cheaper on cache reads).
+            if len(effective_system) >= self.PROMPT_CACHE_MIN_CHARS:
+                kwargs["system"] = [{
+                    "type": "text",
+                    "text": effective_system,
+                    "cache_control": {"type": "ephemeral"},
+                }]
+            else:
+                kwargs["system"] = effective_system
         if tools:
-            kwargs["tools"] = tools
+            cached_tools = self._mark_tool_cache_breakpoint(tools)
+            kwargs["tools"] = cached_tools
 
         response = self.client.messages.create(**kwargs)
+
+        # Track prompt-cache effectiveness from the usage the API returns.
+        usage = getattr(response, "usage", None)
+        if usage is not None:
+            cache_read = getattr(usage, "cache_read_input_tokens", 0) or 0
+            cache_creation = getattr(usage, "cache_creation_input_tokens", 0) or 0
+            if cache_read:
+                self._cache_hits += 1
+            elif cache_creation or len(effective_system) >= self.PROMPT_CACHE_MIN_CHARS:
+                self._cache_misses += 1
 
         # Normalize response format
         return {
@@ -176,6 +214,16 @@ class LLMClient:
                 "output_tokens": response.usage.output_tokens,
             },
         }
+
+    @staticmethod
+    def _mark_tool_cache_breakpoint(tools: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        """Tag the last tool definition with an ephemeral cache_control marker
+        so Anthropic caches the tool catalogue across turns."""
+        if not tools:
+            return tools
+        tagged = [dict(t) for t in tools]
+        tagged[-1]["cache_control"] = {"type": "ephemeral"}
+        return tagged
 
     def _chat_openai(
         self,

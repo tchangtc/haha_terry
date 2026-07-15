@@ -1,7 +1,11 @@
 """Prompt caching utilities for reducing LLM API costs.
 
-Implements cache-aware system prompt construction and cache-break
-point placement to maximize Anthropic prompt cache hit rates.
+The active caching path lives in :class:`terry.core.llm.LLMClient`, which marks
+large system prompts and the tool catalogue with ``cache_control`` markers on
+every Anthropic call and records hit/miss stats from the API usage response
+(see ``LLMClient.cache_stats``). This module provides standalone helpers for
+deciding what is worth caching and estimating savings — it is not itself on the
+hot path, but ``should_cache`` mirrors the threshold the LLM client applies.
 """
 
 from __future__ import annotations

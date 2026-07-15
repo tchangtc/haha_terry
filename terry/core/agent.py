@@ -289,6 +289,11 @@ class Agent:
         )
         self.logger.info("Harness engine initialized")
 
+        # Bind the harness tool to this factory-backed engine so the 8
+        # orchestration patterns can spawn real sub-agents from the LLM.
+        from ..tools.harness_tool import register as register_harness_tool
+        register_harness_tool(agent=self)
+
         # Initialize skill system
         self.skill_manager: SkillManager | None = None
         self.skill_executor: SkillExecutor | None = None

@@ -1,14 +1,22 @@
-"""Extended thinking and smart context window allocation.
+"""Context-window budget allocation.
 
-Implements intelligent token budget distribution across system prompt,
-tool definitions, conversation history, and output space.
+NOTE: despite the historical class name ``ExtendedThinking``, this module does
+NOT implement Anthropic extended thinking (no ``thinking`` parameter, no
+reasoning-content blocks). It is a context-window budget allocator that
+distributes a model's token window across system prompt, active context,
+history, and output zones, and answers ``can_fit`` / threshold questions used
+by the compactor. The name is retained for import compatibility.
 """
 
 from __future__ import annotations
 
 
 class ExtendedThinking:
-    """Smart context window allocation for optimal LLM performance."""
+    """Context-window budget allocator (not Anthropic extended thinking).
+
+    Distributes a model's context window across zones and provides
+    fit/threshold helpers for the compaction pipeline.
+    """
 
     DEFAULT_ALLOCATION = {
         "system_prompt": 0.10,    # System prompt + tool definitions

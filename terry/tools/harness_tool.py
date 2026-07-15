@@ -10,12 +10,13 @@ from . import BaseTool, tool_registry
 
 class HarnessTool(BaseTool):
     """Exposes the HarnessEngine as an Agent tool.
-    risk_level = "safe"
-    category = "general"
 
     Lets the LLM programmatically orchestrate sub-agents using
     8 patterns directly from conversation.
     """
+
+    risk_level = "safe"
+    category = "general"
 
     name = "harness"
     description = (
@@ -51,15 +52,28 @@ class HarnessTool(BaseTool):
     def __init__(self, harness: HarnessEngine | None = None):
         self._harness = harness
 
+    def bind(self, harness: HarnessEngine) -> None:
+        """Attach the agent's factory-backed HarnessEngine so the 8 patterns
+        can actually spawn sub-agents. Without this, patterns degrade to
+        placeholders (no agent_factory available)."""
+        self._harness = harness
+
     def execute(
         self,
         pattern: str = "sequential",
         prompts: list[str] | None = None,
         goals: list[str] | None = None,
     ) -> str:
-        engine = self._harness or HarnessEngine()
+        # An agent-bound harness (with a real agent_factory) is required for the
+        # patterns to run sub-agents; a bare HarnessEngine() would only emit
+        # placeholders, so we surface that explicitly instead of faking success.
+        if self._harness is None:
+            return (
+                "Error: harness engine not bound to an agent. "
+                "Sub-agent orchestration is unavailable in this context."
+            )
         try:
-            result = engine.execute(
+            result = self._harness.execute(
                 pattern=pattern,
                 prompts=prompts or [],
                 goals=goals or [],
@@ -67,6 +81,24 @@ class HarnessTool(BaseTool):
             return json.dumps(result, indent=2, ensure_ascii=False)
         except Exception as e:
             return f"Error: {e}"
+
+
+def register(agent) -> None:
+    """Bind the HarnessTool to the agent's factory-backed HarnessEngine.
+
+    Mirrors the slash_command/task_update pattern: the tool auto-registers a
+    placeholder in discover_tools(), then the Agent re-binds it once its own
+    HarnessEngine (with a real agent_factory) exists.
+    """
+    harness = getattr(agent, "harness", None)
+    if harness is None:
+        return
+    for tool in tool_registry.list_tools():
+        if isinstance(tool, HarnessTool):
+            tool.bind(harness)
+            return
+    tool = HarnessTool(harness=harness)
+    tool_registry.register(tool)
 
 
 # Auto-register via discover_tools()

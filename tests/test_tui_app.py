@@ -7,6 +7,7 @@ on_mount, input handling, scroll actions) is driven through Textual's
 
 from __future__ import annotations
 
+from textual.containers import VerticalScroll
 from textual.widgets import Input
 
 from terry.tui.app import ChatMessage, StatusLine, TaskPanel, TerryTUI
@@ -124,6 +125,19 @@ class TestTerryTUIPilot:
             app.action_scroll_end()
             app.action_toggle_focus()
             await pilot.pause()
+
+    async def test_toggle_focus_cycles_chat_and_input(self):
+        app = TerryTUI(agent=FakeTuiAgent())
+        async with app.run_test() as pilot:
+            chat = app.query_one("#chat", VerticalScroll)
+            user_input = app.query_one("#user-input", Input)
+            assert user_input.has_focus  # input is focused on mount
+            app.action_toggle_focus()  # input → chat
+            await pilot.pause()
+            assert chat.has_focus
+            app.action_toggle_focus()  # chat → input
+            await pilot.pause()
+            assert user_input.has_focus and not chat.has_focus
 
 
 def test_run_tui_constructs_and_runs(monkeypatch):

@@ -206,8 +206,13 @@ class TerryTUI(App):
         chat.scroll_end(animate=False)
 
     def action_toggle_focus(self) -> None:
-        """Toggle between chat and sidebar focus."""
-        pass  # TODO: Implement focus toggle
+        """Toggle focus between the chat panel and the input box."""
+        chat = self.query_one("#chat", VerticalScroll)
+        user_input = self.query_one("#user-input", Input)
+        if chat.has_focus:
+            user_input.focus()
+        else:
+            chat.focus()
 
     def action_scroll_down(self) -> None:
         self.query_one("#chat", VerticalScroll).scroll_down()

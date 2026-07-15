@@ -34,13 +34,16 @@ class ChatMessage(Static):
 
     def __init__(self, role: str, content: str, timestamp: str = ""):
         self.role = role
+        # Keep our own copy — Static's internal content attribute name varies
+        # across Textual versions, so render() must not depend on it.
+        self._body = content
         super().__init__(content)
         self.timestamp = timestamp or datetime.now().strftime("%H:%M")
 
     def render(self) -> str:
         prefix = "🤖" if self.role == "assistant" else "👤"
         color = TerryTheme.PRIMARY if self.role == "assistant" else TerryTheme.SECONDARY
-        return f"[{color}]{prefix}[/{color}] [{TerryTheme.TEXT_MUTED}]{self.timestamp}[/] {self._content}"
+        return f"[{color}]{prefix}[/{color}] [{TerryTheme.TEXT_MUTED}]{self.timestamp}[/] {self._body}"
 
 
 class TaskPanel(Static):

@@ -7,6 +7,13 @@ so the tests focus on routing/handler logic.
 
 from __future__ import annotations
 
+import pytest
+
+# fastapi is an optional `server` extra; skip this whole module when it (or
+# the terry.server.async_server module that requires it) is unavailable, so CI
+# with only the `dev` extra installed does not fail at collection time.
+pytest.importorskip("fastapi")
+
 from fastapi.testclient import TestClient
 
 from terry.server.async_server import (

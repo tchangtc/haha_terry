@@ -88,7 +88,9 @@ class TestCalculatorSafeEvalRaises:
 
 class TestReminderParseTime:
     def _tool(self, monkeypatch, tmp_path) -> ReminderTool:
-        monkeypatch.setattr("terry.core.platform_utils.get_terry_dir", lambda *a, **k: tmp_path)
+        # reminder binds get_terry_dir at module import (from ..core.platform_utils
+        # import get_terry_dir), so patch ITS reference, not the platform_utils attr.
+        monkeypatch.setattr("terry.tools.reminder.get_terry_dir", lambda *a, **k: tmp_path)
         return ReminderTool()
 
     def test_relative_hours_parse(self, monkeypatch, tmp_path):

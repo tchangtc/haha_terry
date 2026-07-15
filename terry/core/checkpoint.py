@@ -283,7 +283,7 @@ class CheckpointManager:
             return False
 
         # Remove from disk
-        checkpoint_dir = self._checkpoints_dir / checkpoint_id
+        checkpoint_dir = self.checkpoints_dir / checkpoint_id
         if checkpoint_dir.exists():
             import shutil
             shutil.rmtree(checkpoint_dir, ignore_errors=True)
@@ -310,7 +310,7 @@ class CheckpointManager:
         if not cp:
             return None
 
-        checkpoint_dir = self._checkpoints_dir / checkpoint_id
+        checkpoint_dir = self.checkpoints_dir / checkpoint_id
         if not checkpoint_dir.exists():
             return None
 
@@ -321,7 +321,7 @@ class CheckpointManager:
                 try:
                     result = subprocess.run(
                         ["git", "apply", "--reverse", "--check", "--stat", str(patch_file)],
-                        cwd=self._workdir,
+                        cwd=self.workdir,
                         capture_output=True,
                         text=True,
                         timeout=30,

@@ -85,7 +85,7 @@ class NotebookEditTool(BaseTool):
                     new_source.split("\n") if isinstance(old_source, list)
                     else new_source
                 )
-                return f"Replaced cell {cell_index} in {path}\nNew source:\n```\n{new_source[:500]}\n```"
+                summary = f"Replaced cell {cell_index} in {path}\nNew source:\n```\n{new_source[:500]}\n```"
 
             elif edit_mode == "insert":
                 if new_source is None:
@@ -101,7 +101,7 @@ class NotebookEditTool(BaseTool):
                     cells.insert(cell_index + 1, new_cell)
                 else:
                     cells.append(new_cell)
-                return f"Inserted new {cell_type} cell at position {cell_index + 1 if cell_index is not None else len(cells)}"
+                summary = f"Inserted new {cell_type} cell at position {cell_index + 1 if cell_index is not None else len(cells)}"
 
             elif edit_mode == "delete":
                 if cell_index is None:
@@ -110,17 +110,19 @@ class NotebookEditTool(BaseTool):
                     return f"Error: cell_index {cell_index} out of range (0-{len(cells)-1})"
                 deleted = cells.pop(cell_index)
                 deleted_preview = str(deleted.get("source", ""))[:200]
-                return f"Deleted cell {cell_index}: {deleted_preview}..."
+                summary = f"Deleted cell {cell_index}: {deleted_preview}..."
 
             else:
                 return f"Error: Unknown edit_mode '{edit_mode}'"
 
-            # Save notebook
+            # Persist the mutation to disk (previously unreachable — every branch
+            # returned before this block ran, so edits were silently dropped).
             nb["cells"] = cells
             file_path.write_text(
                 json.dumps(nb, indent=1, ensure_ascii=False),
                 encoding="utf-8",
             )
+            return summary
 
         except json.JSONDecodeError as e:
             return f"Error: Invalid JSON in notebook: {e}"

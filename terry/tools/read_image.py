@@ -96,7 +96,7 @@ class ReadImageTool(BaseTool):
             f"Detail: {detail}\n"
             f"Base64 length: {len(encoded)} chars\n\n"
             f'{{"type": "image", "source": {{"type": "base64", '
-            f'"media_type": "{media_type}", "data": "{encoded[:100]}..."}}}}'
+            f'"media_type": "{media_type}", "data": "{encoded}"}}}}'
         )
 
     def _read_pdf(self, file_path: Path) -> str:

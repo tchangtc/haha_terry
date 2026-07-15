@@ -91,7 +91,7 @@ class TeleportExporter:
                             "tag": cp.get("tag", ""),
                             "timestamp": cp.get("timestamp", ""),
                         })
-                        src = Path(agent.checkpoint_manager._checkpoints_dir) / cp.get("id", "")
+                        src = Path(agent.checkpoint_manager.checkpoints_dir) / cp.get("id", "")
                         if src.exists():
                             dst = cps_dir / cp.get("id", "")
                             if src.is_dir():
@@ -172,7 +172,7 @@ class TeleportImporter:
                 cp_index = json.loads((cps_dir / "index.json").read_text(encoding="utf-8"))
                 for cp in cp_index:
                     src = cps_dir / cp["id"]
-                    dst = agent.checkpoint_manager._checkpoints_dir / cp["id"]
+                    dst = agent.checkpoint_manager.checkpoints_dir / cp["id"]
                     if src.exists() and not dst.exists():
                         shutil.copytree(src, dst, dirs_exist_ok=True)
                         result["checkpoints"] += 1

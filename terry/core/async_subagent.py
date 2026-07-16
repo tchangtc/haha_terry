@@ -1,4 +1,10 @@
-"""Async SubAgent manager — true asyncio-based sub-agent execution."""
+"""Async SubAgent manager — asyncio-based sub-agent execution.
+
+Concurrency is genuinely async (asyncio.Semaphore caps at max_concurrent,
+default 50). Each sub-agent's synchronous Agent.run() is bridged through
+loop.run_in_executor(); sub-agent tool execution is therefore not itself
+async, only the scheduling and concurrency control are.
+"""
 
 from __future__ import annotations
 

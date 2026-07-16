@@ -1,4 +1,9 @@
-"""Timer tool - Pomodoro and countdown timer."""
+"""Timer tool - Pomodoro and countdown timer (passive registry).
+
+Timers are recorded and persisted, and ``list`` reports any that have elapsed,
+but there is no background thread or notification delivery — the LLM/user must
+poll ``list`` to notice expiry. Active scheduling is out of scope here.
+"""
 
 from __future__ import annotations
 
@@ -12,12 +17,16 @@ from . import BaseTool, tool_registry
 
 
 class TimerTool(BaseTool):
-    """Manage timers and Pomodoro sessions."""
+    """Manage timers and Pomodoro sessions (passive — no background thread)."""
     risk_level = "safe"
     category = "task"
 
     name = "timer"
-    description = "Start timers, Pomodoro sessions, and track time."
+    description = (
+        "Start timers, Pomodoro sessions, and track time. "
+        "Passive: timers are recorded but no notification fires on expiry — "
+        "call the 'list' action to check elapsed timers."
+    )
     input_schema = {
         "type": "object",
         "properties": {

@@ -1,4 +1,11 @@
-"""True async Agent loop with non-blocking ReAct execution."""
+"""Async Agent loop with non-blocking ReAct execution.
+
+The LLM I/O path (async_llm.AsyncLLMClient) is genuinely async via
+httpx.AsyncClient. Tool execution, however, bridges synchronous tools through
+loop.run_in_executor() — most built-in tools use blocking I/O, so true async
+tool execution would require per-tool async rewrites. Streaming tool calls are
+not yet supported (run_stream returns after the first response).
+"""
 
 from __future__ import annotations
 
@@ -10,10 +17,11 @@ from .text_utils import extract_text
 
 
 class AsyncAgent:
-    """True async agent with asyncio-based ReAct loop.
+    """Async agent with an asyncio-based ReAct loop.
 
-    Unlike the previous implementation that used run_in_executor() to wrap
-    synchronous code, this uses real async/await for all I/O operations.
+    LLM calls are truly async (httpx.AsyncClient). Synchronous tools run via
+    loop.run_in_executor() so they don't block the event loop, though they are
+    not themselves async.
     """
 
     def __init__(

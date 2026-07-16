@@ -1,4 +1,10 @@
-"""Reminder tool - manage reminders and schedules."""
+"""Reminder tool - manage reminders and schedules (passive registry).
+
+Reminders are parsed and persisted, but there is no background thread or
+notification delivery — nothing fires at the scheduled time. The LLM/user must
+poll the 'list' action to surface due reminders. Active scheduling is out of
+scope here.
+"""
 
 from __future__ import annotations
 
@@ -11,12 +17,16 @@ from . import BaseTool, tool_registry
 
 
 class ReminderTool(BaseTool):
-    """Manage reminders and schedules."""
+    """Manage reminders and schedules (passive — no background thread)."""
     risk_level = "safe"
     category = "task"
 
     name = "reminder"
-    description = "Create, list, and manage reminders. Supports one-time and recurring reminders."
+    description = (
+        "Create, list, and manage reminders. Supports one-time and recurring reminders. "
+        "Passive: reminders are stored but never fire on their own — call 'list' "
+        "to surface reminders whose time has passed."
+    )
     input_schema = {
         "type": "object",
         "properties": {

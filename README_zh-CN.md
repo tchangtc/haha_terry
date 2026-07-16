@@ -55,7 +55,7 @@
 - **v0.9.0** — **设计系统** 统一配色体系。**Textual TUI** 多面板布局与 Vim 键位。**语音模式** Web Speech API。**WebUI** 代码高亮与动画。
 - **v0.8.0** — **Agentic Task Loop** 自动规划执行与进度追踪。**Session Teleportation** 跨机器会话迁移。**Skill Marketplace** 社区技能市场。**Slash Command 工具** LLM 驱动 CLI 交互。
 - **v0.7.0** — **Workflow Script DSL** Python 流式 API。**多层子代理** 5 级递归。**Agent View** 仪表盘实时监控。**Ultrareview** 4 维度对抗审查。**Routines** Webhook + API 触发。
-- **v0.6.0** — **1M 上下文窗口**。**Effort 等级** (`/effort low|medium|high|xhigh`)。**Auto 模式分类器** 智能权限。**`/doctor` 诊断** 7 项检查。
+- **v0.6.0** — **1M 压缩预算**（触发渐进式上下文压缩的 token 阈值，非发送给模型的上下文窗口）。**Effort 等级** (`/effort low|medium|high|xhigh`)。**Auto 模式分类器** 智能权限。**`/doctor` 诊断** 7 项检查。
 - **v0.5.0** — **交互式 Rewind UI** 带 diff 预览。**Settings 热重载** 免重启迭代。**Background Tasks 管理** 统一 `/tasks` 监控。**`/goal` 命令** 目标驱动自主循环 + 评估器评分。
 - **v0.4.0** — **自进化 Agent** 自动从工作流中学习并创建技能。**MiniMax** 及动态供应商支持。**CJK 分词估算**。**类型化工具错误** 提升自修正能力。
 - **v0.3.0** — **Git 工作流工具**、**向量记忆**、**4 层上下文压缩**、**AutoHealer** 自愈、**安全中间件**。

@@ -1,7 +1,9 @@
-"""Async Harness — true asyncio-based orchestration layer.
+"""Async Harness — asyncio-based orchestration layer.
 
-Replaces threading-based HarnessEngine with asyncio for true concurrency.
-Supports all 8 orchestration patterns with real async execution.
+Replaces threading-based HarnessEngine with asyncio for concurrency.
+Supports all 8 orchestration patterns. Sub-agent runs bridge synchronous
+Agent.run() calls through loop.run_in_executor(); the orchestration and LLM
+I/O are genuinely async, but the sub-agent tool execution itself is not.
 """
 
 from __future__ import annotations

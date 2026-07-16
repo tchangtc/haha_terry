@@ -11,7 +11,7 @@
 > **v0.9.0**: design system, Textual TUI, voice mode, WebUI polish
 > **v0.8.0**: Agentic Task Loop, session teleportation, skill marketplace
 > **v0.7.0**: workflow scripts, multi-tier subagents, Agent View, ultrareview
-> **v0.6.0**: 1M context window, effort levels, auto classifier, /doctor diagnostics
+> **v0.6.0**: 1M compaction budget (compression threshold, not a provider-side context window), effort levels, auto classifier, /doctor diagnostics
 > **v0.5.0**: Interactive Rewind UI, settings hot-reload, background task management, `/goal` autonomous loop.
 > **v0.4.0**: Self-evolving agent (SkillAutoCreator), typed tool errors (ToolError hierarchy), composable prompt chunks (PromptComposer), MiniMax provider, CJK-aware token estimation, dynamic provider registration.
 
